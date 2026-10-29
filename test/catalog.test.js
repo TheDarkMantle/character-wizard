@@ -21,6 +21,43 @@ const catalog = (packs, settings = () => ({})) => new CompendiumCatalog({
   packs: () => packs, settings, warn: () => {}
 });
 
+// Model the server's nested projection, including the source field indexed by D&D5e.
+function indexProjection(fields) {
+  const projection = {};
+  for (const path of new Set(["name", "img", "type", "system.source", ...fields])) {
+    const keys = path.split(".");
+    const last = keys.pop();
+    let node = projection;
+    for (const key of keys) {
+      if (!(key in node)) node[key] = {};
+      node = node[key];
+    }
+    if (!(last in node)) node[last] = 1;
+  }
+  return projection;
+}
+
+test("D&D5e source projection loads both editions without parent/child field collisions", async () => {
+  assert.throws(() => indexProjection(["system.source.rules"]), /Cannot use 'in' operator/);
+  let calls = 0;
+  const source = pack([item("2014"), item("2024", { _id: "modern" })], {
+    getIndex: async ({ fields }) => {
+      calls++;
+      const projection = indexProjection(fields);
+      assert.equal(projection.system.source, 1);
+      return [item("2014"), item("2024", { _id: "modern" })];
+    }
+  });
+  const api = catalog([source]);
+  for (const ruleset of ["2014", "2024"]) {
+    const result = await api.discover({ ruleset });
+    assert.deepEqual(result.unavailable, []);
+    assert.equal(result.items.length, 1);
+    assert.equal(result.items[0].system.source.rules, ruleset);
+  }
+  assert.equal(calls, 2);
+});
+
 test("both editions reject backgrounds from the other edition and unknown editions", () => {
   for (const rules of ["2014", "2024"]) {
     assert.equal(isEligible(item(rules), rules), true);

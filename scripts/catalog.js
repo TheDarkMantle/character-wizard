@@ -1,6 +1,8 @@
 import { CONTENT_TYPES, contentRules, isEligible, requireRuleset } from "./rules.js";
 
-const INDEX_FIELDS = ["type", "system.source.rules", "system.source.book", "system.source.custom", "system.identifier", "system.classIdentifier"];
+// D&D5e already indexes system.source. Request the parent object, not its children:
+// Foundry's database projection cannot combine source: 1 with source.rules: 1.
+const INDEX_FIELDS = ["type", "system.source"];
 
 export class CompendiumCatalog {
   constructor({ packs, settings, warn = console.warn }) {

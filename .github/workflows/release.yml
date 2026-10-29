@@ -1,0 +1,29 @@
+name: Publish module assets
+on:
+  release:
+    types: [published]
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm test
+      - name: Validate release metadata
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: node tools/validate-release.mjs "$RELEASE_TAG"
+      - run: npm run package
+      - name: Upload manifest and module ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" dist/module.json dist/character-wizard-*.zip --clobber

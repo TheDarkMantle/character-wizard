@@ -23,6 +23,18 @@ Discover accessible Item compendiums belonging to the world, system, and active 
 
 The catalog covers species (`race` in the system), backgrounds, classes, subclasses, feats, spells, and equipment. Discovery does not establish mechanical eligibility: class prerequisites, subclass timing, spell lists, advancement grants, and equipment choices still need the D&D5e integration layer.
 
+## Install and update
+
+In Foundry Setup, open **Add-on Modules → Install Module** and paste this Manifest URL:
+
+```text
+https://github.com/TheDarkMantle/character-wizard/releases/latest/download/module.json
+```
+
+Enable Character Wizard in your world's **Manage Modules** window. Later releases use the same manifest URL; use Foundry's module update button to get them.
+
+This is an early interface testing build, with draft selection and descriptions. It does not create actors yet.
+
 ## Development
 
 Use Node.js 22 or later. Foundry provides the runtime APIs and Handlebars. The development preview uses Handlebars as a development dependency.
@@ -51,12 +63,14 @@ GM settings currently use the Foundry settings API; a settings UI is planned. Do
 3. D&D5e advancement integration and validation, including grants that reference another edition.
 4. Safe actor creation after review, with cancellation and recovery behavior.
 5. Live tests for both editions, mixed packs, missing metadata, player permissions, and homebrew.
-6. GitHub release packaging with `module.json`, a module ZIP, and stable manifest/download URLs.
+6. Continue publishing versioned module ZIPs and manifests through GitHub releases.
 7. Later: level up, multiclassing, and separately designed cross-edition options.
 
 Source: [TheDarkMantle/character-wizard](https://github.com/TheDarkMantle/character-wizard). Licensed under the [MIT License](LICENSE).
 
-The local manifest intentionally omits installation and update URLs until a downloadable GitHub release exists.
+## Publishing releases
+
+Update the version in `module.json`, `package.json`, and the lockfile; update the manifest's download URL to the matching versioned ZIP. Keep the manifest URL unchanged. Commit these changes, then publish a GitHub release with a matching tag such as `v0.1.0`. The release workflow tests the tagged code, checks metadata, packages the module, and attaches `module.json` plus the ZIP automatically. Mark regular testing releases as the latest release to keep Foundry's stable installation URL current. Wait for the workflow to succeed before sharing a release.
 
 ## References
 

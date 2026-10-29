@@ -4,6 +4,8 @@ A Foundry VTT module for guided D&D 5e character creation. Both 2014 and 2024 ru
 
 ## Current state
 
+The interface uses Foundry's native ApplicationV2 window, horizontal step tabs, standard form controls, and inherited light/dark theme. Module CSS supplies layout only, with no custom palette, fonts, branded sidebar, or replacement control styling.
+
 The first interface supports rules and identity, species, background, class, provisional feat browsing, and draft review/export. Select an entry to read its description, then choose it for your draft. Backgrounds and feats show the entry's full description; classes show a short excerpt with a button to open the full compendium document. Duplicate entries remain separate, labelled with edition, source book when provided, and compendium name. No SRD version is guessed when metadata is missing.
 
 Actor creation, mechanical eligibility, ability scores, subclass selection, and advancement choices are not implemented yet. Compatibility targets Foundry 14 and D&D5e 6.0.6; live module validation is pending. No verified compatibility is claimed in the manifest.
@@ -44,6 +46,8 @@ npm ci
 npm test
 npm run preview
 ```
+
+The standalone preview is a development harness, not a replacement Foundry application. Set `FOUNDRY_PREVIEW_URL` to your running Foundry server's base URL to load its actual core stylesheet (for example, `FOUNDRY_PREVIEW_URL=http://localhost:30000 npm run preview`). Without that stylesheet, the harness is intentionally unstyled. The preview uses sample content and does not connect to world data.
 
 For local testing, copy `module.json`, `LICENSE`, and the `scripts`, `styles`, and `templates` folders into `Data/modules/character-wizard`, restart Foundry, and enable Character Wizard. Open it from the Actors directory's **Character Wizard** button or **Configure Settings → Character Wizard → Open Character Wizard**. A console API is also available:
 

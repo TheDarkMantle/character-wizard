@@ -7,7 +7,7 @@ export class CharacterWizard extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     classes: ["character-wizard"],
     window: { title: "Character Wizard", resizable: true },
-    position: { width: 1040, height: 760 },
+    position: { width: 800, height: 680 },
     actions: {
       step: CharacterWizard.onStep,
       next: CharacterWizard.onNext,
@@ -50,6 +50,7 @@ export class CharacterWizard extends HandlebarsApplicationMixin(ApplicationV2) {
       title: s.short, ...this.choices.get(s.id), step: s.id, chosen: this.choices.has(s.id)
     }));
     return {
+      appId: this.id,
       step, steps: STEPS.map((s, i) => ({ ...s, number: i + 1, active: i === this.stepIndex, done: this.choices.has(s.id) })),
       isRules: step.id === "rules", isReview: step.id === "review", isBrowse: !["rules", "review"].includes(step.id),
       is2014: this.draft.ruleset === "2014", is2024: this.draft.ruleset === "2024", ruleset: this.draft.ruleset,
@@ -66,6 +67,14 @@ export class CharacterWizard extends HandlebarsApplicationMixin(ApplicationV2) {
     super._onRender(context, options);
     this.element.querySelector('[name="characterName"]')?.addEventListener("input", event => {
       this.characterName = event.target.value;
+    });
+    this.element.querySelector('[name="ruleset"]')?.addEventListener("change", event => {
+      void CharacterWizard.onEdition.call(this, null, { dataset: { ruleset: event.target.value } });
+    });
+    this.element.querySelectorAll('.cw-tabs [role="button"]').forEach(tab => {
+      tab.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); tab.click(); }
+      });
     });
     const search = this.element.querySelector('[name="search"]');
     search?.addEventListener("input", async event => {

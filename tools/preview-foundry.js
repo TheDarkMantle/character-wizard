@@ -1,5 +1,6 @@
 // Development-only adapter. The packaged module uses Foundry's real ApplicationV2.
 class PreviewApplication {
+  constructor() { this.id = "character-wizard-preview"; }
   async render() {
     const context = await this._prepareContext();
     const source = await fetch("/modules/character-wizard/templates/wizard.hbs").then(r => r.text());
@@ -55,7 +56,7 @@ for (const rules of ["2014", "2024"]) {
         return { ...data, toObject: () => data, sheet: { render: async () => {
           document.querySelector(".preview-document")?.remove();
           const panel = document.createElement("section");
-          panel.className = "preview-document";
+          panel.className = "application preview-document standard-form";
           panel.setAttribute("role", "dialog");
           panel.setAttribute("aria-label", "Full compendium entry");
           const close = document.createElement("button");
@@ -73,3 +74,7 @@ const { CompendiumCatalog } = await import("/modules/character-wizard/scripts/ca
 const { CharacterWizard } = await import("/modules/character-wizard/scripts/wizard.js");
 const catalog = new CompendiumCatalog({ packs: () => packs, settings: () => ({}) });
 await new CharacterWizard({ catalog }).render({ force: true });
+
+document.querySelector("#preview-theme").addEventListener("change", event => {
+  document.body.className = `theme-${event.target.value}`;
+});

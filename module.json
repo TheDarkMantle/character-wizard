@@ -1,0 +1,15 @@
+{
+  "id": "character-wizard",
+  "title": "Character Wizard",
+  "description": "A guided D&D 5e character builder with dynamic compendium discovery and separate 2014 and 2024 rules.",
+  "version": "0.1.0",
+  "url": "https://github.com/TheDarkMantle/character-wizard",
+  "bugs": "https://github.com/TheDarkMantle/character-wizard/issues",
+  "license": "LICENSE",
+  "authors": [{ "name": "Shawn" }],
+  "compatibility": { "minimum": "14", "maximum": "14" },
+  "relationships": {
+    "systems": [{ "id": "dnd5e", "type": "system", "compatibility": { "minimum": "6.0.6", "maximum": "6.0.6" } }]
+  },
+  "esmodules": ["scripts/main.js"]
+}

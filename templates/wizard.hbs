@@ -1,0 +1,70 @@
+<div class="cw-shell">
+  <aside class="cw-sidebar" aria-label="Character creation steps">
+    <div class="cw-brand"><span class="cw-sigil" aria-hidden="true">✦</span><div>CHARACTER<br><strong>WIZARD</strong></div></div>
+    <p class="cw-kicker">A NEW ADVENTURE</p>
+    <nav class="cw-steps">
+      {{#each steps}}
+      <button type="button" class="cw-step {{#if active}}is-active{{/if}}" data-action="step" data-step="{{id}}" {{#if active}}aria-current="step"{{/if}} {{#if ../busy}}disabled{{/if}}>
+        <span class="cw-step-number">{{#if done}}✓{{else}}{{number}}{{/if}}</span><span>{{short}}</span>
+      </button>
+      {{/each}}
+    </nav>
+    <div class="cw-sidebar-note"><span class="cw-kicker">YOUR RULESET</span><strong>D&D {{ruleset}}</strong><p>Choices stay within your selected edition.</p></div>
+  </aside>
+  <main class="cw-main">
+    <header class="cw-heading"><p class="cw-kicker">CHARACTER CREATION · D&D {{ruleset}}</p><h1>{{step.title}}</h1><p>{{step.hint}}</p></header>
+    {{#if error}}<p class="cw-notice cw-error" role="alert">{{error}}</p>{{/if}}
+    {{#if isRules}}
+    <section class="cw-begin">
+      <label class="cw-field">Character name <span class="cw-muted">(you can decide later)</span><input name="characterName" type="text" value="{{characterName}}" placeholder="What will they call you?" maxlength="120"></label>
+      <h2>Choose your rules</h2><p>Pick the edition your group plays. Species, backgrounds, classes, and feats will follow the same rules.</p>
+      <div class="cw-editions">
+        <button type="button" data-action="edition" data-ruleset="2014" class="cw-edition {{#if is2014}}is-active{{/if}}" aria-pressed="{{is2014}}"><span class="cw-kicker">THE ORIGINAL FIFTH EDITION</span><strong>2014</strong><span>Build with 2014 content.</span>{{#if is2014}}<b>Selected ✓</b>{{/if}}</button>
+        <button type="button" data-action="edition" data-ruleset="2024" class="cw-edition {{#if is2024}}is-active{{/if}}" aria-pressed="{{is2024}}"><span class="cw-kicker">THE REVISED FIFTH EDITION</span><strong>2024</strong><span>Build with 2024 content.</span>{{#if is2024}}<b>Selected ✓</b>{{/if}}</button>
+      </div>
+      <p class="cw-notice">Changing your ruleset clears your previous content choices. Your character name stays.</p>
+    </section>
+    {{/if}}
+    {{#if isBrowse}}
+    <section class="cw-browser">
+      <div class="cw-toolbar"><label class="cw-search"><span class="cw-sr-only">Search choices</span><input name="search" type="search" value="{{query}}" placeholder="Search by name or source…"></label><button type="button" data-action="refresh" class="cw-refresh" {{#if busy}}disabled{{/if}} title="Refresh compendium choices"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div>
+      {{#if busy}}<p role="status" class="cw-notice">Loading compendium choices…</p>{{/if}}
+      {{#if unavailable}}<p class="cw-notice" role="status">Some compendiums could not be read: {{unavailable}}. Try Refresh.</p>{{/if}}
+      {{#if unclassified}}<p class="cw-source-note">{{unclassified}} entries have no recognized edition and are hidden until designated by the GM.</p>{{/if}}
+      <div class="cw-columns">
+        <section class="cw-results" aria-label="Available choices"><p class="cw-count">{{count}} CHOICES · ALL SOURCES</p>
+          <div class="cw-list">
+          {{#each items}}
+            <button type="button" class="cw-choice {{#if active}}is-active{{/if}}" data-action="preview" data-uuid="{{uuid}}" aria-pressed="{{active}}" {{#if ../busy}}disabled{{/if}}><span class="cw-choice-name">{{label}}</span><span class="cw-choice-source">{{sourceLabel}}</span>{{#if selected}}<span class="cw-chosen">Selected ✓</span>{{/if}}</button>
+          {{else}}
+            {{#unless busy}}<div class="cw-empty"><h3>No matching choices</h3><p>Try a different search. Check that accessible compendiums contain {{ruleset}} content for this step.</p></div>{{/unless}}
+          {{/each}}
+          </div>
+        </section>
+        <section class="cw-details" aria-label="Choice description" aria-live="polite">
+        {{#if preview}}
+          <p class="cw-kicker">{{preview.sourceLabel}}</p><h2>{{preview.label}}</h2>
+          {{#if preview.loading}}<p role="status">Loading description…</p>{{else}}
+            {{#if preview.noDescription}}<p class="cw-muted">This entry has no description. Open the full entry to inspect its features.</p>{{else}}
+              {{#if preview.isClass}}<p class="cw-description">{{preview.summary}}</p>{{else}}<div class="cw-description">{{{preview.html}}}</div>{{/if}}
+            {{/if}}
+            <button type="button" class="cw-link" data-action="full">Read full {{#if preview.isClass}}class description{{else}}entry{{/if}} <span aria-hidden="true">↗</span></button>
+            <button type="button" class="cw-primary cw-use" data-action="choose" {{#if busy}}disabled{{/if}}>{{#if previewSelected}}Selected ✓{{else}}Choose this option{{/if}}</button>
+          {{/if}}
+        {{else}}
+          <div class="cw-detail-empty"><span aria-hidden="true">✧</span><h2>Find your story</h2><p>Select an option to read its description.<br>Your choices are yours to explore.</p></div>
+        {{/if}}
+        </section>
+      </div>
+    </section>
+    {{/if}}
+    {{#if isReview}}
+    <section class="cw-review"><h2>{{#if characterName}}{{characterName}}{{else}}An adventurer in the making{{/if}}</h2><p class="cw-muted">D&D {{ruleset}} · Character draft</p>
+      {{#each summary}}<div class="cw-summary-row"><div><span class="cw-kicker">{{title}}</span><strong>{{#if chosen}}{{label}}{{else}}Not chosen{{/if}}</strong>{{#if chosen}}<span class="cw-muted">{{sourceLabel}}</span>{{/if}}</div><div class="cw-row-actions"><button type="button" data-action="step" data-step="{{step}}">{{#if chosen}}Change{{else}}Browse{{/if}}</button>{{#if chosen}}<button type="button" data-action="full" data-uuid="{{uuid}}">Read</button><button type="button" data-action="clear" data-step="{{step}}" aria-label="Remove {{title}}">Remove</button>{{/if}}</div></div>{{/each}}
+      <p class="cw-notice">Save your selections as a draft. Ability scores, grants, prerequisites, spells, equipment, and actor creation are still to come. Feat selections are provisional.</p>
+      <button type="button" class="cw-primary" data-action="save">Save draft to file</button>
+    </section>
+    {{/if}}
+    <footer class="cw-footer"><button type="button" data-action="back" {{#unless canBack}}disabled{{/unless}} {{#if busy}}disabled{{/if}}>← Back</button><span>Explore freely. Review before creating.</span>{{#unless isReview}}<button type="button" class="cw-primary" data-action="next" {{#unless canNext}}disabled{{/unless}}>{{nextLabel}} →</button>{{/unless}}</footer>
+  </main>
+</div>

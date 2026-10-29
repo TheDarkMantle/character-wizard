@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test", "package": "node tools/package.mjs" },
-  "engines": { "node": ">=22" }
+  "scripts": {
+    "test": "node --test",
+    "package": "node tools/package.mjs",
+    "preview": "node tools/preview.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "handlebars": "^4.7.10"
+  }
 }

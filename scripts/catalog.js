@@ -1,6 +1,6 @@
 import { CONTENT_TYPES, contentRules, isEligible, requireRuleset } from "./rules.js";
 
-const INDEX_FIELDS = ["type", "system.source.rules", "system.source.book", "system.identifier", "system.classIdentifier"];
+const INDEX_FIELDS = ["type", "system.source.rules", "system.source.book", "system.source.custom", "system.identifier", "system.classIdentifier"];
 
 export class CompendiumCatalog {
   constructor({ packs, settings, warn = console.warn }) {
@@ -31,6 +31,7 @@ export class CompendiumCatalog {
           };
           if (!contentRules(item, designations)) unclassified++;
           if (!isEligible(item, ruleset, designations)) continue;
+          item.ruleset = contentRules(item, designations);
           if (query && !`${item.name} ${item.packLabel}`.toLocaleLowerCase().includes(query)) continue;
           results.push(item);
         }

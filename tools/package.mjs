@@ -10,6 +10,8 @@ await rm(stage, { recursive: true, force: true });
 await mkdir(stage, { recursive: true });
 await copyFile(resolve(root, "module.json"), resolve(stage, "module.json"));
 await cp(resolve(root, "scripts"), resolve(stage, "scripts"), { recursive: true });
+await cp(resolve(root, "templates"), resolve(stage, "templates"), { recursive: true });
+await cp(resolve(root, "styles"), resolve(stage, "styles"), { recursive: true });
 await copyFile(resolve(root, "README.md"), resolve(stage, "README.md"));
 await copyFile(resolve(root, "LICENSE"), resolve(stage, "LICENSE"));
 const zip = resolve(root, "dist", `${manifest.id}-${manifest.version}.zip`);

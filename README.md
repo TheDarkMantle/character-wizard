@@ -4,7 +4,9 @@ A Foundry VTT module for guided D&D 5e character creation. Both 2014 and 2024 ru
 
 ## Current state
 
-Development scaffold: manifest, dynamic compendium catalog, strict rules policy, draft selection state, and automated tests. There is no player wizard UI or actor creation yet. Compatibility targets Foundry 14 and D&D5e 6.0.6; live module validation is pending. No verified compatibility is claimed in the manifest.
+The first interface supports rules and identity, species, background, class, provisional feat browsing, and draft review/export. Select an entry to read its description, then choose it for your draft. Backgrounds and feats show the entry's full description; classes show a short excerpt with a button to open the full compendium document. Duplicate entries remain separate, labelled with edition, source book when provided, and compendium name. No SRD version is guessed when metadata is missing.
+
+Actor creation, mechanical eligibility, ability scores, subclass selection, and advancement choices are not implemented yet. Compatibility targets Foundry 14 and D&D5e 6.0.6; live module validation is pending. No verified compatibility is claimed in the manifest.
 
 ## Rules policy
 
@@ -23,16 +25,19 @@ The catalog covers species (`race` in the system), backgrounds, classes, subclas
 
 ## Development
 
-Use Node.js 22 or later. No dependencies are required.
+Use Node.js 22 or later. Foundry provides the runtime APIs and Handlebars. The development preview uses Handlebars as a development dependency.
 
 ```sh
+npm ci
 npm test
+npm run preview
 ```
 
-For local testing, copy the manifest and `scripts` folder into `Data/modules/character-wizard`, restart Foundry, and enable Character Wizard. The scaffold currently exposes a console API:
+For local testing, copy `module.json`, `LICENSE`, and the `scripts`, `styles`, and `templates` folders into `Data/modules/character-wizard`, restart Foundry, and enable Character Wizard. Open it from the Actors directory's **Character Wizard** button or **Configure Settings → Character Wizard → Open Character Wizard**. A console API is also available:
 
 ```js
 const api = game.modules.get("character-wizard").api;
+api.open();
 const result = await api.catalog.discover({ ruleset: "2024", type: "background" });
 const draft = api.createDraft("2024");
 ```
@@ -41,8 +46,8 @@ GM settings currently use the Foundry settings API; a settings UI is planned. Do
 
 ## Next implementation milestones
 
-1. GM content-source settings and edition designation UI.
-2. ApplicationV2 wizard: rules, identity, origins, class, abilities, choices, spells/equipment, review.
+1. GM content-source settings, duplicate preferences, and edition designation UI.
+2. Expand the wizard with ability scores, subclass timing, advancement choices, and spells/equipment.
 3. D&D5e advancement integration and validation, including grants that reference another edition.
 4. Safe actor creation after review, with cancellation and recovery behavior.
 5. Live tests for both editions, mixed packs, missing metadata, player permissions, and homebrew.

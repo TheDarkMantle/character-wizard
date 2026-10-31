@@ -197,7 +197,14 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.#setStep(Number(target.dataset.index));
   }
 
+  /**
+   * Next: if an option is highlighted but "Choose" wasn't clicked, take it as the choice.
+   * (Only the Next button does this — jumping via the step list leaves picks untouched.)
+   */
   static #onNext() {
+    if ( (this.step in PICKER_STEPS) && this.focused && (this.focused !== this.draft.picks[this.step]?.uuid) ) {
+      this.#pick(this.focused);
+    }
     this.#setStep(this.stepIndex + 1);
   }
 
@@ -211,10 +218,18 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
   }
 
   static #onChoose(event, target) {
-    const uuid = target.dataset.uuid;
-    const entry = this.catalogData.byType[PICKER_STEPS[this.step]].find(e => e.uuid === uuid);
-    if ( !entry ) return;
+    if ( this.#pick(target.dataset.uuid) ) this.render();
+  }
+
+  /**
+   * Record a pick for the current step.
+   * @param {string} uuid
+   * @returns {boolean} Whether the pick was valid.
+   */
+  #pick(uuid) {
+    const entry = this.catalogData.byType[PICKER_STEPS[this.step]]?.find(e => e.uuid === uuid);
+    if ( !entry ) return false;
     this.draft.picks[this.step] = { uuid, name: entry.name, identifier: entry.identifier };
-    this.render();
+    return true;
   }
 }

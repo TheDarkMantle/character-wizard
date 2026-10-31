@@ -1,8 +1,13 @@
 @layer modules {
   /* Launch button in the Actors sidebar */
   .charwiz-launch {
-    flex: 0 0 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    white-space: nowrap;
   }
+  .charwiz-launch span { display: inline; }
 
   /* Banner on empty character sheets */
   .charwiz-banner {

@@ -21,17 +21,30 @@ export function openForActor(actor) {
   ui.notifications.info("CHARWIZ.Notify.LevelUpLater", { localize: true });
 }
 
-/** Add the wizard button to the Actors sidebar header. */
+/**
+ * Add the wizard button to the Actors sidebar header.
+ * Matches core's own header buttons (icon + <span> label inside .header-actions) so it picks up their styling.
+ */
 function onRenderActorDirectory(app, html) {
   if ( !canUseWizard() ) return;
   const header = html.querySelector(".directory-header");
   if ( !header || header.querySelector(".charwiz-launch") ) return;
+  const label = game.i18n.localize("CHARWIZ.Launch");
   const button = document.createElement("button");
   button.type = "button";
   button.className = "charwiz-launch";
-  button.innerHTML = `<i class="fa-solid fa-hat-wizard" inert></i> ${game.i18n.localize("CHARWIZ.Launch")}`;
+  button.dataset.tooltip = label;
+  button.setAttribute("aria-label", label);
+  const icon = document.createElement("i");
+  icon.className = "fa-solid fa-hat-wizard";
+  icon.setAttribute("inert", "");
+  const span = document.createElement("span");
+  span.textContent = label;
+  button.append(icon, span);
   button.addEventListener("click", () => game.modules.get(MODULE_ID).api.open());
-  header.append(button);
+  const actions = header.querySelector(".header-actions");
+  if ( actions ) actions.append(button);
+  else header.prepend(button);
 }
 
 /** Add a "Character Wizard" entry to the character sheet's header controls menu. */

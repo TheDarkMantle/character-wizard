@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- Fixed the Actors sidebar button showing no label on Foundry v14: it now uses the same structure as core's header buttons.
+- Clicking Next on the Class, Species or Background step now chooses the highlighted option if you forgot to click Choose. Jumping to another step from the step list doesn't.
+
 ## 0.2.0 — Rebuild
 
 Complete rewrite.

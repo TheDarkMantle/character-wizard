@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+- Subclass choices now appear in the class choices step when a class grants its subclass at level 1 (2014 Cleric, Sorcerer, Warlock). Options follow the world's rules and the GM's blocked subclasses.
+- A choice with no available options no longer blocks Next; it's listed on Review as not handled yet.
+- Still untested in Foundry.
+
 ## 0.2.2
 
 - New choice steps: after you pick a class, species or background that asks for decisions (fighting style, skills, tools, weapon mastery, primal order, draconic ancestry and so on), a "Class choices", "Species choices" or "Background choices" step appears. Next stays disabled until every pick is made, and Review lists them.

@@ -1,0 +1,17 @@
+<section class="tab {{tab.cssClass}}" data-tab="species" data-group="main">
+  <p class="hint">{{localize "CHARWIZ.Settings.Content.SpeciesHint"}}</p>
+  <ul class="charwiz-allow-list">
+    {{#each species}}
+    <li>
+      <label>
+        <input type="checkbox" data-block-key="{{key}}" {{checked allowed}}>
+        <img src="{{img}}" alt="" width="24" height="24">
+        <span class="name">{{name}}</span>
+        <span class="meta">{{packLabel}}</span>
+      </label>
+    </li>
+    {{else}}
+    <li class="charwiz-empty">{{localize "CHARWIZ.Settings.Content.NoSpecies"}}</li>
+    {{/each}}
+  </ul>
+</section>

@@ -1,0 +1,27 @@
+<section class="tab {{tab.cssClass}}" data-tab="sources" data-group="main">
+  <p class="hint">{{localize "CHARWIZ.Settings.Content.SourcesHint" rules=rules}}</p>
+  {{#if unavailable.length}}
+  <p class="notification warning">{{localize "CHARWIZ.Settings.Content.Unavailable"}} {{#each unavailable}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</p>
+  {{/if}}
+  <ol class="charwiz-pack-list">
+    {{#each packs}}
+    <li class="charwiz-pack {{#unless enabled}}disabled{{/unless}}">
+      <span class="charwiz-pack-rank">{{rank}}</span>
+      <label class="charwiz-pack-label">
+        <input type="checkbox" data-pack-id="{{id}}" {{checked enabled}}>
+        <span class="name">{{label}}</span>
+        <span class="meta">{{source}} · {{count}}</span>
+      </label>
+      <span class="charwiz-pack-move">
+        <button type="button" class="icon fa-solid fa-arrow-up" data-action="movePack" data-index="{{index}}"
+          data-direction="up" aria-label="{{localize 'CHARWIZ.Settings.Content.MoveUp'}}" {{disabled first}}></button>
+        <button type="button" class="icon fa-solid fa-arrow-down" data-action="movePack" data-index="{{index}}"
+          data-direction="down" aria-label="{{localize 'CHARWIZ.Settings.Content.MoveDown'}}" {{disabled last}}></button>
+      </span>
+    </li>
+    {{else}}
+    <li class="charwiz-empty">{{localize "CHARWIZ.Settings.Content.NoPacks"}}</li>
+    {{/each}}
+  </ol>
+  <button type="button" data-action="rescan"><i class="fa-solid fa-rotate" inert></i> {{localize "CHARWIZ.Settings.Content.Rescan"}}</button>
+</section>

@@ -1,21 +1,31 @@
-import { readFile, mkdir, rm, copyFile, cp } from "node:fs/promises";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { execFileSync } from "node:child_process";
+/**
+ * Build dist/module.zip and dist/module.json for a GitHub release.
+ * Usage: node tools/package.mjs [tag]   (tag like v0.2.0 must match module.json version)
+ */
+import { createWriteStream, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import archiver from "archiver";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const manifest = JSON.parse(await readFile(resolve(root, "module.json"), "utf8"));
-const stage = resolve(root, "dist", manifest.id);
-await rm(stage, { recursive: true, force: true });
-await mkdir(stage, { recursive: true });
-await copyFile(resolve(root, "module.json"), resolve(stage, "module.json"));
-await copyFile(resolve(root, "module.json"), resolve(root, "dist", "module.json"));
-await cp(resolve(root, "scripts"), resolve(stage, "scripts"), { recursive: true });
-await cp(resolve(root, "templates"), resolve(stage, "templates"), { recursive: true });
-await cp(resolve(root, "styles"), resolve(stage, "styles"), { recursive: true });
-await copyFile(resolve(root, "README.md"), resolve(stage, "README.md"));
-await copyFile(resolve(root, "LICENSE"), resolve(stage, "LICENSE"));
-const zip = resolve(root, "dist", `${manifest.id}-${manifest.version}.zip`);
-await rm(zip, { force: true });
-execFileSync("zip", ["-qr", zip, manifest.id], { cwd: resolve(root, "dist") });
-console.log(zip);
+const manifest = JSON.parse(readFileSync("module.json", "utf8"));
+const tag = process.argv[2];
+if ( tag && tag !== `v${manifest.version}` ) {
+  console.error(`Tag ${tag} does not match module.json version ${manifest.version}`);
+  process.exit(1);
+}
+const expected = `https://github.com/TheDarkMantle/character-wizard/releases/download/v${manifest.version}/module.zip`;
+if ( manifest.download !== expected ) {
+  console.error(`module.json "download" should be ${expected}`);
+  process.exit(1);
+}
+
+const INCLUDE = ["module.json", "README.md", "CHANGELOG.md", "LICENSE"];
+const DIRS = ["scripts", "templates", "styles", "lang"];
+
+mkdirSync("dist", { recursive: true });
+writeFileSync("dist/module.json", JSON.stringify(manifest, null, 2));
+const output = createWriteStream("dist/module.zip");
+const zip = archiver("zip", { zlib: { level: 9 } });
+zip.pipe(output);
+for ( const file of INCLUDE ) zip.file(file, { name: file });
+for ( const dir of DIRS ) zip.directory(dir, dir);
+await zip.finalize();
+output.on("close", () => console.log(`dist/module.zip (${zip.pointer()} bytes)`));

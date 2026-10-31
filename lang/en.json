@@ -1,0 +1,80 @@
+{
+  "CHARWIZ": {
+    "Title": "Character Wizard",
+    "Launch": "Character Wizard",
+    "Rules": "{rules} rules",
+    "StepsLabel": "Creation steps",
+    "Steps": {
+      "class": "Class",
+      "species": "Species",
+      "background": "Background",
+      "abilities": "Ability Scores",
+      "equipment": "Equipment",
+      "spells": "Spells",
+      "details": "Details",
+      "review": "Review"
+    },
+    "Search": "Search",
+    "NoOptions": "Nothing matches. Check the wizard's content settings or try another search.",
+    "PickToPreview": "Pick an option on the left to see its details.",
+    "Choose": "Choose",
+    "Chosen": "Chosen",
+    "Back": "Back",
+    "Next": "Next",
+    "Pending": "This step isn't built yet. It's coming in the next version.",
+    "Board": {
+      "Granted": "You get",
+      "Choices": "You choose",
+      "None": "Nothing at this level.",
+      "Choose": "choose {count}",
+      "Native": "uses the system's own dialog"
+    },
+    "Details": {
+      "Name": "Character name"
+    },
+    "Review": {
+      "NotYet": "Creating the character comes in the next version, once the features board is in place."
+    },
+    "Banner": {
+      "Text": "This character has no class yet.",
+      "Button": "Build with the Character Wizard"
+    },
+    "Notify": {
+      "LevelUpLater": "Levelling up from the wizard is coming in a later version."
+    },
+    "Settings": {
+      "Save": "Save",
+      "Saved": "Character Wizard content settings saved.",
+      "Content": {
+        "Name": "Wizard Content",
+        "Label": "Configure content",
+        "Hint": "Choose which compendiums the wizard uses, their priority, and which species and subclasses players can pick.",
+        "Tabs": {
+          "Sources": "Sources",
+          "Species": "Species",
+          "Subclasses": "Subclasses"
+        },
+        "SourcesHint": "Compendiums with D&D content. Unchecked compendiums are ignored. When the same option is in more than one compendium, the one higher in this list wins. This world uses {rules} rules.",
+        "SpeciesHint": "Uncheck a species to hide it from players.",
+        "SubclassesHint": "Uncheck a subclass to hide it from players.",
+        "Unavailable": "These compendiums couldn't be read:",
+        "NoPacks": "No compendiums with classes, species, backgrounds or feats were found.",
+        "NoSpecies": "No species found for this world's rules.",
+        "NoSubclasses": "No subclasses found for this world's rules.",
+        "MoveUp": "Move up",
+        "MoveDown": "Move down",
+        "Rescan": "Rescan compendiums"
+      },
+      "Untagged": {
+        "Name": "Content without a rules version",
+        "Hint": "Some homebrew or older content isn't marked as 2014 or 2024. Choose whether the wizard offers it.",
+        "Show": "Show it under either ruleset",
+        "Hide": "Hide it"
+      },
+      "AllowPlayers": {
+        "Name": "Players can use the wizard",
+        "Hint": "When off, only the GM sees the Character Wizard buttons."
+      }
+    }
+  }
+}

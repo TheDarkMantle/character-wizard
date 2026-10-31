@@ -1,0 +1,89 @@
+<section class="charwiz-body">
+  <h2>{{localize stepLabel}}</h2>
+
+  {{#if isPicker}}
+  <div class="charwiz-picker">
+    <div class="charwiz-list-column">
+      <input type="search" name="query" value="{{query}}" placeholder="{{localize 'CHARWIZ.Search'}}"
+        aria-label="{{localize 'CHARWIZ.Search'}}">
+      <ul class="charwiz-list">
+        {{#each entries}}
+        <li>
+          <button type="button" class="charwiz-entry {{#if focused}}focused{{/if}} {{#if picked}}picked{{/if}}"
+            data-action="focus" data-uuid="{{uuid}}">
+            <img src="{{img}}" alt="" width="36" height="36">
+            <span class="name">{{name}}</span>
+            <span class="meta">{{#if book}}{{book}}{{else}}{{packLabel}}{{/if}}</span>
+            {{#if picked}}<i class="fa-solid fa-circle-check" inert></i>{{/if}}
+          </button>
+        </li>
+        {{else}}
+        <li class="charwiz-empty">{{localize "CHARWIZ.NoOptions"}}</li>
+        {{/each}}
+      </ul>
+    </div>
+
+    <div class="charwiz-preview">
+      {{#if preview}}
+      <header>
+        <img src="{{preview.img}}" alt="" width="64" height="64">
+        <div>
+          <h3>{{preview.name}}</h3>
+          <span class="meta">{{preview.source}}</span>
+        </div>
+        <button type="button" class="charwiz-choose" data-action="choose" data-uuid="{{preview.uuid}}" {{disabled previewPicked}}>
+          {{#if previewPicked}}{{localize "CHARWIZ.Chosen"}}{{else}}{{localize "CHARWIZ.Choose"}}{{/if}}
+        </button>
+      </header>
+
+      <div class="charwiz-board-preview">
+        <section>
+          <h4><i class="fa-solid fa-lock" inert></i> {{localize "CHARWIZ.Board.Granted"}}</h4>
+          <ul>
+            {{#each preview.granted}}
+            <li><strong>{{title}}</strong>{{#if detail}} — {{detail}}{{/if}}</li>
+            {{else}}<li class="charwiz-empty">{{localize "CHARWIZ.Board.None"}}</li>{{/each}}
+          </ul>
+        </section>
+        <section>
+          <h4><i class="fa-solid fa-hand-pointer" inert></i> {{localize "CHARWIZ.Board.Choices"}}</h4>
+          <ul>
+            {{#each preview.choices}}
+            <li><strong>{{title}}</strong> <span class="meta">{{countLabel}}</span>{{#if detail}}<br><span class="pool">{{detail}}</span>{{/if}}</li>
+            {{else}}<li class="charwiz-empty">{{localize "CHARWIZ.Board.None"}}</li>{{/each}}
+            {{#each preview.native}}
+            <li><strong>{{title}}</strong> <span class="meta">{{localize "CHARWIZ.Board.Native"}}</span></li>
+            {{/each}}
+          </ul>
+        </section>
+      </div>
+
+      <div class="charwiz-description">{{{preview.description}}}</div>
+      {{else}}
+      <p class="charwiz-empty">{{localize "CHARWIZ.PickToPreview"}}</p>
+      {{/if}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{#if isPending}}
+  <p class="charwiz-empty">{{localize "CHARWIZ.Pending"}}</p>
+  {{/if}}
+
+  {{#if isDetails}}
+  <div class="form-group">
+    <label for="charwiz-name">{{localize "CHARWIZ.Details.Name"}}</label>
+    <input type="text" id="charwiz-name" name="name" value="{{draft.name}}">
+  </div>
+  {{/if}}
+
+  {{#if isReview}}
+  <dl class="charwiz-summary">
+    <dt>{{localize "CHARWIZ.Details.Name"}}</dt><dd>{{#if draft.name}}{{draft.name}}{{else}}—{{/if}}</dd>
+    {{#each summary}}
+    <dt>{{localize label}}</dt><dd>{{#if name}}{{name}}{{else}}—{{/if}}</dd>
+    {{/each}}
+  </dl>
+  <p class="hint">{{localize "CHARWIZ.Review.NotYet"}}</p>
+  {{/if}}
+</section>

@@ -1,4 +1,4 @@
-name: Publish module assets
+name: Release
 on:
   release:
     types: [published]
@@ -15,15 +15,10 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci
+      - run: npm run lint
       - run: npm test
-      - name: Validate release metadata
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: node tools/validate-release.mjs "$RELEASE_TAG"
-      - run: npm run package
-      - name: Upload manifest and module ZIP
+      - run: node tools/package.mjs "${{ github.event.release.tag_name }}"
+      - name: Upload module.json and module.zip
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$RELEASE_TAG" dist/module.json dist/character-wizard-*.zip --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/module.json dist/module.zip --clobber

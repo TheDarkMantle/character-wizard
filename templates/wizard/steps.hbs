@@ -1,0 +1,15 @@
+<nav class="charwiz-steps" aria-label="{{localize 'CHARWIZ.StepsLabel'}}">
+  <p class="charwiz-rules">{{localize "CHARWIZ.Rules" rules=rules}}</p>
+  <ol>
+    {{#each steps}}
+    <li>
+      <button type="button" class="{{#if active}}active{{/if}} {{#if done}}done{{/if}}" data-action="goto"
+        data-index="{{index}}" {{#if active}}aria-current="step"{{/if}}>
+        <i class="fa-solid {{icon}}" inert></i>
+        <span>{{localize label}}</span>
+        {{#if done}}<i class="fa-solid fa-check charwiz-done" inert></i>{{/if}}
+      </button>
+    </li>
+    {{/each}}
+  </ol>
+</nav>

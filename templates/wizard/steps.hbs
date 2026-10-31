@@ -2,7 +2,7 @@
   <p class="charwiz-rules">{{localize "CHARWIZ.Rules" rules=rules}}</p>
   <ol>
     {{#each steps}}
-    <li>
+    <li{{#if sub}} class="sub"{{/if}}>
       <button type="button" class="{{#if active}}active{{/if}} {{#if done}}done{{/if}}" data-action="goto"
         data-index="{{index}}" {{#if active}}aria-current="step"{{/if}}>
         <i class="fa-solid {{icon}}" inert></i>

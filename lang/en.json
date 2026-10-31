@@ -12,7 +12,10 @@
       "equipment": "Equipment",
       "spells": "Spells",
       "details": "Details",
-      "review": "Review"
+      "review": "Review",
+      "classChoices": "Class choices",
+      "speciesChoices": "Species choices",
+      "backgroundChoices": "Background choices"
     },
     "Search": "Search",
     "NoOptions": "Nothing matches. Check the wizard's content settings or try another search.",
@@ -33,14 +36,16 @@
       "Name": "Character name"
     },
     "Review": {
-      "NotYet": "Creating the character comes in the next version, once the features board is in place."
+      "NotYet": "Creating the character comes in the next version, once the features board is in place.",
+      "Deferred": "Not handled by the wizard yet:"
     },
     "Banner": {
       "Text": "This character has no class yet.",
       "Button": "Build with the Character Wizard"
     },
     "Notify": {
-      "LevelUpLater": "Levelling up from the wizard is coming in a later version."
+      "LevelUpLater": "Levelling up from the wizard is coming in a later version.",
+      "ChoicesFailed": "Character Wizard couldn't work out the choices for these picks. See the console for details."
     },
     "Settings": {
       "Save": "Save",
@@ -75,6 +80,13 @@
         "Name": "Players can use the wizard",
         "Hint": "When off, only the GM sees the Character Wizard buttons."
       }
+    },
+    "Choices": {
+      "Hint": "{name} asks you to decide the following. Pick an option to see what it does.",
+      "Progress": "choose {count} ({selected} picked)",
+      "Optional": "optional, up to {max} ({selected} picked)",
+      "Left": "Choices left: {count}",
+      "Inspect": "Pick an option to read what it does."
     }
   }
 }

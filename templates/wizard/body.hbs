@@ -66,6 +66,46 @@
   </div>
   {{/if}}
 
+  {{#if isChoices}}
+  <p class="hint">{{localize "CHARWIZ.Choices.Hint" name=itemName}}</p>
+  <div class="charwiz-choices">
+    <div class="charwiz-slots">
+      {{#each slots}}
+      <section class="charwiz-slot {{#if complete}}complete{{/if}}">
+        <header>
+          <h3>{{title}}</h3>
+          <span class="meta">{{#unless (eq itemName ../itemName)}}{{itemName}} · {{/unless}}{{progress}}</span>
+        </header>
+        <ul class="charwiz-options">
+          {{#each options}}
+          <li>
+            <button type="button" class="charwiz-option {{#if selected}}selected{{/if}} {{#if inspected}}inspected{{/if}}"
+              data-action="toggle" data-slot="{{../key}}" data-value="{{value}}" data-uuid="{{uuid}}"
+              aria-pressed="{{#if selected}}true{{else}}false{{/if}}">
+              {{#if img}}<img src="{{img}}" alt="" width="28" height="28">{{/if}}
+              <span class="name">{{label}}</span>
+              {{#if selected}}<i class="fa-solid fa-circle-check" inert></i>{{/if}}
+            </button>
+          </li>
+          {{/each}}
+        </ul>
+      </section>
+      {{/each}}
+    </div>
+    <div class="charwiz-preview">
+      {{#if info}}
+      <header>
+        <img src="{{info.img}}" alt="" width="48" height="48">
+        <h3>{{info.name}}</h3>
+      </header>
+      <div class="charwiz-description">{{{info.description}}}</div>
+      {{else}}
+      <p class="charwiz-empty">{{localize "CHARWIZ.Choices.Inspect"}}</p>
+      {{/if}}
+    </div>
+  </div>
+  {{/if}}
+
   {{#if isPending}}
   <p class="charwiz-empty">{{localize "CHARWIZ.Pending"}}</p>
   {{/if}}
@@ -81,9 +121,15 @@
   <dl class="charwiz-summary">
     <dt>{{localize "CHARWIZ.Details.Name"}}</dt><dd>{{#if draft.name}}{{draft.name}}{{else}}—{{/if}}</dd>
     {{#each summary}}
-    <dt>{{localize label}}</dt><dd>{{#if name}}{{name}}{{else}}—{{/if}}</dd>
+    <dt>{{localize label}}</dt>
+    <dd>{{#if name}}{{name}}{{else}}—{{/if}}
+      {{#each choices}}<br><span class="meta">{{title}}: {{picked}}</span>{{/each}}
+    </dd>
     {{/each}}
   </dl>
+  {{#if deferred.length}}
+  <p class="hint">{{localize "CHARWIZ.Review.Deferred"}} {{#each deferred}}{{this}}{{#unless @last}}; {{/unless}}{{/each}}</p>
+  {{/if}}
   <p class="hint">{{localize "CHARWIZ.Review.NotYet"}}</p>
   {{/if}}
 </section>

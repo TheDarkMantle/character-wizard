@@ -1,6 +1,7 @@
 <footer class="charwiz-footer">
   <button type="button" data-action="back" {{disabled first}}><i class="fa-solid fa-arrow-left" inert></i> {{localize "CHARWIZ.Back"}}</button>
+  {{#if remaining}}<span class="charwiz-remaining" role="status">{{localize "CHARWIZ.Choices.Left" count=remaining}}</span>{{/if}}
   {{#unless last}}
-  <button type="button" data-action="next">{{localize "CHARWIZ.Next"}} <i class="fa-solid fa-arrow-right" inert></i></button>
+  <button type="button" data-action="next" {{disabled remaining}}>{{localize "CHARWIZ.Next"}} <i class="fa-solid fa-arrow-right" inert></i></button>
   {{/unless}}
 </footer>

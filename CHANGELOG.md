@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+- New choice steps: after you pick a class, species or background that asks for decisions (fighting style, skills, tools, weapon mastery, primal order, draconic ancestry and so on), a "Class choices", "Species choices" or "Background choices" step appears. Next stays disabled until every pick is made, and Review lists them.
+- Choices are found by running the system's own advancements on a throwaway copy of the character, so homebrew with native advancements shows up too. Spell picks, ability score improvements and subclasses aren't handled yet.
+- Untested in Foundry: this is a test build.
+
 ## 0.2.1
 
 - Fixed the Actors sidebar button showing no label on Foundry v14: it now uses the same structure as core's header buttons.

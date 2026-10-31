@@ -1,5 +1,6 @@
 import { HeadlessAdvancer } from "./apply.mjs";
 import { featsMatching, groupTraitSlots } from "./slots.mjs";
+import { subclassesFor } from "../content/catalog-logic.mjs";
 
 /**
  * Discover the choices a set of picks asks for, by running the system's own advancements on a clone.
@@ -27,7 +28,11 @@ export async function discoverSlots({ actor, picks, selections, catalog }) {
   /** Picked item UUID → wizard step it belongs to. */
   const ownerByUuid = new Map(Object.entries(picks).filter(([, p]) => p?.uuid).map(([step, p]) => [p.uuid, step]));
 
-  const addSlot = slot => { if ( !slots.has(slot.key) ) slots.set(slot.key, slot); };
+  const addSlot = slot => {
+    // A slot with nothing to pick would block Next forever, so report it instead.
+    if ( !slot.options.length ) deferred.add(`${slot.itemName}: ${slot.title}`);
+    else if ( !slots.has(slot.key) ) slots.set(slot.key, slot);
+  };
   const optionFor = uuid => {
     const doc = fromUuidSync(uuid);
     return { value: uuid, uuid, label: doc?.name ?? uuid, img: doc?.img };
@@ -101,8 +106,17 @@ export async function discoverSlots({ actor, picks, selections, catalog }) {
       case "HitPoints": return { [level]: level === 1 ? "max" : "avg" };
       case "ScaleValue": return null;
 
+      case "Subclass": {
+        // The catalog already applies the world's rules and the GM's blocked subclasses.
+        const options = subclassesFor(catalog, item.system.identifier || item.identifier)
+          .map(e => ({ value: e.uuid, uuid: e.uuid, label: e.name, img: e.img }));
+        const key = keyFor("");
+        addSlot({ ...base, key, kind: "subclass", count: 1, options });
+        const chosen = (selections[key] ?? []).find(v => options.some(o => o.value === v));
+        return chosen ? { uuid: chosen } : false;
+      }
+
       case "AbilityScoreImprovement":
-      case "Subclass":
       default:
         deferred.add(`${item.name}: ${advancement.title}`);
         return false;

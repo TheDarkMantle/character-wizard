@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  createBlocker, featsMatching, groupTraitSlots, picksRemaining, pruneSelections, toggleSelection
+  adjustPoints, createBlocker, featsMatching, groupTraitSlots, picksRemaining, pruneSelections, tally, toggleSelection
 } from "../scripts/advancement/slots.mjs";
 
 const slot = (key, count, values, extra = {}) => ({ key, count, options: values.map(value => ({ value, label: value })), ...extra });
@@ -72,5 +72,36 @@ describe("createBlocker", () => {
     expect(createBlocker({ ...state, canCreate: false, picks: {} })).toBe("NoPermission");
     expect(createBlocker({ ...state, picks: {} })).toBe("NeedClass");
     expect(createBlocker({ ...state, selections: {} })).toBe("NeedChoices");
+  });
+});
+
+describe("ability score points", () => {
+  const asi = slot("bg", 3, ["int", "wis", "cha"], { kind: "asi", cap: 2 });
+
+  it("tallies repeats", () => {
+    expect(tally(["int", "int", "wis"])).toEqual({ int: 2, wis: 1 });
+  });
+
+  it("adds points up to the cap and the total", () => {
+    let sel = [];
+    sel = adjustPoints(asi, { bg: sel }, "int", 1);
+    sel = adjustPoints(asi, { bg: sel }, "int", 1);
+    expect(adjustPoints(asi, { bg: sel }, "int", 1)).toEqual(["int", "int"]);
+    sel = adjustPoints(asi, { bg: sel }, "wis", 1);
+    expect(sel).toEqual(["int", "int", "wis"]);
+    expect(adjustPoints(asi, { bg: sel }, "cha", 1)).toEqual(sel);
+  });
+
+  it("removes one point at a time", () => {
+    expect(adjustPoints(asi, { bg: ["int", "int", "wis"] }, "int", -1)).toEqual(["int", "wis"]);
+    expect(adjustPoints(asi, { bg: ["wis"] }, "int", -1)).toEqual(["wis"]);
+  });
+
+  it("keeps repeats when pruning, but not past the cap, total or options", () => {
+    expect(pruneSelections([asi], { bg: ["int", "int", "int", "str", "wis", "cha"] })).toEqual({ bg: ["int", "int", "wis"] });
+  });
+
+  it("counts points as picks remaining", () => {
+    expect(picksRemaining([asi], { bg: ["int", "wis"] })).toBe(1);
   });
 });

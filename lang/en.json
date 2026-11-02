@@ -30,7 +30,8 @@
       "Choices": "You choose",
       "None": "Nothing at this level.",
       "Choose": "choose {count}",
-      "Native": "uses the system's own dialog"
+      "Native": "uses the system's own dialog",
+      "Points": "spend {count} points, up to {cap} on one"
     },
     "Details": {
       "Name": "Character name"
@@ -87,7 +88,11 @@
       "Optional": "optional, up to {max} ({selected} picked)",
       "Left": "Choices left: {count}",
       "Inspect": "Pick an option to read what it does.",
-      "SkillAbility": "Uses your {ability} modifier."
+      "SkillAbility": "Uses your {ability} modifier.",
+      "Points": "spend {count} points, {spent} spent, up to {cap} on one ability",
+      "AbilityScore": "Ability score",
+      "Add": "Add a point to {ability}",
+      "Remove": "Remove a point from {ability}"
     },
     "Create": {
       "Button": "Create character",
@@ -128,7 +133,8 @@
         "dv": "Damage Vulnerability",
         "ci": "Condition Immunity",
         "mixed": "Proficiencies"
-      }
+      },
+      "CastingAbility": "Spellcasting ability"
     }
   }
 }

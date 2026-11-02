@@ -1,5 +1,5 @@
 import { HeadlessAdvancer } from "./apply.mjs";
-import { featsMatching, groupTraitSlots } from "./slots.mjs";
+import { featsMatching, groupTraitSlots, tally } from "./slots.mjs";
 import { isDraconicAncestry, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { subclassesFor } from "../content/catalog-logic.mjs";
 
@@ -104,13 +104,40 @@ export async function runPicks({ actor, picks, selections, catalog }) {
       case "ItemGrant": {
         const items = config.items ?? [];
         const optionalItems = items.filter(i => config.optional || i.optional);
-        if ( !optionalItems.length ) return null;
+        // Granted spells can ask which ability casts them (Magic Initiate: Intelligence, Wisdom or Charisma).
+        const abilities = Array.from(config.spell?.ability ?? []);
+        let ability;
+        if ( abilities.length > 1 ) {
+          const abilityKey = keyFor(":ability");
+          const abilityOptions = abilities.map(value => ({ value, label: CONFIG.DND5E.abilities[value]?.label ?? value }));
+          addSlot({ ...base, title: `${base.title}: ${localize("CHARWIZ.Naming.CastingAbility")}`, key: abilityKey,
+            kind: "ability", count: 1, options: abilityOptions });
+          ability = (selections[abilityKey] ?? []).find(v => abilities.includes(v));
+          if ( !ability ) return false;
+        }
+        if ( !optionalItems.length ) return ability ? { ability } : null;
         const key = keyFor("");
         const options = optionalItems.map(i => optionFor(i.uuid));
         addSlot({ ...base, key, kind: "optional-item", count: 0, max: options.length, options });
         const chosen = (selections[key] ?? []).filter(v => options.some(o => o.value === v));
         const required = items.filter(i => !optionalItems.includes(i)).map(i => i.uuid);
-        return { selected: [...required, ...chosen] };
+        return { selected: [...required, ...chosen], ability };
+      }
+
+      case "AbilityScoreImprovement": {
+        // Fixed bonuses (2014 species) apply on their own. Spendable points (2024 backgrounds) are a choice.
+        if ( !config.points ) return null;
+        const locked = Array.from(config.locked ?? []);
+        const options = Object.entries(CONFIG.DND5E.abilities)
+          .filter(([id]) => advancement.canImprove(id) && !locked.includes(id))
+          .map(([value, a]) => ({ value, label: a.label }));
+        const key = keyFor("");
+        addSlot({ ...base, key, kind: "asi", count: config.points, cap: config.cap ?? config.points, options });
+        const chosen = selections[key] ?? [];
+        if ( chosen.length < config.points ) return false;
+        const assignments = tally(chosen);
+        for ( const [id, bonus] of Object.entries(config.fixed ?? {}) ) if ( bonus ) assignments[id] = (assignments[id] ?? 0) + bonus;
+        return { type: "asi", assignments };
       }
 
       case "Size": {
@@ -136,7 +163,6 @@ export async function runPicks({ actor, picks, selections, catalog }) {
         return chosen ? { uuid: chosen } : false;
       }
 
-      case "AbilityScoreImprovement":
       default:
         deferred.add(`${item.name}: ${ownTitle || advancement.name}`);
         return false;
@@ -154,5 +180,7 @@ export async function runPicks({ actor, picks, selections, catalog }) {
     source = step;
     await engine.addItem(document, { levels: 1 });
   }
+  // Anything the engine had to skip for lack of input would otherwise vanish without a trace.
+  for ( const u of engine.unresolved ) deferred.add(`${u.item}: ${u.title}`);
   return { slots: [...slots.values()], deferred: [...deferred], engine };
 }

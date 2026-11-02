@@ -4,7 +4,9 @@ import { searchEntries } from "../content/catalog-logic.mjs";
 import { buildBoard } from "../advancement/read.mjs";
 import { traitOptionLabel } from "../advancement/naming.mjs";
 import { discoverSlots, runPicks } from "../advancement/simulate.mjs";
-import { createBlocker, picksRemaining, pruneSelections, toggleSelection } from "../advancement/slots.mjs";
+import {
+  adjustPoints, createBlocker, picksRemaining, pruneSelections, tally, toggleSelection
+} from "../advancement/slots.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -60,6 +62,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       focus: CharacterWizard.#onFocus,
       choose: CharacterWizard.#onChoose,
       toggle: CharacterWizard.#onToggle,
+      adjust: CharacterWizard.#onAdjust,
       create: CharacterWizard.#onCreate
     }
   };
@@ -157,8 +160,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         label: `CHARWIZ.Steps.${s}`, name: this.draft.picks[s]?.name,
         choices: this.#slotsFor(s).map(slot => ({
           title: slot.title,
-          picked: (this.draft.choices[slot.key] ?? [])
-            .map(v => slot.options.find(o => o.value === v)?.label ?? v).join(", ")
+          picked: this.#summarize(slot)
         })).filter(c => c.picked)
       }));
       context.deferred = this.deferred;
@@ -192,6 +194,16 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
   /*  Data                                        */
   /* -------------------------------------------- */
 
+  /** What was chosen in a slot, as text. Ability score points read "Intelligence +2, Wisdom +1". */
+  #summarize(slot) {
+    const selected = this.draft.choices[slot.key] ?? [];
+    const label = v => slot.options.find(o => o.value === v)?.label ?? v;
+    if ( slot.kind === "asi" ) {
+      return Object.entries(tally(selected)).map(([v, n]) => `${label(v)} +${n}`).join(", ");
+    }
+    return selected.map(label).join(", ");
+  }
+
   /** Building onto an existing actor needs no permission; making a new one needs Create Actor. */
   #canCreate() {
     return !!this.actor || CONFIG.Actor.documentClass.canUserCreate(game.user);
@@ -200,6 +212,23 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
   /** Slot data for the template: selection state and a progress label. */
   #prepareSlot(slot) {
     const selected = this.draft.choices[slot.key] ?? [];
+    if ( slot.kind === "asi" ) {
+      const counts = tally(selected);
+      const full = selected.length >= slot.count;
+      return {
+        ...slot,
+        asi: true,
+        progress: game.i18n.format("CHARWIZ.Choices.Points", { spent: selected.length, count: slot.count, cap: slot.cap }),
+        complete: full,
+        options: slot.options.map(o => ({
+          ...o,
+          points: counts[o.value] ?? 0,
+          canRemove: !!counts[o.value],
+          canAdd: !full && ((counts[o.value] ?? 0) < slot.cap),
+          inspected: o.value === this.inspected?.value
+        }))
+      };
+    }
     const optional = slot.count === 0;
     return {
       ...slot,
@@ -225,6 +254,10 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( this.descriptions.has(cacheKey) ) return this.descriptions.get(cacheKey);
     const info = (kind === "trait") ? await this.#describeTrait(value)
       : (kind === "size") ? { name: CONFIG.DND5E.actorSizes[value]?.label ?? value, description: "" }
+        : ["asi", "ability"].includes(kind) ? {
+          name: CONFIG.DND5E.abilities[value]?.label ?? value, kind: game.i18n.localize("CHARWIZ.Choices.AbilityScore"),
+          description: ""
+        }
         : await this.#describeItem(value);
     this.descriptions.set(cacheKey, info);
     return info;
@@ -374,11 +407,18 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     else if ( entry.choiceType === "item" && entry.restriction?.subtype ) {
       detail = CONFIG.DND5E.featureTypes[entry.restriction.type]?.subtypes?.[entry.restriction.subtype] ?? "";
     }
+    let countLabel = entry.count ? game.i18n.format("CHARWIZ.Board.Choose", { count: entry.count }) : "";
+    if ( entry.choiceType === "asi" && entry.points ) {
+      const locked = entry.locked ?? [];
+      detail = Object.entries(CONFIG.DND5E.abilities).filter(([id]) => !locked.includes(id))
+        .map(([, a]) => a.label).join(", ");
+      countLabel = game.i18n.format("CHARWIZ.Board.Points", { count: entry.points, cap: entry.cap });
+    }
     return {
       ...entry,
       title: entry.title || game.i18n.localize(entry.titleKey ?? "CHARWIZ.Naming.Other"),
       detail,
-      countLabel: entry.count ? game.i18n.format("CHARWIZ.Board.Choose", { count: entry.count }) : ""
+      countLabel
     };
   }
 
@@ -455,6 +495,17 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       ui.notifications.error("CHARWIZ.Create.Failed", { localize: true });
       target.disabled = false;
     }
+  }
+
+  /** Add or remove a point on an ability in an ability score slot. */
+  static async #onAdjust(event, target) {
+    const slot = this.slots.find(s => s.key === target.dataset.slot);
+    if ( !slot ) return;
+    const { value, delta } = target.dataset;
+    this.draft.choices[slot.key] = adjustPoints(slot, this.draft.choices, value, Number(delta));
+    this.inspected = { kind: slot.kind, value };
+    await this.#refreshSlots();
+    this.render();
   }
 
   /** Select or deselect an option in a choice slot, and show its description. */

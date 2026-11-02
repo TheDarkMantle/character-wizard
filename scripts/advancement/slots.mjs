@@ -18,9 +18,10 @@
  * @property {"class"|"species"|"background"} source  Which picker step it belongs to.
  * @property {string} itemName   Item whose advancement asks (a class, species, or a feat it granted).
  * @property {string} title      Advancement title, for example "Primal Order".
- * @property {"item"|"trait"|"size"|"optional-item"|"subclass"} kind
+ * @property {"item"|"trait"|"size"|"optional-item"|"subclass"|"ability"|"asi"} kind
  * @property {number} count      Picks required.
  * @property {number} [max]      Upper bound when more than `count` picks are allowed (optional grants).
+ * @property {number} [cap]      For "asi" slots: most points one ability can take. Selections repeat an ability once per point.
  * @property {SlotOption[]} options
  */
 
@@ -64,10 +65,39 @@ export function pruneSelections(slots, selections = {}) {
   const pruned = {};
   for ( const slot of slots ) {
     const valid = new Set(slot.options.map(o => o.value));
+    if ( slot.kind === "asi" ) {
+      const kept = [];
+      for ( const v of selections[slot.key] ?? [] ) {
+        if ( valid.has(v) && (kept.length < slot.count) && (tally(kept)[v] ?? 0) < slot.cap ) kept.push(v);
+      }
+      if ( kept.length ) pruned[slot.key] = kept;
+      continue;
+    }
     const kept = [...new Set(selections[slot.key] ?? [])].filter(v => valid.has(v)).slice(0, slot.max ?? slot.count);
     if ( kept.length ) pruned[slot.key] = kept;
   }
   return pruned;
+}
+
+/** Count of each value in a list: ["int", "int", "wis"] → { int: 2, wis: 1 }. */
+export function tally(values = []) {
+  const counts = {};
+  for ( const v of values ) counts[v] = (counts[v] ?? 0) + 1;
+  return counts;
+}
+
+/**
+ * Add or remove one point on an ability in an "asi" slot, respecting the point total and the per-ability cap.
+ * @returns {string[]}  The new selection.
+ */
+export function adjustPoints(slot, selections, ability, delta) {
+  const current = selections[slot.key] ?? [];
+  if ( delta < 0 ) {
+    const index = current.lastIndexOf(ability);
+    return index === -1 ? current : current.filter((_, i) => i !== index);
+  }
+  if ( (current.length >= slot.count) || ((tally(current)[ability] ?? 0) >= slot.cap) ) return current;
+  return [...current, ability];
 }
 
 /** Picks still needed across slots. Optional slots (max > count) never block. */

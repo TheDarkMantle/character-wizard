@@ -76,6 +76,22 @@
           <h3>{{title}}</h3>
           <span class="meta">{{#unless (eq itemName ../itemName)}}{{itemName}} · {{/unless}}{{progress}}</span>
         </header>
+        {{#if asi}}
+        <ul class="charwiz-points">
+          {{#each options}}
+          <li class="{{#if inspected}}inspected{{/if}}">
+            <span class="name">{{label}}</span>
+            <button type="button" data-action="adjust" data-slot="{{../key}}" data-value="{{value}}" data-delta="-1"
+              aria-label="{{localize 'CHARWIZ.Choices.Remove' ability=label}}"
+              {{#unless canRemove}}disabled{{/unless}}><i class="fa-solid fa-minus" inert></i></button>
+            <output aria-live="polite">+{{points}}</output>
+            <button type="button" data-action="adjust" data-slot="{{../key}}" data-value="{{value}}" data-delta="1"
+              aria-label="{{localize 'CHARWIZ.Choices.Add' ability=label}}"
+              {{#unless canAdd}}disabled{{/unless}}><i class="fa-solid fa-plus" inert></i></button>
+          </li>
+          {{/each}}
+        </ul>
+        {{else}}
         <ul class="charwiz-options">
           {{#each options}}
           <li>
@@ -89,6 +105,7 @@
           </li>
           {{/each}}
         </ul>
+        {{/if}}
       </section>
       {{/each}}
     </div>

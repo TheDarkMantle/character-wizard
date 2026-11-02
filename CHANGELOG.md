@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.5
+
+- Features now have real names. dnd5e 6.0 renamed an advancement's `title` to `name`, so the wizard was showing "ItemGrant" and "Trait". You now see "Class features", "Saving Throw Proficiencies", "Armor Training", "Weapon Mastery" and so on, and unnamed choices are named after the feature that carries them (Fighting Style, Primal Order).
+- The class and species preview lists choices that sit inside granted features, such as Fighting Style and Weapon Mastery.
+- Clicking a skill, weapon, armor or tool option shows what it is (the skill's ability, or the system's item text).
+- 2024 Dragonborn: the ancestry choice is titled "Draconic Ancestry" and lists the dragon colours for each damage type.
+- Backgrounds: the 2024 background ability score improvement is now a points control (+2/+1 or +1/+1/+1, up to 2 on one ability, locked abilities left out).
+- Origin feats that ask for a spellcasting ability (Magic Initiate) now offer the choice. Before, the feat was skipped silently. Anything still skipped is listed on Review.
+- The large banner on level 0 sheets is replaced by a small wizard hat button next to the lock toggle in the sheet header, shown when the sheet is unlocked.
+- Still untested in Foundry.
+
 ## 0.2.4
 
 - The Review step can now create the character. It runs your picks and choices through the system's own advancements and writes the result in one update, either onto the level 0 character you opened the wizard from or onto a new actor.

@@ -88,12 +88,12 @@ export class HeadlessAdvancer {
       if ( data === false ) continue;
       data ??= await advancement.automaticApplicationValue(level);
       if ( data === false ) {
-        this.unresolved.push({ item: item.name, title: advancement.title, type: advancement.constructor.typeName,
+        this.unresolved.push({ item: item.name, title: advancement.name, type: advancement.constructor.typeName,
           level, advancement });
         continue;
       }
       await advancement.apply(level, data);
-      this.log.push(`${item.name} L${level}: ${advancement.title} (${advancement.constructor.typeName})`);
+      this.log.push(`${item.name} L${level}: ${advancement.name} (${advancement.constructor.typeName})`);
       this.clone.reset();
     }
 

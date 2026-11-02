@@ -2,6 +2,7 @@ import { MODULE_ID, STEP_ORDER, TEMPLATE_PATH } from "../constants.mjs";
 import { worldRules } from "../content/catalog.mjs";
 import { searchEntries } from "../content/catalog-logic.mjs";
 import { buildBoard } from "../advancement/read.mjs";
+import { traitOptionLabel } from "../advancement/naming.mjs";
 import { discoverSlots, runPicks } from "../advancement/simulate.mjs";
 import { createBlocker, picksRemaining, pruneSelections, toggleSelection } from "../advancement/slots.mjs";
 
@@ -209,23 +210,64 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       options: slot.options.map(o => ({
         ...o,
         selected: selected.includes(o.value),
-        inspected: !!o.uuid && (o.uuid === this.inspected)
+        inspected: o.value === this.inspected?.value
       }))
     };
   }
 
-  /** Name, image and enriched description for an item option (cached). */
-  async #describe(uuid) {
-    if ( this.descriptions.has(uuid) ) return this.descriptions.get(uuid);
+  /**
+   * Name, image and description for a choice option (cached): an item's own description, or for a
+   * proficiency, the skill's ability or the weapon, armor or tool it names.
+   * @param {{kind: string, value: string}} option
+   */
+  async #describe({ kind, value }) {
+    const cacheKey = `${kind}:${value}`;
+    if ( this.descriptions.has(cacheKey) ) return this.descriptions.get(cacheKey);
+    const info = (kind === "trait") ? await this.#describeTrait(value)
+      : (kind === "size") ? { name: CONFIG.DND5E.actorSizes[value]?.label ?? value, description: "" }
+        : await this.#describeItem(value);
+    this.descriptions.set(cacheKey, info);
+    return info;
+  }
+
+  async #describeItem(uuid) {
     const item = await fromUuid(uuid);
     if ( !item ) return null;
-    const TextEditor = foundry.applications.ux.TextEditor.implementation;
-    const info = {
+    return {
       name: item.name, img: item.img,
-      description: await TextEditor.enrichHTML(item.system.description?.value ?? "", { relativeTo: item })
+      description: await this.#enrich(item.system.description?.value, item)
     };
-    this.descriptions.set(uuid, info);
+  }
+
+  /** Describe a trait key such as "skills:ath", "weapon:mar:longsword" or "tool:art:smith". */
+  async #describeTrait(key) {
+    const Trait = dnd5e.documents.Trait;
+    const [category, ...rest] = key.split(":");
+    const id = rest.at(-1);
+    const name = Trait.keyLabel(key) || key;
+    const kind = CONFIG.DND5E.traits[category]?.labels?.title ?? "";
+    const info = { name, kind, description: "" };
+
+    if ( category === "skills" ) {
+      const ability = CONFIG.DND5E.abilities[CONFIG.DND5E.skills[id]?.ability]?.label;
+      if ( ability ) info.description = `<p>${game.i18n.format("CHARWIZ.Choices.SkillAbility", { ability })}</p>`;
+      return info;
+    }
+    // Weapons, armor and tools have a base item in the system compendium with the rules text.
+    const ids = { weapon: CONFIG.DND5E.weaponIds, armor: CONFIG.DND5E.armorIds, tool: CONFIG.DND5E.toolIds }[category];
+    let itemId = ids?.[id];
+    if ( itemId && (foundry.utils.getType(itemId) === "Object") ) itemId = itemId.id;
+    const item = itemId ? await Trait.getBaseItem(itemId, { fullItem: true }) : null;
+    if ( item ) {
+      info.img = item.img;
+      info.description = await this.#enrich(item.system.description?.value, item);
+    }
     return info;
+  }
+
+  async #enrich(html, relativeTo) {
+    const TextEditor = foundry.applications.ux.TextEditor.implementation;
+    return TextEditor.enrichHTML(html ?? "", { relativeTo });
   }
 
   /**
@@ -276,34 +318,65 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       toLevel: 1,
       itemType: item.type
     });
+    const hostId = item.system.identifier || item.identifier;
+    // Features this item grants can carry choices of their own (Fighting Style, Weapon Mastery).
+    board.choices.push(...await this.#nestedChoices(board.granted));
     const preview = {
       uuid,
       name: item.name,
       img: item.img,
       source: item.system.source?.label ?? "",
       description: await TextEditor.enrichHTML(item.system.description?.value ?? "", { relativeTo: item }),
-      granted: board.granted.map(e => this.#labelEntry(e)),
-      choices: board.choices.map(e => this.#labelEntry(e)),
-      native: board.native.map(e => this.#labelEntry(e))
+      granted: board.granted.map(e => this.#labelEntry(e, hostId)),
+      choices: board.choices.map(e => this.#labelEntry(e, hostId)),
+      native: board.native.map(e => this.#labelEntry(e, hostId))
     };
     this.previews.set(uuid, preview);
     return preview;
   }
 
-  /** Human-readable label and detail for a board entry. */
-  #labelEntry(entry) {
+  /**
+   * Choices carried by the features an item grants, found by reading those features' own advancements.
+   * @param {object[]} granted  Board entries of kind "granted".
+   * @param {number} [depth]
+   */
+  async #nestedChoices(granted, depth = 0) {
+    if ( depth > 1 ) return [];
+    const found = [];
+    for ( const entry of granted ) {
+      for ( const uuid of entry.items ?? [] ) {
+        const feature = await fromUuid(uuid);
+        const advancement = feature?.toObject().system.advancement;
+        if ( !advancement?.length ) continue;
+        const board = buildBoard(advancement, { fromLevel: 0, toLevel: 1, itemType: feature.type });
+        for ( const choice of board.choices ) {
+          // Unnamed choices take the feature's name.
+          found.push({ ...choice, title: choice.title || feature.name, titleKey: null, via: feature.name });
+        }
+        found.push(...await this.#nestedChoices(board.granted, depth + 1));
+      }
+    }
+    return found;
+  }
+
+  /** Human-readable title, label and detail for a board entry. */
+  #labelEntry(entry, hostId) {
     const itemName = uuid => fromUuidSync(uuid)?.name ?? uuid;
     const traitLabel = key => {
       if ( key.startsWith("size:") ) return CONFIG.DND5E.actorSizes[key.slice(5)]?.label ?? key;
-      return dnd5e.documents.Trait.keyLabel(key) || key;
+      return traitOptionLabel(key, dnd5e.documents.Trait.keyLabel(key) || key, hostId);
     };
     let detail = "";
     if ( entry.items?.length ) detail = entry.items.map(itemName).join(", ");
     else if ( entry.traits?.length ) detail = entry.traits.map(traitLabel).join(", ");
     else if ( entry.choiceType === "trait" ) detail = entry.pool.map(traitLabel).join(", ");
     else if ( entry.choiceType === "item" && entry.pool?.length ) detail = entry.pool.map(itemName).join(", ");
+    else if ( entry.choiceType === "item" && entry.restriction?.subtype ) {
+      detail = CONFIG.DND5E.featureTypes[entry.restriction.type]?.subtypes?.[entry.restriction.subtype] ?? "";
+    }
     return {
       ...entry,
+      title: entry.title || game.i18n.localize(entry.titleKey ?? "CHARWIZ.Naming.Other"),
       detail,
       countLabel: entry.count ? game.i18n.format("CHARWIZ.Board.Choose", { count: entry.count }) : ""
     };
@@ -388,9 +461,9 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
   static async #onToggle(event, target) {
     const slot = this.slots.find(s => s.key === target.dataset.slot);
     if ( !slot ) return;
-    const { value, uuid } = target.dataset;
+    const { value } = target.dataset;
     this.draft.choices[slot.key] = toggleSelection(slot, this.draft.choices, value);
-    this.inspected = uuid || null;
+    this.inspected = { kind: slot.kind, value };
     await this.#refreshSlots();
     this.render();
   }

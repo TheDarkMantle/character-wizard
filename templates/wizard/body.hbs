@@ -49,7 +49,7 @@
           <h4><i class="fa-solid fa-hand-pointer" inert></i> {{localize "CHARWIZ.Board.Choices"}}</h4>
           <ul>
             {{#each preview.choices}}
-            <li><strong>{{title}}</strong> <span class="meta">{{countLabel}}</span>{{#if detail}}<br><span class="pool">{{detail}}</span>{{/if}}</li>
+            <li><strong>{{title}}</strong> <span class="meta">{{countLabel}}</span>{{#if via}} <span class="meta">({{via}})</span>{{/if}}{{#if detail}}<br><span class="pool">{{detail}}</span>{{/if}}</li>
             {{else}}<li class="charwiz-empty">{{localize "CHARWIZ.Board.None"}}</li>{{/each}}
             {{#each preview.native}}
             <li><strong>{{title}}</strong> <span class="meta">{{localize "CHARWIZ.Board.Native"}}</span></li>
@@ -80,7 +80,7 @@
           {{#each options}}
           <li>
             <button type="button" class="charwiz-option {{#if selected}}selected{{/if}} {{#if inspected}}inspected{{/if}}"
-              data-action="toggle" data-slot="{{../key}}" data-value="{{value}}" data-uuid="{{uuid}}"
+              data-action="toggle" data-slot="{{../key}}" data-value="{{value}}"
               aria-pressed="{{#if selected}}true{{else}}false{{/if}}">
               {{#if img}}<img src="{{img}}" alt="" width="28" height="28">{{/if}}
               <span class="name">{{label}}</span>
@@ -95,8 +95,11 @@
     <div class="charwiz-preview">
       {{#if info}}
       <header>
-        <img src="{{info.img}}" alt="" width="48" height="48">
-        <h3>{{info.name}}</h3>
+        {{#if info.img}}<img src="{{info.img}}" alt="" width="48" height="48">{{/if}}
+        <div>
+          <h3>{{info.name}}</h3>
+          {{#if info.kind}}<span class="meta">{{info.kind}}</span>{{/if}}
+        </div>
       </header>
       <div class="charwiz-description">{{{info.description}}}</div>
       {{else}}

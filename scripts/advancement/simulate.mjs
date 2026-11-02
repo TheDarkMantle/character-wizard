@@ -1,5 +1,6 @@
 import { HeadlessAdvancer } from "./apply.mjs";
 import { featsMatching, groupTraitSlots } from "./slots.mjs";
+import { isDraconicAncestry, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { subclassesFor } from "../content/catalog-logic.mjs";
 
 /**
@@ -57,13 +58,18 @@ export async function runPicks({ actor, picks, selections, catalog }) {
     // The engine runs species advancements while adding the class, so attribute by the item's own pick first.
     const owner = ownerByUuid.get(itemId) ?? source;
     const keyFor = suffix => `${owner}:${itemId}:${advancement.id}:${level}${suffix}`;
-    const base = { source: owner, itemName: item.name, title: advancement.title };
+    // dnd5e fills an empty name with the type's default ("Item Choice"), so only a different name is the author's.
+    const ownTitle = (advancement.name && (advancement.name !== advancement._defaultTitle)) ? advancement.name : "";
+    const localize = game.i18n.localize.bind(game.i18n);
+    const hostId = item.system.identifier || item.identifier;
+    // Unnamed choices are named after the feature that carries them ("Fighting Style", "Primal Order").
+    const base = { source: owner, itemName: item.name, hostId, title: ownTitle || item.name };
 
     switch ( type ) {
       case "ItemChoice": {
         const count = config.choices[level]?.count ?? 0;
         if ( !count ) return false;
-        if ( config.type === "spell" ) { deferred.add(`${item.name}: ${advancement.title}`); return false; }
+        if ( config.type === "spell" ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
         const pool = config.pool.map(p => p.uuid);
         const options = pool.length
           ? pool.map(optionFor)
@@ -82,8 +88,12 @@ export async function runPicks({ actor, picks, selections, catalog }) {
         let complete = true;
         groups.forEach((group, i) => {
           const key = keyFor(`:${i}`);
-          const options = group.options.map(value => ({ value, label: dnd5e.documents.Trait.keyLabel(value) || value }));
-          addSlot({ ...base, key, kind: "trait", count: group.count, options });
+          const options = group.options.map(value => ({
+            value, label: traitOptionLabel(value, dnd5e.documents.Trait.keyLabel(value) || value, hostId)
+          }));
+          const title = isDraconicAncestry(hostId, group.options) ? localize("CHARWIZ.Naming.DraconicAncestry")
+            : (ownTitle || localize(traitTitleKey(group.options, config.mode)));
+          addSlot({ ...base, title, key, kind: "trait", count: group.count, options });
           const chosen = (selections[key] ?? []).filter(v => group.options.includes(v)).slice(0, group.count);
           picked.push(...chosen);
           if ( chosen.length < group.count ) complete = false;
@@ -108,7 +118,7 @@ export async function runPicks({ actor, picks, selections, catalog }) {
         if ( sizes.length < 2 ) return null;
         const key = keyFor("");
         const options = sizes.map(value => ({ value, label: CONFIG.DND5E.actorSizes[value]?.label ?? value }));
-        addSlot({ ...base, key, kind: "size", count: 1, options });
+        addSlot({ ...base, title: ownTitle || localize("CHARWIZ.Naming.Size"), key, kind: "size", count: 1, options });
         const chosen = (selections[key] ?? []).find(v => sizes.includes(v));
         return chosen ? { size: chosen } : false;
       }
@@ -121,14 +131,14 @@ export async function runPicks({ actor, picks, selections, catalog }) {
         const options = subclassesFor(catalog, item.system.identifier || item.identifier)
           .map(e => ({ value: e.uuid, uuid: e.uuid, label: e.name, img: e.img }));
         const key = keyFor("");
-        addSlot({ ...base, key, kind: "subclass", count: 1, options });
+        addSlot({ ...base, title: ownTitle || localize("CHARWIZ.Naming.Subclass"), key, kind: "subclass", count: 1, options });
         const chosen = (selections[key] ?? []).find(v => options.some(o => o.value === v));
         return chosen ? { uuid: chosen } : false;
       }
 
       case "AbilityScoreImprovement":
       default:
-        deferred.add(`${item.name}: ${advancement.title}`);
+        deferred.add(`${item.name}: ${ownTitle || advancement.name}`);
         return false;
     }
   };

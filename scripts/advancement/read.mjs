@@ -10,6 +10,8 @@
  *  - AbilityScoreImprovement, Subclass, Size, HitPoints, ScaleValue
  */
 
+import { advancementName, fallbackTitleKey, traitTitleKey } from "./naming.mjs";
+
 const MAX_LEVEL = 20;
 
 /** Levels at which an advancement does something. Mirrors each type's `levels` getter. */
@@ -38,7 +40,8 @@ export function appliesToClass(adv, { isOriginalClass = true } = {}) {
  * @property {string} id            `${advancementId}:${level}` plus a suffix for multi-part entries.
  * @property {string} advancementId
  * @property {string} type          Advancement type.
- * @property {string} title
+ * @property {string} title        The advancement's own name, or "" when it has none.
+ * @property {string|null} titleKey  Lang key to use when `title` is empty.
  * @property {number} level
  * @property {"granted"|"choice"|"info"|"native"} kind
  * @property {string} [choiceType]  For choices: "item", "trait", "asi", "subclass", "size", "optional-item".
@@ -58,9 +61,11 @@ const KNOWN = new Set(["ItemGrant", "ItemChoice", "Trait", "HitPoints", "Ability
  * Describe one advancement at one level.
  * @returns {BoardEntry[]}
  */
-export function describeAdvancement(adv, level) {
+export function describeAdvancement(adv, level, { itemType } = {}) {
   const config = adv.configuration ?? {};
-  const base = { advancementId: adv._id, type: adv.type, title: adv.title || adv.type, level };
+  const title = advancementName(adv);
+  const base = { advancementId: adv._id, type: adv.type, title,
+    titleKey: title ? null : (fallbackTitleKey(adv, { itemType }) ?? "CHARWIZ.Naming.Other"), level };
   const id = `${adv._id}:${level}`;
 
   switch ( adv.type ) {
@@ -83,15 +88,18 @@ export function describeAdvancement(adv, level) {
     case "Trait": {
       const out = [];
       const grants = Array.from(config.grants ?? []);
-      if ( grants.length ) out.push({ ...base, id: `${id}:grants`, kind: "granted", traits: grants,
+      const mode = config.mode ?? "default";
+      // Each part is named after what it covers when the advancement has no name of its own.
+      const part = keys => ({ ...base, titleKey: title ? null : traitTitleKey(keys, mode) });
+      if ( grants.length ) out.push({ ...part(grants), id: `${id}:grants`, kind: "granted", traits: grants,
         mode: config.mode ?? "default" });
       (config.choices ?? []).forEach((choice, i) => {
         const pool = Array.from(choice.pool ?? []);
         // A "choice" of one option is effectively a grant.
         if ( pool.length === 1 && (choice.count ?? 1) === 1 ) {
-          out.push({ ...base, id: `${id}:choice${i}`, kind: "granted", traits: pool, mode: config.mode ?? "default" });
+          out.push({ ...part(pool), id: `${id}:choice${i}`, kind: "granted", traits: pool, mode: config.mode ?? "default" });
         } else {
-          out.push({ ...base, id: `${id}:choice${i}`, kind: "choice", choiceType: "trait",
+          out.push({ ...part(pool), id: `${id}:choice${i}`, kind: "choice", choiceType: "trait",
             count: choice.count ?? 1, pool, mode: config.mode ?? "default" });
         }
       });
@@ -141,7 +149,7 @@ export function buildBoard(advancements = [], { fromLevel = 0, toLevel, itemType
     for ( const adv of list ) {
       if ( !appliesToClass(adv, { isOriginalClass }) ) continue;
       if ( !levelsOf(adv, { itemType }).includes(level) ) continue;
-      for ( const entry of describeAdvancement(adv, level) ) {
+      for ( const entry of describeAdvancement(adv, level, { itemType }) ) {
         if ( entry.kind === "choice" && entry.count === 0 ) continue;
         board[entry.kind === "choice" ? "choices" : entry.kind].push(entry);
       }

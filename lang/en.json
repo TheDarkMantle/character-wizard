@@ -86,7 +86,8 @@
       "Progress": "choose {count} ({selected} picked)",
       "Optional": "optional, up to {max} ({selected} picked)",
       "Left": "Choices left: {count}",
-      "Inspect": "Pick an option to read what it does."
+      "Inspect": "Pick an option to read what it does.",
+      "SkillAbility": "Uses your {ability} modifier."
     },
     "Create": {
       "Button": "Create character",
@@ -98,6 +99,35 @@
         "NoPermission": "You don't have permission to create actors. Ask your GM for a blank character to build onto.",
         "NeedClass": "Pick a class first.",
         "NeedChoices": "Finish your choices first."
+      }
+    },
+    "Naming": {
+      "ClassFeatures": "Class features",
+      "SpeciesTraits": "Species traits",
+      "BackgroundFeatures": "Background features",
+      "Features": "Features",
+      "Size": "Size",
+      "HitPoints": "Hit points",
+      "AbilityScoreImprovement": "Ability Score Improvement",
+      "Subclass": "Subclass",
+      "ScaleValue": "Scaling value",
+      "Choice": "Choice",
+      "Other": "Other",
+      "Expertise": "Expertise",
+      "WeaponMastery": "Weapon Mastery",
+      "DraconicAncestry": "Draconic Ancestry",
+      "Trait": {
+        "saves": "Saving Throw Proficiencies",
+        "skills": "Skill Proficiencies",
+        "armor": "Armor Training",
+        "weapon": "Weapon Proficiencies",
+        "tool": "Tool Proficiencies",
+        "languages": "Languages",
+        "dr": "Damage Resistance",
+        "di": "Damage Immunity",
+        "dv": "Damage Vulnerability",
+        "ci": "Condition Immunity",
+        "mixed": "Proficiencies"
       }
     }
   }

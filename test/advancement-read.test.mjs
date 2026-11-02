@@ -73,6 +73,32 @@ describe("buildBoard", () => {
   });
 });
 
+describe("names", () => {
+  it("reads the 6.0 `name` field, falling back to the old `title`", () => {
+    const board = buildBoard([
+      { _id: "a", type: "Trait", name: "Saving Throw Proficiencies", level: 1,
+        configuration: { grants: ["saves:str"], choices: [] } },
+      { _id: "b", type: "Trait", title: "Old Title", level: 1, configuration: { grants: ["saves:con"], choices: [] } }
+    ], { fromLevel: 1, toLevel: 1, itemType: "class" });
+    expect(board.granted.map(e => e.title)).toEqual(["Saving Throw Proficiencies", "Old Title"]);
+    expect(board.granted.every(e => e.titleKey === null)).toBe(true);
+  });
+
+  it("names unnamed advancements after what they do", () => {
+    const board = buildBoard([
+      { _id: "g", type: "ItemGrant", level: 1, configuration: { items: [{ uuid: "x" }] } },
+      { _id: "s", type: "Trait", level: 1, configuration: { grants: ["saves:str", "saves:con"], choices: [] } },
+      { _id: "a", type: "Trait", level: 1, configuration: { grants: ["armor:lgt", "armor:shl"], choices: [] } },
+      { _id: "m", type: "Trait", level: 1, configuration: { mode: "mastery", grants: [],
+        choices: [{ count: 3, pool: ["weapon:sim:*"] }] } }
+    ], { fromLevel: 1, toLevel: 1, itemType: "class" });
+    expect(board.granted.map(e => e.titleKey)).toEqual([
+      "CHARWIZ.Naming.ClassFeatures", "CHARWIZ.Naming.Trait.saves", "CHARWIZ.Naming.Trait.armor"
+    ]);
+    expect(board.choices[0].titleKey).toBe("CHARWIZ.Naming.WeaponMastery");
+  });
+});
+
 describe("remainingChoices", () => {
   it("counts picks still needed", () => {
     const board = buildBoard(fighter, { fromLevel: 1, toLevel: 1, itemType: "class" });

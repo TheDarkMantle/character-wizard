@@ -6,7 +6,7 @@ A Foundry VTT v14 module for the dnd5e system: guided character creation (and la
 - **System:** dnd5e 6.x only (module.json: minimum 6.0.0, verified 6.0.6). Foundry minimum 14, verified 14.368. dnd5e 6.0.6 itself requires core 14.367+.
 - **Players can use it.** The GM can block specific species and subclasses, turn compendiums on or off and set their priority. There's also a GM toggle, "Players can use the wizard".
 - **First release = character creation.** Level-up comes later.
-- **Opening:** keep the Actors sidebar button. From a character sheet: a header menu entry plus a banner on level 0 sheets. Level 0 opens the creation wizard for that actor. Level > 0 shows a "level-up coming later" notice for now.
+- **Opening:** keep the Actors sidebar button. From a character sheet: a header menu entry plus a small wizard hat button beside the lock toggle (shown when a level 0 sheet is unlocked). Level 0 opens the creation wizard for that actor. Level > 0 shows a "level-up coming later" notice for now.
 - **Next button** on picker steps chooses the highlighted option if Choose wasn't clicked. The step list doesn't.
 - **Repo:** https://github.com/TheDarkMantle/character-wizard. The old ChatGPT code was cleared in commit f0e8ace (v0.2.0). Work continues in Claude Code locally in `/Users/shawn/Development/Character Wizard`.
 

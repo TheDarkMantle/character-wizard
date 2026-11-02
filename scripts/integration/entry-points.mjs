@@ -59,20 +59,33 @@ function onGetHeaderControls(sheet, controls) {
   });
 }
 
-/** On a level-0 character sheet, show a banner button that starts the wizard. */
+/**
+ * On an unlocked level-0 character sheet, add a small wizard hat button beside the lock toggle in the window
+ * header. It lives in the header, outside the sheet content, because dnd5e disables clicks on anything in the
+ * content that it didn't add itself.
+ */
 function onRenderCharacterSheet(sheet) {
   const actor = sheet.document;
-  const content = sheet.element?.querySelector(".window-content");
-  content?.querySelector(".charwiz-banner")?.remove();
-  if ( !content || !canUseWizard() || !actor?.isOwner || !sheet.isEditable ) return;
+  const header = sheet.element?.querySelector(".window-header");
+  header?.querySelector(".charwiz-header-button")?.remove();
+  if ( !header || !canUseWizard() || !actor?.isOwner || !sheet.isEditable || !sheet.isEditMode ) return;
   if ( characterLevel(actor) !== 0 ) return;
-  const banner = document.createElement("div");
-  banner.className = "charwiz-banner";
-  banner.innerHTML = `
-    <p>${game.i18n.localize("CHARWIZ.Banner.Text")}</p>
-    <button type="button"><i class="fa-solid fa-hat-wizard" inert></i> ${game.i18n.localize("CHARWIZ.Banner.Button")}</button>`;
-  banner.querySelector("button").addEventListener("click", () => openForActor(actor));
-  content.prepend(banner);
+  const label = game.i18n.localize("CHARWIZ.Launch");
+  const button = document.createElement("button");
+  button.type = "button";
+  button.classList.add("header-control", "charwiz-header-button", "icon", "fa-solid", "fa-hat-wizard");
+  button.dataset.tooltip = label;
+  button.dataset.tooltipDirection = "DOWN";
+  button.setAttribute("aria-label", label);
+  // Like the lock toggle, keep the header from treating the press as the start of a window drag.
+  button.addEventListener("pointerdown", event => event.stopPropagation());
+  button.addEventListener("click", event => {
+    event.preventDefault();
+    openForActor(actor);
+  });
+  const toggle = header.querySelector(".mode-slider");
+  if ( toggle ) toggle.after(button);
+  else header.prepend(button);
 }
 
 /** Wire up all hooks. Called during "init". */

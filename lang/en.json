@@ -40,10 +40,6 @@
       "Deferred": "Not handled by the wizard yet:",
       "Scope": "This builds the class, species and background features and your choices. Ability scores, equipment and spells aren't part of creation yet; set them on the character sheet."
     },
-    "Banner": {
-      "Text": "This character has no class yet.",
-      "Button": "Build with the Character Wizard"
-    },
     "Notify": {
       "LevelUpLater": "Levelling up from the wizard is coming in a later version.",
       "ChoicesFailed": "Character Wizard couldn't work out the choices for these picks. See the console for details."

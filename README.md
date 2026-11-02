@@ -24,7 +24,7 @@ https://github.com/TheDarkMantle/character-wizard/releases/latest/download/modul
 ## Opening the wizard
 
 - **Actors sidebar:** the *Character Wizard* button at the top.
-- **Character sheet:** a level 0 character shows a *Build with the Character Wizard* banner. The sheet's header menu also has a *Character Wizard* entry.
+- **Character sheet:** an unlocked level 0 character shows a small wizard hat button in the sheet header, next to the lock toggle. The sheet's header menu also has a *Character Wizard* entry.
 
 ## GM settings
 

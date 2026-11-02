@@ -9,7 +9,7 @@ subclasses, species, backgrounds and feats from every Item compendium in the wor
 - Players can use the wizard. The GM can block species and subclasses, enable/disable compendiums and set their
   priority (Game Settings → Character Wizard → Configure content).
 - First release = **character creation only**. Level-up comes later.
-- Opening: Actors sidebar button (keep it), character sheet header menu entry, and a banner on level 0 sheets.
+- Opening: Actors sidebar button (keep it), character sheet header menu entry, and a small wizard hat button in the sheet header beside the lock toggle (shown when a level 0 sheet is unlocked).
   Level 0 opens creation for that actor; level > 0 shows a "level-up coming later" notice.
 - On picker steps, **Next** chooses the highlighted option if Choose wasn't clicked. Jumping via the step list doesn't.
 - UX goal: a **features board**. When a class/species/background is picked, show "granted" features (locked),
@@ -33,7 +33,7 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 - `scripts/advancement/read.mjs`: **pure** advancement data → board entries (granted / choice / info / native). Unit tested.
 - `scripts/advancement/apply.mjs`: `HeadlessAdvancer` prototype + `spikeFighter()` console test.
 - `scripts/apps/wizard.mjs`: ApplicationV2 wizard (steps, pickers, preview). `apps/content-settings.mjs`: GM window.
-- `scripts/integration/entry-points.mjs`: sidebar button, sheet header control, level-0 banner.
+- `scripts/integration/entry-points.mjs`: sidebar button, sheet header menu entry, level-0 header button beside the lock toggle.
 - `templates/`, `styles/character-wizard.css` (inside `@layer modules`), `lang/en.json` (all UI text, prefix `CHARWIZ`).
 - `test/*.test.mjs`: Vitest.
 

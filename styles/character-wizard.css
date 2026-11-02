@@ -9,20 +9,8 @@
   }
   .charwiz-launch span { display: inline; }
 
-  /* Banner on empty character sheets */
-  .charwiz-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin: 0 0 0.5rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--color-border-highlight, var(--color-warm-2));
-    border-radius: 6px;
-    background: var(--color-cool-5-75, rgb(0 0 0 / 5%));
-  }
-  .charwiz-banner p { margin: 0; }
-  .charwiz-banner button { flex: 0 0 auto; width: auto; }
+  /* Wizard button in the character sheet header, next to the lock toggle */
+  .charwiz-header-button { flex: 0 0 auto; }
 
   /* Shared */
   .charwiz .meta { font-size: var(--font-size-12); opacity: 0.75; }

@@ -67,8 +67,11 @@ How it behaves:
 ## Ability score settings (planned, not built)
 Shawn wants GM options for the ability scores step. Add them when that step is built. Both are **off by default**.
 - **Custom array.** A text field where the GM enters their own array, for example the Dungeon Dudes' modified array
-  (https://x.com/dungeon_dudes/status/1225562072181854210 — array values not captured yet; ask Shawn or read the post).
-  Validate the input (six numbers), and offer it in the wizard as another method next to the standard array.
+  **17, 15, 13, 12, 10, 8** (the standard array is 15, 14, 13, 12, 10, 8). Sources:
+  https://x.com/dungeon_dudes/status/1225562072181854210 and
+  https://www.reddit.com/r/dndnext/comments/ft315o/alternative_starting_array_from_dungeon_dudes/ (neither could be
+  fetched; Shawn supplied the numbers). Validate the input (six numbers), and offer it in the wizard as another
+  method next to the standard array. The field stays empty by default, so the option is off until the GM fills it in.
 - **Reroll 1s on 4d6.** An option for old-school tables: when rolling 4d6 drop lowest, 1s are rerolled.
 - Put both in module settings (world scope, GM only), alongside the other wizard settings.
 

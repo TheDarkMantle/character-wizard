@@ -75,20 +75,22 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
    `https://github.com/TheDarkMantle/character-wizard/releases/latest/download/module.json`.
 - Commit author: Shawn <darkmantle@gmail.com>.
 
-## Status (2026-10-31)
-- v0.2.1 released. Catalog, GM content settings, entry points, wizard shell with pickers and read-only
-  "You get / You choose" previews are in. Abilities, equipment and spells steps are placeholders. Review doesn't create yet.
-- v0.2.1 changed the sidebar button to fix a blank label. **Not yet confirmed in Foundry.**
-- `HeadlessAdvancer` is **unverified**. Run `await game.modules.get("character-wizard").api.spike()` as GM in a 2024
-  and a 2014 test world and compare the result with a Fighter built on the normal sheet.
+## Status (2026-11-02)
+- v0.2.5 released. Catalog, GM content settings, entry points (sidebar button, header menu entry, hat button beside
+  the lock toggle on unlocked level 0 sheets), pickers with previews, choices steps after class/species/background
+  (item choices, trait choices, subclass, size, optional grants, spellcasting ability, background ASI points) and
+  Review → Create are in.
+- **Verified in Foundry by Shawn (2026-11-02):** a 2024 character built from the wizard (new actor) and from a level 0
+  character, both worked. The simulation + `HeadlessAdvancer` + commit path is therefore good for 2024.
+- **Not yet verified:** 2014 builds (2014 Cleric subclass at level 1 was fixed in 0.2.3, untested), Druid Primal Order,
+  Dragonborn ancestry, the proficiency details panel.
+- Abilities (base scores), equipment and spells steps are placeholders. Spell picks are reported on Review as not handled.
+- dnd5e 6.0 renamed an advancement's `title` to `name`. Read `name` (see `advancement/naming.mjs`).
 
 ## Next
-1. Run and fix the spike (both rulesets).
-2. Features board UI, wired to the engine's resolver. Simulate on a clone after each change so items granted
-   mid-flow (for example 2024 origin feats like Magic Initiate) surface their own choices.
-3. Ability scores (standard array, point buy, 4d6 drop lowest, manual), equipment, spells, details.
-   Planned GM settings, both off by default (see `docs/PLAN.md`): a custom array text field (Dungeon Dudes' modified
-   array) and "reroll 1s" for 4d6.
-4. Review → Create (new actor, or the level-0 actor it was opened from). Players without Create Actor permission
-   build onto a GM-provided blank actor.
+1. Test a 2014 build end to end and fix what breaks.
+2. Ability scores (standard array, point buy, 4d6 drop lowest, manual). Planned GM settings, both off by default
+   (see `docs/PLAN.md`): a custom array text field (Dungeon Dudes' array 17, 15, 13, 12, 10, 8) and "reroll 1s" for 4d6.
+3. Equipment, spells (including origin feat and class spell picks), details.
+4. Players without Create Actor permission build onto a GM-provided blank actor.
 5. Later: level-up from the sheet, including multiclassing.

@@ -41,7 +41,7 @@ Don't re-implement D&D rules. The wizard **reads** each item's advancements to b
   - Class, species and background have searchable pickers with a description and a read-only "You get / You choose" preview built from advancements.
   - Abilities, equipment and spells steps are placeholders. Review doesn't create yet.
 - **Advancement reader** (`scripts/advancement/read.mjs`): advancements → granted / choice / info / native entries. Unit tested.
-- **Headless engine prototype** (`scripts/advancement/apply.mjs`) plus a console spike, `game.modules.get("character-wizard").api.spike()`. Not yet verified in Foundry.
+- **Headless engine prototype** (`scripts/advancement/apply.mjs`) plus a console spike, `game.modules.get("character-wizard").api.spike()`. Verified for a 2024 build in Foundry on 2026-11-02 (new actor and level 0 actor); 2014 still to test.
 - **Tooling:** 23 Vitest tests, ESLint, and a release workflow (tag `vX.Y.Z` → attaches module.json and module.zip).
 
 ## Features board (next)

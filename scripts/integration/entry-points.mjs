@@ -6,6 +6,11 @@ function canUseWizard() {
   return game.user.isGM || getSetting("allowPlayers");
 }
 
+/** Can the current user create actors? The sidebar button starts a new character, so it needs this. */
+function canCreateActors() {
+  return CONFIG.Actor.documentClass.canUserCreate(game.user);
+}
+
 /** Character level of an actor (0 for a fresh, class-less character). */
 export function characterLevel(actor) {
   return Number(actor?.system?.details?.level ?? 0) || 0;
@@ -22,11 +27,11 @@ export function openForActor(actor) {
 }
 
 /**
- * Add the wizard button to the Actors sidebar header.
+ * Add the wizard button to the Actors sidebar header, for users who can create actors.
  * Matches core's own header buttons (icon + <span> label inside .header-actions) so it picks up their styling.
  */
 function onRenderActorDirectory(app, html) {
-  if ( !canUseWizard() ) return;
+  if ( !canUseWizard() || !canCreateActors() ) return;
   const header = html.querySelector(".directory-header");
   if ( !header || header.querySelector(".charwiz-launch") ) return;
   const label = game.i18n.localize("CHARWIZ.Launch");

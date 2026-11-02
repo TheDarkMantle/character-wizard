@@ -130,6 +130,10 @@
   {{#if deferred.length}}
   <p class="hint">{{localize "CHARWIZ.Review.Deferred"}} {{#each deferred}}{{this}}{{#unless @last}}; {{/unless}}{{/each}}</p>
   {{/if}}
-  <p class="hint">{{localize "CHARWIZ.Review.NotYet"}}</p>
+  <p class="hint">{{localize "CHARWIZ.Review.Scope"}}</p>
+  {{#if blocker}}<p class="charwiz-blocker" role="status">{{localize blocker}}</p>{{/if}}
+  <button type="button" class="charwiz-create" data-action="create" {{disabled blocker}}>
+    <i class="fa-solid fa-hat-wizard" inert></i> {{localize createLabel}}
+  </button>
   {{/if}}
 </section>

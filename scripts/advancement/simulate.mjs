@@ -10,7 +10,8 @@ import { subclassesFor } from "../content/catalog-logic.mjs";
  * expects; otherwise it skips the advancement, so features it would have granted (and the choices they
  * carry) show up on a later pass once the player has decided.
  *
- * Nothing is written to any actor. Rerun after every selection.
+ * Nothing is written to any actor here. Rerun after every selection. To build the character, call
+ * `runPicks` with the real actor and commit the returned engine.
  *
  * @param {object} options
  * @param {Actor5e|null} options.actor        Level-0 actor to build onto, or null for a throwaway one.
@@ -21,7 +22,16 @@ import { subclassesFor } from "../content/catalog-logic.mjs";
  *   `deferred` lists advancements the wizard doesn't handle yet (spell picks, ability score changes,
  *   unknown types) as "Item: Title".
  */
-export async function discoverSlots({ actor, picks, selections, catalog }) {
+export async function discoverSlots(options) {
+  const { slots, deferred } = await runPicks(options);
+  return { slots, deferred };
+}
+
+/**
+ * Same as `discoverSlots`, but also returns the engine so the caller can `engine.commit()` the result.
+ * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[], engine: HeadlessAdvancer }>}
+ */
+export async function runPicks({ actor, picks, selections, catalog }) {
   const slots = new Map();
   const deferred = new Set();
   let source = null;
@@ -134,5 +144,5 @@ export async function discoverSlots({ actor, picks, selections, catalog }) {
     source = step;
     await engine.addItem(document, { levels: 1 });
   }
-  return { slots: [...slots.values()], deferred: [...deferred] };
+  return { slots: [...slots.values()], deferred: [...deferred], engine };
 }

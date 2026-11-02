@@ -115,6 +115,9 @@
   .charwiz-option.inspected { outline: 1px solid var(--color-border-highlight, currentColor); }
   .charwiz-option > i { color: var(--color-level-success, green); }
 
+  .charwiz-create { width: auto; margin-top: 0.5rem; }
+  .charwiz-blocker { color: var(--color-level-error, firebrick); }
+
   .charwiz-summary { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; }
   .charwiz-summary dt { font-weight: bold; }
   .charwiz-summary dd { margin: 0; }

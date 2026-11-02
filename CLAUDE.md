@@ -87,6 +87,8 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 2. Features board UI, wired to the engine's resolver. Simulate on a clone after each change so items granted
    mid-flow (for example 2024 origin feats like Magic Initiate) surface their own choices.
 3. Ability scores (standard array, point buy, 4d6 drop lowest, manual), equipment, spells, details.
+   Planned GM settings, both off by default (see `docs/PLAN.md`): a custom array text field (Dungeon Dudes' modified
+   array) and "reroll 1s" for 4d6.
 4. Review → Create (new actor, or the level-0 actor it was opened from). Players without Create Actor permission
    build onto a GM-provided blank actor.
 5. Later: level-up from the sheet, including multiclassing.

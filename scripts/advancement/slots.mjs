@@ -83,3 +83,19 @@ export function toggleSelection(slot, selections, value) {
   if ( limit === 1 ) return [value];
   return current.length >= limit ? current : [...current, value];
 }
+
+/**
+ * Why the character can't be created yet, as a lang key suffix, or null when it can.
+ * @param {object} state
+ * @param {object} state.picks       Picks by step.
+ * @param {ChoiceSlot[]} state.slots
+ * @param {Record<string, string[]>} state.selections
+ * @param {boolean} state.canCreate  Whether this user may create an actor (or has one to build onto).
+ * @returns {"NoPermission"|"NeedClass"|"NeedChoices"|null}
+ */
+export function createBlocker({ picks, slots, selections, canCreate }) {
+  if ( !canCreate ) return "NoPermission";
+  if ( !picks.class ) return "NeedClass";
+  if ( picksRemaining(slots, selections) > 0 ) return "NeedChoices";
+  return null;
+}

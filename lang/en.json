@@ -36,8 +36,8 @@
       "Name": "Character name"
     },
     "Review": {
-      "NotYet": "Creating the character comes in the next version, once the features board is in place.",
-      "Deferred": "Not handled by the wizard yet:"
+      "Deferred": "Not handled by the wizard yet:",
+      "Scope": "This builds the class, species and background features and your choices. Ability scores, equipment and spells aren't part of creation yet; set them on the character sheet."
     },
     "Banner": {
       "Text": "This character has no class yet.",
@@ -87,6 +87,18 @@
       "Optional": "optional, up to {max} ({selected} picked)",
       "Left": "Choices left: {count}",
       "Inspect": "Pick an option to read what it does."
+    },
+    "Create": {
+      "Button": "Create character",
+      "Build": "Build character",
+      "DefaultName": "New Character",
+      "Done": "{name} has been created.",
+      "Failed": "Character Wizard couldn't build the character. See the console for details.",
+      "Blocked": {
+        "NoPermission": "You don't have permission to create actors. Ask your GM for a blank character to build onto.",
+        "NeedClass": "Pick a class first.",
+        "NeedChoices": "Finish your choices first."
+      }
     }
   }
 }

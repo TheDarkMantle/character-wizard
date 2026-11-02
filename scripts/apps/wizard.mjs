@@ -2,8 +2,8 @@ import { MODULE_ID, STEP_ORDER, TEMPLATE_PATH } from "../constants.mjs";
 import { worldRules } from "../content/catalog.mjs";
 import { searchEntries } from "../content/catalog-logic.mjs";
 import { buildBoard } from "../advancement/read.mjs";
-import { discoverSlots } from "../advancement/simulate.mjs";
-import { picksRemaining, pruneSelections, toggleSelection } from "../advancement/slots.mjs";
+import { discoverSlots, runPicks } from "../advancement/simulate.mjs";
+import { createBlocker, picksRemaining, pruneSelections, toggleSelection } from "../advancement/slots.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -58,7 +58,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       back: CharacterWizard.#onBack,
       focus: CharacterWizard.#onFocus,
       choose: CharacterWizard.#onChoose,
-      toggle: CharacterWizard.#onToggle
+      toggle: CharacterWizard.#onToggle,
+      create: CharacterWizard.#onCreate
     }
   };
 
@@ -160,6 +161,11 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         })).filter(c => c.picked)
       }));
       context.deferred = this.deferred;
+      const blocker = createBlocker({
+        picks: this.draft.picks, slots: this.slots, selections: this.draft.choices, canCreate: this.#canCreate()
+      });
+      context.blocker = blocker ? `CHARWIZ.Create.Blocked.${blocker}` : null;
+      context.createLabel = this.actor ? "CHARWIZ.Create.Build" : "CHARWIZ.Create.Button";
     }
     return context;
   }
@@ -184,6 +190,11 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
   /* -------------------------------------------- */
   /*  Data                                        */
   /* -------------------------------------------- */
+
+  /** Building onto an existing actor needs no permission; making a new one needs Create Actor. */
+  #canCreate() {
+    return !!this.actor || CONFIG.Actor.documentClass.canUserCreate(game.user);
+  }
 
   /** Slot data for the template: selection state and a progress label. */
   #prepareSlot(slot) {
@@ -340,6 +351,37 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( !this.#pick(target.dataset.uuid) ) return;
     await this.#refreshSlots();
     this.render();
+  }
+
+  /**
+   * Build the character: run the picks and choices through the system's advancements on a clone of the actor
+   * and write the result in one update. A new actor is made first and removed again if the build fails.
+   */
+  static async #onCreate(event, target) {
+    const blocker = createBlocker({
+      picks: this.draft.picks, slots: this.slots, selections: this.draft.choices, canCreate: this.#canCreate()
+    });
+    if ( blocker ) return;
+    target.disabled = true;
+    let created = null;
+    try {
+      let actor = this.actor;
+      const name = this.draft.name || actor?.name || game.i18n.localize("CHARWIZ.Create.DefaultName");
+      if ( !actor ) actor = created = await Actor.implementation.create({ name, type: "character" });
+      const { engine } = await runPicks({
+        actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData
+      });
+      engine.clone.updateSource({ name });
+      await engine.commit();
+      ui.notifications.info(game.i18n.format("CHARWIZ.Create.Done", { name }));
+      await this.close();
+      actor.sheet.render({ force: true });
+    } catch(err) {
+      console.error(`${MODULE_ID} | Could not build the character`, err);
+      await created?.delete();
+      ui.notifications.error("CHARWIZ.Create.Failed", { localize: true });
+      target.disabled = false;
+    }
   }
 
   /** Select or deselect an option in a choice slot, and show its description. */

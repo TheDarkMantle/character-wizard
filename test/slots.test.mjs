@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  featsMatching, groupTraitSlots, picksRemaining, pruneSelections, toggleSelection
+  createBlocker, featsMatching, groupTraitSlots, picksRemaining, pruneSelections, toggleSelection
 } from "../scripts/advancement/slots.mjs";
 
 const slot = (key, count, values, extra = {}) => ({ key, count, options: values.map(value => ({ value, label: value })), ...extra });
@@ -57,5 +57,20 @@ describe("selections", () => {
     const optional = slot("o", 0, ["m", "n"], { max: 2 });
     expect(picksRemaining([optional], {})).toBe(0);
     expect(toggleSelection(optional, { o: ["m"] }, "n")).toEqual(["m", "n"]);
+  });
+});
+
+describe("createBlocker", () => {
+  const slots = [slot("a", 1, ["x", "y"])];
+  const state = { picks: { class: { uuid: "c" } }, slots, selections: { a: ["x"] }, canCreate: true };
+
+  it("allows a finished build", () => {
+    expect(createBlocker(state)).toBeNull();
+  });
+
+  it("explains what is missing, permission first", () => {
+    expect(createBlocker({ ...state, canCreate: false, picks: {} })).toBe("NoPermission");
+    expect(createBlocker({ ...state, picks: {} })).toBe("NeedClass");
+    expect(createBlocker({ ...state, selections: {} })).toBe("NeedChoices");
   });
 });

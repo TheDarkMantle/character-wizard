@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4
+
+- The Review step can now create the character. It runs your picks and choices through the system's own advancements and writes the result in one update, either onto the level 0 character you opened the wizard from or onto a new actor.
+- Create is blocked, with a reason, when you can't create actors, haven't picked a class, or haven't finished your choices.
+- Ability scores, equipment and spells aren't part of creation yet; set them on the sheet.
+- First build that writes to an actor, still untested in Foundry. Please compare a Fighter against one built on the normal sheet.
+
 ## 0.2.3
 
 - Subclass choices now appear in the class choices step when a class grants its subclass at level 1 (2014 Cleric, Sorcerer, Warlock). Options follow the world's rules and the GM's blocked subclasses.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.8
+
+- The choices page no longer jumps to the top when you click an option. This was most noticeable with the long language list.
+- Clicking an option's name now only shows its description. Choosing is separate: tick the checkbox on the option, or use the Choose button in the description panel. Before, a click both selected it and showed it.
+- Still untested in Foundry.
+
 ## 0.2.7
 
 - **Spell choices.** A species or feature that asks you to pick a spell from a spell list (the 2014 High Elf's cantrip from the wizard list) is now a real choice. The options come from the system's spell lists, filtered by level and school, kept to the world's 2014/2024 rules, and each spell is offered once even if several compendiums have it. Choices tied to your character level (spells available at your level) are still listed on Review as not handled.

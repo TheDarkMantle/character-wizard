@@ -39,6 +39,14 @@ export function registerSettings() {
     default: []
   });
 
+  // Language paths (for example "exotic:deep" or "ddb:ergot") hidden from language choices in the wizard.
+  game.settings.register(MODULE_ID, "blockedLanguages", {
+    scope: "world",
+    config: false,
+    type: Array,
+    default: []
+  });
+
   game.settings.register(MODULE_ID, "untaggedContent", {
     name: "CHARWIZ.Settings.Untagged.Name",
     hint: "CHARWIZ.Settings.Untagged.Hint",

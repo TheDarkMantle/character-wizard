@@ -22,7 +22,9 @@ export const CONTENT_TYPES = Object.freeze(["class", "subclass", "race", "backgr
  * Never request a child of an already-indexed parent (e.g. "system.source.rules"):
  * Foundry's projection cannot combine a parent and its child.
  */
-export const INDEX_FIELDS = Object.freeze(["system.classIdentifier", "system.type"]);
+export const INDEX_FIELDS = Object.freeze([
+  "system.classIdentifier", "system.type", "flags.ddbimporter.groupName"
+]);
 
 /** What to do with content that has no 2014/2024 rules tag. */
 export const UNTAGGED = Object.freeze({

@@ -1,0 +1,24 @@
+<section class="tab {{tab.cssClass}}" data-tab="languages" data-group="main">
+  <p class="hint">{{localize "CHARWIZ.Settings.Content.LanguagesHint"}}</p>
+  {{#each languageGroups}}
+  <fieldset class="charwiz-language-group" data-group-id="{{id}}">
+    <legend>{{label}} <span class="meta">({{languages.length}})</span></legend>
+    <div class="charwiz-language-actions">
+      <button type="button" data-action="setLanguages" data-group-id="{{id}}" data-state="on">{{localize "CHARWIZ.Settings.Content.EnableAll"}}</button>
+      <button type="button" data-action="setLanguages" data-group-id="{{id}}" data-state="off">{{localize "CHARWIZ.Settings.Content.DisableAll"}}</button>
+    </div>
+    <ul class="charwiz-language-list">
+      {{#each languages}}
+      <li>
+        <label>
+          <input type="checkbox" data-language="{{path}}" {{checked allowed}}>
+          <span>{{label}}</span>
+        </label>
+      </li>
+      {{/each}}
+    </ul>
+  </fieldset>
+  {{else}}
+  <p class="charwiz-empty">{{localize "CHARWIZ.Settings.Content.NoLanguages"}}</p>
+  {{/each}}
+</section>

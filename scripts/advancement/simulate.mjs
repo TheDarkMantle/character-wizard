@@ -1,5 +1,5 @@
 import { HeadlessAdvancer } from "./apply.mjs";
-import { featsMatching, groupTraitSlots, tally } from "./slots.mjs";
+import { featsMatching, groupTraitSlots, tally, withoutBlocked } from "./slots.mjs";
 import { isDraconicAncestry, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { subclassesFor } from "../content/catalog-logic.mjs";
 
@@ -19,6 +19,7 @@ import { subclassesFor } from "../content/catalog-logic.mjs";
  * @param {Record<string, {uuid: string}>} options.picks   Picks by wizard step: species, class, background.
  * @param {Record<string, string[]>} options.selections    Chosen option values by slot key.
  * @param {{byType: Record<string, object[]>}} options.catalog  Built catalog (for feat searches).
+ * @param {Set<string>} [options.blocked]  Trait keys the GM has hidden from choices (languages). Grants still apply.
  * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[] }>}
  *   `deferred` lists advancements the wizard doesn't handle yet (spell picks, ability score changes,
  *   unknown types) as "Item: Title".
@@ -32,7 +33,7 @@ export async function discoverSlots(options) {
  * Same as `discoverSlots`, but also returns the engine so the caller can `engine.commit()` the result.
  * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[], engine: HeadlessAdvancer }>}
  */
-export async function runPicks({ actor, picks, selections, catalog }) {
+export async function runPicks({ actor, picks, selections, catalog, blocked = new Set() }) {
   const slots = new Map();
   const deferred = new Set();
   let source = null;
@@ -82,7 +83,10 @@ export async function runPicks({ actor, picks, selections, catalog }) {
 
       case "Trait": {
         const { available } = await advancement.unfulfilledChoices();
-        const { grants, groups } = groupTraitSlots(available.map(a => Array.from(a.choices.asSet())));
+        const grouped = groupTraitSlots(available.map(a => Array.from(a.choices.asSet())));
+        const grants = grouped.grants;
+        // Hidden languages are only removed from what the player picks; fixed grants are left alone.
+        const groups = grouped.groups.map(g => withoutBlocked(g, blocked));
         if ( !groups.length ) return null;
         const picked = [];
         let complete = true;

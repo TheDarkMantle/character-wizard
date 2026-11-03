@@ -54,7 +54,8 @@
         "Tabs": {
           "Sources": "Sources",
           "Species": "Species",
-          "Subclasses": "Subclasses"
+          "Subclasses": "Subclasses",
+          "Languages": "Languages"
         },
         "SourcesHint": "Compendiums with D&D content. Unchecked compendiums are ignored. When the same option is in more than one compendium, the one higher in this list wins. This world uses {rules} rules.",
         "SpeciesHint": "Uncheck a species to hide it from players.",
@@ -65,7 +66,12 @@
         "NoSubclasses": "No subclasses found for this world's rules.",
         "MoveUp": "Move up",
         "MoveDown": "Move down",
-        "Rescan": "Rescan compendiums"
+        "Rescan": "Rescan compendiums",
+        "LanguagesHint": "Uncheck a language to hide it from the language choices in the wizard. Languages a species or background grants outright are still given. Modules that add languages show up as their own group, so you can switch a whole group off and re-enable the few you want.",
+        "EnableAll": "Enable all",
+        "DisableAll": "Disable all",
+        "OtherLanguages": "Other languages",
+        "NoLanguages": "No languages were found."
       },
       "Untagged": {
         "Name": "Content without a rules version",

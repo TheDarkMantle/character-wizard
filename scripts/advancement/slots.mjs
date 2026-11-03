@@ -50,6 +50,18 @@ export function groupTraitSlots(available) {
 }
 
 /**
+ * Drop blocked options from a trait choice. The count shrinks if fewer options remain than picks were allowed,
+ * so a heavily trimmed list can't leave a choice nobody can finish.
+ * @param {{ options: string[], count: number }} group
+ * @param {Set<string>} blocked  Trait keys the GM has hidden.
+ */
+export function withoutBlocked(group, blocked) {
+  if ( !blocked?.size ) return group;
+  const options = group.options.filter(o => !blocked.has(o));
+  return { options, count: Math.min(group.count, options.length) };
+}
+
+/**
  * Feats matching an ItemChoice restriction. `restriction.type` is the feat type (`system.type.value`)
  * and `restriction.subtype` the feat subtype (`system.type.subtype`), as in dnd5e's `_validateItemType`.
  * @param {object[]} feats        Catalog feat entries ({ featType, featSubtype }).

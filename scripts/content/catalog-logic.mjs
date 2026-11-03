@@ -13,6 +13,7 @@ import { CONTENT_TYPES, UNTAGGED } from "../constants.mjs";
  * @property {string} identifier      system.identifier, or a slug of the name.
  * @property {string} [classIdentifier] For subclasses, the parent class identifier.
  * @property {string} [featType]      For feats, system.type.value (e.g. "feat", "class").
+ * @property {string} [groupName]     For species, the base race an importer says this belongs to (D&D Beyond: "Elf").
  * @property {string} [featSubtype]   For feats, system.type.subtype (e.g. "origin", "fightingStyle").
  * @property {string|null} rules      "2014", "2024" or null when untagged.
  * @property {string} book            Source book label, if any.
@@ -65,6 +66,7 @@ export function normalizeEntry(raw, pack) {
     classIdentifier: raw.type === "subclass" ? (system.classIdentifier || "") : undefined,
     featType: raw.type === "feat" ? (system.type?.value ?? "") : undefined,
     featSubtype: raw.type === "feat" ? (system.type?.subtype ?? "") : undefined,
+    groupName: raw.type === "race" ? (raw.flags?.ddbimporter?.groupName || undefined) : undefined,
     rules: rulesFor(raw),
     book: system.source?.book ?? "",
     pack: pack.collection,
@@ -146,4 +148,42 @@ export function searchEntries(list, query = "") {
   const q = query.trim().toLowerCase();
   if ( !q ) return list;
   return list.filter(e => `${e.name} ${e.book} ${e.packLabel}`.toLowerCase().includes(q));
+}
+
+/**
+ * Base races used to group species that carry no group of their own (the system's SRD species). A species whose
+ * name ends in one of these, or in a group name found on other species, is grouped under it.
+ */
+const BASE_RACES = Object.freeze(["Dwarf", "Elf", "Gnome", "Halfling", "Dragonborn", "Genasi", "Tiefling", "Human"]);
+
+const stripNote = name => String(name).replace(/\s*\([^)]*\)\s*$/, "").trim();
+
+/**
+ * Arrange species for the picker: subraces under their base race ("Dwarf" > "Hill Dwarf", "Mountain Dwarf").
+ * The group comes from the importer's `groupName` when there is one, otherwise from the name. A group with a
+ * single member isn't worth a level, so it stays a plain entry.
+ * @param {CatalogEntry[]} entries
+ * @returns {({ group: string, entries: CatalogEntry[] } | { entry: CatalogEntry })[]}  Sorted by display name.
+ */
+export function groupSpecies(entries) {
+  const known = new Map(BASE_RACES.map(r => [r.toLowerCase(), r]));
+  for ( const e of entries ) if ( e.groupName ) known.set(e.groupName.toLowerCase(), e.groupName);
+
+  const groups = new Map();
+  for ( const entry of entries ) {
+    const base = stripNote(entry.name);
+    const last = base.split(/\s+/).at(-1).toLowerCase();
+    const group = entry.groupName || known.get(base.toLowerCase()) || known.get(last) || null;
+    const list = groups.get(group ?? `\0${entry.key}`) ?? [];
+    list.push(entry);
+    groups.set(group ?? `\0${entry.key}`, list);
+  }
+
+  const rows = [];
+  for ( const [group, members] of groups ) {
+    if ( group.startsWith("\0") || (members.length === 1) ) rows.push(...members.map(entry => ({ entry })));
+    else rows.push({ group, entries: members });
+  }
+  const label = row => ("group" in row) ? row.group : row.entry.name;
+  return rows.sort((a, b) => label(a).localeCompare(label(b)));
 }

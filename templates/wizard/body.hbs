@@ -7,16 +7,43 @@
       <input type="search" name="query" value="{{query}}" placeholder="{{localize 'CHARWIZ.Search'}}"
         aria-label="{{localize 'CHARWIZ.Search'}}">
       <ul class="charwiz-list">
-        {{#each entries}}
+        {{#each rows}}
+        {{#if group}}
+        <li class="charwiz-group">
+          <button type="button" class="charwiz-group-toggle {{#if containsPick}}picked{{/if}}" data-action="group"
+            data-group="{{group}}" aria-expanded="{{#if expanded}}true{{else}}false{{/if}}">
+            <i class="fa-solid {{#if expanded}}fa-chevron-down{{else}}fa-chevron-right{{/if}}" inert></i>
+            <span class="name">{{group}}</span>
+            <span class="meta">{{count}}</span>
+            {{#if containsPick}}<i class="fa-solid fa-circle-check" inert></i>{{/if}}
+          </button>
+          {{#if expanded}}
+          <ul class="charwiz-sublist">
+            {{#each entries}}
+            <li>
+              <button type="button" class="charwiz-entry {{#if focused}}focused{{/if}} {{#if picked}}picked{{/if}}"
+                data-action="focus" data-uuid="{{uuid}}">
+                <img src="{{img}}" alt="" width="36" height="36">
+                <span class="name">{{name}}</span>
+                <span class="meta">{{#if book}}{{book}}{{else}}{{packLabel}}{{/if}}</span>
+                {{#if picked}}<i class="fa-solid fa-circle-check" inert></i>{{/if}}
+              </button>
+            </li>
+            {{/each}}
+          </ul>
+          {{/if}}
+        </li>
+        {{else}}
         <li>
-          <button type="button" class="charwiz-entry {{#if focused}}focused{{/if}} {{#if picked}}picked{{/if}}"
-            data-action="focus" data-uuid="{{uuid}}">
-            <img src="{{img}}" alt="" width="36" height="36">
-            <span class="name">{{name}}</span>
-            <span class="meta">{{#if book}}{{book}}{{else}}{{packLabel}}{{/if}}</span>
-            {{#if picked}}<i class="fa-solid fa-circle-check" inert></i>{{/if}}
+          <button type="button" class="charwiz-entry {{#if entry.focused}}focused{{/if}} {{#if entry.picked}}picked{{/if}}"
+            data-action="focus" data-uuid="{{entry.uuid}}">
+            <img src="{{entry.img}}" alt="" width="36" height="36">
+            <span class="name">{{entry.name}}</span>
+            <span class="meta">{{#if entry.book}}{{entry.book}}{{else}}{{entry.packLabel}}{{/if}}</span>
+            {{#if entry.picked}}<i class="fa-solid fa-circle-check" inert></i>{{/if}}
           </button>
         </li>
+        {{/if}}
         {{else}}
         <li class="charwiz-empty">{{localize "CHARWIZ.NoOptions"}}</li>
         {{/each}}

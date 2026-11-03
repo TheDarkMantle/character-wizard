@@ -1,8 +1,10 @@
 import { MODULE_ID, STEP_ORDER, TEMPLATE_PATH } from "../constants.mjs";
 import { worldRules } from "../content/catalog.mjs";
-import { searchEntries } from "../content/catalog-logic.mjs";
+import { groupSpecies, searchEntries } from "../content/catalog-logic.mjs";
 import { buildBoard } from "../advancement/read.mjs";
 import { traitOptionLabel } from "../advancement/naming.mjs";
+import { blockedLanguageKeys } from "../content/languages.mjs";
+import { getSetting } from "../settings.mjs";
 import { discoverSlots, runPicks } from "../advancement/simulate.mjs";
 import {
   adjustPoints, createBlocker, picksRemaining, pruneSelections, tally, toggleSelection
@@ -46,6 +48,9 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.draft = { name: actor?.name ?? "", picks: {}, choices: {} };
     this.query = "";
     this.focused = null;
+    /** Species groups the player has opened, and the pick last revealed in its group. */
+    this.expanded = new Set();
+    this.revealed = null;
     /** @type {Map<string, object>} Preview data by UUID. */
     this.previews = new Map();
     this.catalogData = null;
@@ -60,6 +65,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       next: CharacterWizard.#onNext,
       back: CharacterWizard.#onBack,
       focus: CharacterWizard.#onFocus,
+      group: CharacterWizard.#onGroup,
       choose: CharacterWizard.#onChoose,
       toggle: CharacterWizard.#onToggle,
       adjust: CharacterWizard.#onAdjust,
@@ -143,8 +149,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
 
     if ( context.isPicker ) {
       const picked = this.draft.picks[step]?.uuid;
-      context.entries = searchEntries(this.catalogData.byType[PICKER_STEPS[step]], this.query)
-        .map(e => ({ ...e, focused: e.uuid === this.focused, picked: e.uuid === picked }));
+      context.rows = this.#pickerRows(step, picked);
       context.preview = this.focused ? await this.#loadPreview(this.focused) : null;
       context.previewPicked = !!context.preview && context.preview.uuid === picked;
     }
@@ -207,6 +212,37 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
   /** Building onto an existing actor needs no permission; making a new one needs Create Actor. */
   #canCreate() {
     return !!this.actor || CONFIG.Actor.documentClass.canUserCreate(game.user);
+  }
+
+  /**
+   * Rows for the picker list. Species are grouped under their base race; other lists are flat.
+   * A group opens when searching, when the player clicks it, and when it holds a newly focused option.
+   */
+  #pickerRows(step, picked) {
+    const mark = e => ({ ...e, focused: e.uuid === this.focused, picked: e.uuid === picked });
+    const list = this.catalogData.byType[PICKER_STEPS[step]];
+    if ( step !== "species" ) return searchEntries(list, this.query).map(e => ({ entry: mark(e) }));
+
+    const query = this.query.trim().toLowerCase();
+    const rows = [];
+    for ( const row of groupSpecies(list) ) {
+      if ( !row.group ) {
+        if ( searchEntries([row.entry], query).length ) rows.push({ entry: mark(row.entry) });
+        continue;
+      }
+      // A group whose own name matches shows all its members; otherwise only the members that match.
+      const members = row.group.toLowerCase().includes(query) ? row.entries : searchEntries(row.entries, query);
+      if ( !members.length ) continue;
+      if ( this.focused && (this.revealed !== this.focused) && row.entries.some(e => e.uuid === this.focused) ) {
+        this.expanded.add(row.group);
+        this.revealed = this.focused;
+      }
+      rows.push({
+        group: row.group, count: members.length, expanded: !!query || this.expanded.has(row.group),
+        containsPick: members.some(e => e.uuid === picked), entries: members.map(mark)
+      });
+    }
+    return rows;
   }
 
   /** Slot data for the template: selection state and a progress label. */
@@ -312,7 +348,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     try {
       for ( let pass = 0; pass < 4; pass++ ) {
         const { slots, deferred } = await discoverSlots({
-          actor: this.actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData
+          actor: this.actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
+          blocked: blockedLanguageKeys(getSetting("blockedLanguages"))
         });
         if ( token !== this.refreshToken ) return;
         const pruned = pruneSelections(slots, this.draft.choices);
@@ -455,6 +492,13 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.#setStep(this.stepIndex - 1);
   }
 
+  /** Open or close a species group. */
+  static #onGroup(event, target) {
+    const { group } = target.dataset;
+    if ( !this.expanded.delete(group) ) this.expanded.add(group);
+    this.render({ parts: ["body"] });
+  }
+
   static #onFocus(event, target) {
     this.focused = target.dataset.uuid;
     this.render({ parts: ["body"] });
@@ -482,7 +526,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       const name = this.draft.name || actor?.name || game.i18n.localize("CHARWIZ.Create.DefaultName");
       if ( !actor ) actor = created = await Actor.implementation.create({ name, type: "character" });
       const { engine } = await runPicks({
-        actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData
+        actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
+        blocked: blockedLanguageKeys(getSetting("blockedLanguages"))
       });
       engine.clone.updateSource({ name });
       await engine.commit();

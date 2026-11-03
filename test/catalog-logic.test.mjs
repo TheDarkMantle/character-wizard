@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalog, contentKey, matchesRules, normalizeEntry, searchEntries, slugify, subclassesFor }
+import { buildCatalog, contentKey, groupSpecies, matchesRules, normalizeEntry, searchEntries, slugify, subclassesFor }
   from "../scripts/content/catalog-logic.mjs";
 
 const pack = (collection, label = collection) => ({ collection, label });
@@ -119,5 +119,26 @@ describe("buildCatalog", () => {
     const { byType } = buildCatalog(entries, { rules: "2024" });
     expect(searchEntries(byType.race, "homebrew").map(r => r.name)).toEqual(["Kenku"]);
     expect(searchEntries(byType.race, "  ")).toHaveLength(3);
+  });
+});
+
+describe("groupSpecies", () => {
+  const sp = (name, extra = {}) => ({ name, key: `race:${name}`, ...extra });
+
+  it("groups subraces under the importer's group name", () => {
+    const rows = groupSpecies([sp("Aereni Elf", { groupName: "Elf" }), sp("Wood Elf (PHB)", { groupName: "Elf" }), sp("Bugbear", { groupName: "Bugbear" })]);
+    expect(rows.map(r => r.group ?? r.entry.name)).toEqual(["Bugbear", "Elf"]);
+    expect(rows[1].entries).toHaveLength(2);
+  });
+
+  it("groups system species by the end of their name, and joins a plain base race", () => {
+    const rows = groupSpecies([sp("Hill Dwarf"), sp("Mountain Dwarf"), sp("Human"), sp("Variant Human (PHB)"), sp("Half-Elf")]);
+    expect(rows.map(r => r.group ?? r.entry.name)).toEqual(["Dwarf", "Half-Elf", "Human"]);
+    expect(rows[2].entries.map(e => e.name)).toEqual(["Human", "Variant Human (PHB)"]);
+  });
+
+  it("leaves a lone subrace as a plain entry", () => {
+    const rows = groupSpecies([sp("Hill Dwarf"), sp("Tiefling")]);
+    expect(rows.every(r => "entry" in r)).toBe(true);
   });
 });

@@ -2,12 +2,13 @@ import { MODULE_ID, TEMPLATE_PATH } from "../constants.mjs";
 import { getSetting, setSetting } from "../settings.mjs";
 import { candidatePacks, worldRules } from "../content/catalog.mjs";
 import { subclassesFor } from "../content/catalog-logic.mjs";
+import { languageGroups } from "../content/languages.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
  * GM settings window: which compendiums feed the wizard (and in what priority),
- * and which species and subclasses players are not allowed to pick.
+ * which species and subclasses players are not allowed to pick, and which languages they can choose.
  */
 export default class ContentSettings extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
@@ -19,7 +20,8 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
     form: { handler: ContentSettings.#onSubmit, closeOnSubmit: true },
     actions: {
       movePack: ContentSettings.#onMovePack,
-      rescan: ContentSettings.#onRescan
+      rescan: ContentSettings.#onRescan,
+      setLanguages: ContentSettings.#onSetLanguages
     }
   };
 
@@ -28,6 +30,7 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
     sources: { template: `${TEMPLATE_PATH}/settings/sources.hbs`, scrollable: [""] },
     species: { template: `${TEMPLATE_PATH}/settings/species.hbs`, scrollable: [""] },
     subclasses: { template: `${TEMPLATE_PATH}/settings/subclasses.hbs`, scrollable: [""] },
+    languages: { template: `${TEMPLATE_PATH}/settings/languages.hbs`, scrollable: [""] },
     footer: { template: "templates/generic/form-footer.hbs" }
   };
 
@@ -36,7 +39,8 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
       tabs: [
         { id: "sources", icon: "fa-solid fa-book", label: "CHARWIZ.Settings.Content.Tabs.Sources" },
         { id: "species", icon: "fa-solid fa-person", label: "CHARWIZ.Settings.Content.Tabs.Species" },
-        { id: "subclasses", icon: "fa-solid fa-shield-halved", label: "CHARWIZ.Settings.Content.Tabs.Subclasses" }
+        { id: "subclasses", icon: "fa-solid fa-shield-halved", label: "CHARWIZ.Settings.Content.Tabs.Subclasses" },
+        { id: "languages", icon: "fa-solid fa-language", label: "CHARWIZ.Settings.Content.Tabs.Languages" }
       ],
       initial: "sources"
     }
@@ -81,8 +85,14 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
       subclasses: subclassesFor(catalog, cls.identifier).map(e => ({ ...e, allowed: !e.blocked }))
     })).filter(g => g.subclasses.length);
 
+    const blockedLanguages = new Set(getSetting("blockedLanguages"));
+    const groups = languageGroups(CONFIG.DND5E.languages, key => game.i18n.localize(key),
+      game.i18n.localize("CHARWIZ.Settings.Content.OtherLanguages"))
+      .map(g => ({ ...g, languages: g.languages.map(l => ({ ...l, allowed: !blockedLanguages.has(l.path) })) }));
+
     return {
       ...context,
+      languageGroups: groups,
       rules: worldRules(),
       packs,
       species,
@@ -116,6 +126,13 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
     this.render();
   }
 
+  /** Turn every language in a group on or off. Takes effect when the window is saved. */
+  static #onSetLanguages(event, target) {
+    const group = target.closest("fieldset");
+    const on = target.dataset.state === "on";
+    for ( const input of group.querySelectorAll("input[data-language]") ) input.checked = on;
+  }
+
   /** Save sources, priorities and blocks. */
   static async #onSubmit(event, form, formData) {
     // Pack ids and content keys contain "." and ":", so read the checkboxes from the DOM
@@ -133,7 +150,15 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
       else blocked.add(input.dataset.blockKey);
     }
 
+    // Unchecked languages are hidden from choices. Hidden languages that aren't listed here are kept.
+    const blockedLanguages = new Set(getSetting("blockedLanguages"));
+    for ( const input of form.querySelectorAll("input[data-language]") ) {
+      if ( input.checked ) blockedLanguages.delete(input.dataset.language);
+      else blockedLanguages.add(input.dataset.language);
+    }
+
     await setSetting("contentSources", sources);
+    await setSetting("blockedLanguages", Array.from(blockedLanguages));
     await setSetting("blockedContent", Array.from(blocked));
     this.catalog.invalidate();
     ui.notifications.info("CHARWIZ.Settings.Saved", { localize: true });

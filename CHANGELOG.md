@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.7
+
+- **Spell choices.** A species or feature that asks you to pick a spell from a spell list (the 2014 High Elf's cantrip from the wizard list) is now a real choice. The options come from the system's spell lists, filtered by level and school, kept to the world's 2014/2024 rules, and each spell is offered once even if several compendiums have it. Choices tied to your character level (spells available at your level) are still listed on Review as not handled.
+- **Choices inside granted features now show in the preview.** Cantrip, Extra Language, Fighting Style, Weapon Mastery and similar were missing from "You choose" because 6.0 stores an item's advancements as an object, not a list.
+- **Tasha's racial ability scores now use the +/- points control** from the 2024 backgrounds, listing all six abilities. The species' fixed increases become points to spend (High Elf +2 and +1 are 3 points), with no more on one ability than the largest single increase, starting on the standard increases with a "Back to standard" button. Species that only have points to spend (Centaur) keep their own control and cap, so you can put up to 2 on one ability.
+- Still untested in Foundry.
+
 ## 0.2.6
 
 - **2014 racial ability score increases are now applied.** They were being skipped, so a High Elf came out without +2 Dexterity and +1 Intelligence. They also show under "You get" (for example "Dexterity +2, Intelligence +1").

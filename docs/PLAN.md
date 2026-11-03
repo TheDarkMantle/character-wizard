@@ -78,9 +78,10 @@ Shawn wants GM options for the ability scores step. Add them when that step is b
 ## Tasha's Cauldron of Everything: Customizing Your Origin (2014 rules)
 Source: the "Customizing Your Origin" page in the Tasha's journal folder in Shawn's world. Three parts, each its own
 GM setting, all off by default:
-- **Ability score increases (built, `tashasAbilityScores`).** Each increase a species gives (+2, +1, or a +1 per spendable
-  point) can be applied to an ability of the player's choice. No two increases on one ability, none above 20. The slot
-  starts on the standard increases. This is "move each increase", not the 2024 "+2/+1 or +1/+1/+1" pool.
+- **Ability score increases (built, `tashasAbilityScores`).** Each fixed increase a species gives (+2, +1; a Half-Elf's two
+  spendable points count as +1 each) can be applied to an ability of the player's choice. No two increases on one ability, none above 20. The slot
+  starts on the standard increases. Species that only have points to spend (Centaur) keep the points control with their
+  own cap (up to 2 on one ability), so Tasha's changes nothing for them. This is "move each increase", not the 2024 "+2/+1 or +1/+1/+1" pool.
 - **Languages (not built).** Each language a species gives can be replaced by one from the standard and rare lists;
   the DM may add or remove languages. Should respect the Languages tab in Configure content.
 - **Proficiencies (not built).** Skill → skill; armor → simple/martial weapon or tool; simple weapon → simple weapon

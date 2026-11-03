@@ -157,9 +157,10 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
         const hasFixed = Object.keys(fixed).length > 0;
         const improvable = Object.entries(CONFIG.DND5E.abilities).filter(([id]) => advancement.canImprove(id));
 
-        // Tasha's: each increase a 2014 species gives can be applied to an ability of the player's choice.
-        // The slot starts on the standard increases, so doing nothing keeps them.
-        if ( tashas && (item.type === "race") && (item.system.source?.rules !== "2024") && (hasFixed || config.points) ) {
+        // Tasha's: each fixed increase a 2014 species gives can be applied to an ability of the player's choice.
+        // The slot starts on the standard increases, so doing nothing keeps them. A species that only has points to
+        // spend (Centaur: +2/+1 or +1/+1/+1) is already flexible, so it keeps the points control and its own cap.
+        if ( tashas && hasFixed && (item.type === "race") && (item.system.source?.rules !== "2024") ) {
           const { increases, defaults } = increasesFor({ fixed, points: config.points });
           const key = keyFor("");
           const options = increases.flatMap((_, i) => improvable.map(([id, a]) => ({ value: `${i}:${id}`, label: a.label })));

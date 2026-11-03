@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.6
+
+- **2014 racial ability score increases are now applied.** They were being skipped, so a High Elf came out without +2 Dexterity and +1 Intelligence. They also show under "You get" (for example "Dexterity +2, Intelligence +1").
+- The species preview shows creature type, speed and senses such as darkvision.
+- New GM setting, off by default: "Tasha's: customize racial ability score increases". With it on, a 2014 species gets a choice step where each increase can be moved to an ability of your choice (one increase per ability), starting from the standard ones. Language and proficiency swaps from the same Tasha's rule are not in yet.
+- Species are listed under their base race in the picker (Elf > High Elf, Wood Elf). D&D Beyond species use the importer's group name, and the system's own species are grouped by name.
+- New Languages tab in Configure content: hide languages from the wizard's language choices, by group or one at a time. Languages a species grants outright are not affected.
+- The Actors sidebar button is hidden from users who can't create actors.
+- Still untested in Foundry.
+
 ## 0.2.5
 
 - Features now have real names. dnd5e 6.0 renamed an advancement's `title` to `name`, so the wizard was showing "ItemGrant" and "Trait". You now see "Class features", "Saving Throw Proficiencies", "Armor Training", "Weapon Mastery" and so on, and unnamed choices are named after the feature that carries them (Fighting Style, Primal Order).

@@ -60,6 +60,16 @@ export function registerSettings() {
     }
   });
 
+  // Tasha's Cauldron of Everything, "Customizing Your Origin". Off by default.
+  game.settings.register(MODULE_ID, "tashasAbilityScores", {
+    name: "CHARWIZ.Settings.TashasAbilityScores.Name",
+    hint: "CHARWIZ.Settings.TashasAbilityScores.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
   game.settings.register(MODULE_ID, "allowPlayers", {
     name: "CHARWIZ.Settings.AllowPlayers.Name",
     hint: "CHARWIZ.Settings.AllowPlayers.Hint",

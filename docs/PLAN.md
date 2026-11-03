@@ -75,6 +75,18 @@ Shawn wants GM options for the ability scores step. Add them when that step is b
 - **Reroll 1s on 4d6.** An option for old-school tables: when rolling 4d6 drop lowest, 1s are rerolled.
 - Put both in module settings (world scope, GM only), alongside the other wizard settings.
 
+## Tasha's Cauldron of Everything: Customizing Your Origin (2014 rules)
+Source: the "Customizing Your Origin" page in the Tasha's journal folder in Shawn's world. Three parts, each its own
+GM setting, all off by default:
+- **Ability score increases (built, `tashasAbilityScores`).** Each increase a species gives (+2, +1, or a +1 per spendable
+  point) can be applied to an ability of the player's choice. No two increases on one ability, none above 20. The slot
+  starts on the standard increases. This is "move each increase", not the 2024 "+2/+1 or +1/+1/+1" pool.
+- **Languages (not built).** Each language a species gives can be replaced by one from the standard and rare lists;
+  the DM may add or remove languages. Should respect the Languages tab in Configure content.
+- **Proficiencies (not built).** Skill → skill; armor → simple/martial weapon or tool; simple weapon → simple weapon
+  or tool; martial weapon → simple/martial weapon or tool; tool → tool or simple weapon.
+- Custom Lineage (a sidebar in the same chapter) is a separate species, not part of this.
+
 ## Similar modules (reference only)
 - "Character Builder" (dnd5e-character-builder). Shawn tried it and didn't like it.
 - plaksiy/foundry-charecter-creator; Simple DnD5e Character Creator (IainFielding).

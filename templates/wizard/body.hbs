@@ -103,7 +103,25 @@
           <h3>{{title}}</h3>
           <span class="meta">{{#unless (eq itemName ../itemName)}}{{itemName}} · {{/unless}}{{progress}}</span>
         </header>
-        {{#if asi}}
+        {{#if hint}}<p class="hint">{{hint}}</p>{{/if}}
+        {{#if assign}}
+        <p class="hint">{{localize "CHARWIZ.Choices.AssignHint"}}</p>
+        <div class="charwiz-assign">
+          {{#each rows}}
+          <div class="charwiz-assign-row" role="group" aria-label="{{label}}">
+            <span class="name">{{label}}</span>
+            {{#each abilities}}
+            <button type="button" class="charwiz-option {{#if selected}}selected{{/if}}" data-action="assign"
+              data-slot="{{../../key}}" data-index="{{../index}}" data-ability="{{ability}}"
+              aria-pressed="{{#if selected}}true{{else}}false{{/if}}">
+              <span class="name">{{label}}</span>
+              {{#if standard}}<span class="meta">*</span>{{/if}}
+            </button>
+            {{/each}}
+          </div>
+          {{/each}}
+        </div>
+        {{else if asi}}
         <ul class="charwiz-points">
           {{#each options}}
           <li class="{{#if inspected}}inspected{{/if}}">

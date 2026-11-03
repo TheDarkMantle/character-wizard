@@ -50,6 +50,7 @@ export function appliesToClass(adv, { isOriginalClass = true } = {}) {
  * @property {string[]} [pool]      Item UUIDs or trait keys to choose from.
  * @property {object} [restriction] ItemChoice restriction, used to search compendiums when the pool is open.
  * @property {string[]} [traits]    Granted trait keys.
+ * @property {Record<string, number>} [abilities]  Granted ability score increases by ability.
  * @property {string} [mode]        Trait mode (default, expertise, mastery, ...).
  */
 
@@ -110,9 +111,15 @@ export function describeAdvancement(adv, level, { itemType } = {}) {
       return [{ ...base, id, kind: level === 1 ? "granted" : "choice", choiceType: "hit-points",
         count: level === 1 ? 0 : 1 }];
 
-    case "AbilityScoreImprovement":
+    case "AbilityScoreImprovement": {
+      // Fixed increases (2014 species: +2 Dexterity, +1 Intelligence) are granted; spendable points are a choice.
+      const fixed = Object.fromEntries(Object.entries(config.fixed ?? {}).filter(([, v]) => v));
+      if ( !config.points && Object.keys(fixed).length ) {
+        return [{ ...base, id, kind: "granted", abilities: fixed }];
+      }
       return [{ ...base, id, kind: "choice", choiceType: "asi", count: 1,
-        points: config.points ?? 0, cap: config.cap ?? 2, fixed: config.fixed ?? {}, locked: config.locked ?? [] }];
+        points: config.points ?? 0, cap: config.cap ?? 2, fixed, locked: config.locked ?? [] }];
+    }
 
     case "Subclass":
       return [{ ...base, id, kind: "choice", choiceType: "subclass", count: 1 }];

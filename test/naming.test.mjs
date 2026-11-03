@@ -26,6 +26,8 @@ describe("fallbackTitleKey", () => {
     expect(fallbackTitleKey({ type: "ItemGrant" }, { itemType: "class" })).toBe("CHARWIZ.Naming.ClassFeatures");
     expect(fallbackTitleKey({ type: "ItemGrant" }, { itemType: "race" })).toBe("CHARWIZ.Naming.SpeciesTraits");
     expect(fallbackTitleKey({ type: "ItemGrant" }, { itemType: "feat" })).toBe("CHARWIZ.Naming.Features");
+    expect(fallbackTitleKey({ type: "AbilityScoreImprovement" }, { itemType: "race" })).toBe("CHARWIZ.Naming.AbilityScoreIncrease");
+    expect(fallbackTitleKey({ type: "AbilityScoreImprovement" }, { itemType: "class" })).toBe("CHARWIZ.Naming.AbilityScoreImprovement");
     expect(fallbackTitleKey({ type: "Weird" })).toBeNull();
   });
 });

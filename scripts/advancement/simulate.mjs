@@ -1,5 +1,7 @@
 import { HeadlessAdvancer } from "./apply.mjs";
-import { featsMatching, groupTraitSlots, tally, withoutBlocked } from "./slots.mjs";
+import {
+  assignmentsFrom, featsMatching, groupTraitSlots, increasesFor, tally, withoutBlocked
+} from "./slots.mjs";
 import { isDraconicAncestry, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { subclassesFor } from "../content/catalog-logic.mjs";
 
@@ -19,6 +21,7 @@ import { subclassesFor } from "../content/catalog-logic.mjs";
  * @param {Record<string, {uuid: string}>} options.picks   Picks by wizard step: species, class, background.
  * @param {Record<string, string[]>} options.selections    Chosen option values by slot key.
  * @param {{byType: Record<string, object[]>}} options.catalog  Built catalog (for feat searches).
+ * @param {boolean} [options.tashas]  Tasha's "Customizing Your Origin": a species' ability score increases can go to any ability.
  * @param {Set<string>} [options.blocked]  Trait keys the GM has hidden from choices (languages). Grants still apply.
  * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[] }>}
  *   `deferred` lists advancements the wizard doesn't handle yet (spell picks, ability score changes,
@@ -33,7 +36,7 @@ export async function discoverSlots(options) {
  * Same as `discoverSlots`, but also returns the engine so the caller can `engine.commit()` the result.
  * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[], engine: HeadlessAdvancer }>}
  */
-export async function runPicks({ actor, picks, selections, catalog, blocked = new Set() }) {
+export async function runPicks({ actor, picks, selections, catalog, blocked = new Set(), tashas = false }) {
   const slots = new Map();
   const deferred = new Set();
   let source = null;
@@ -129,18 +132,35 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
       }
 
       case "AbilityScoreImprovement": {
-        // Fixed bonuses (2014 species) apply on their own. Spendable points (2024 backgrounds) are a choice.
-        if ( !config.points ) return null;
+        const fixed = Object.fromEntries(Object.entries(config.fixed ?? {}).filter(([, v]) => v));
+        const hasFixed = Object.keys(fixed).length > 0;
+        const improvable = Object.entries(CONFIG.DND5E.abilities).filter(([id]) => advancement.canImprove(id));
+
+        // Tasha's: each increase a 2014 species gives can be applied to an ability of the player's choice.
+        // The slot starts on the standard increases, so doing nothing keeps them.
+        if ( tashas && (item.type === "race") && (item.system.source?.rules !== "2024") && (hasFixed || config.points) ) {
+          const { increases, defaults } = increasesFor({ fixed, points: config.points });
+          const key = keyFor("");
+          const options = increases.flatMap((_, i) => improvable.map(([id, a]) => ({ value: `${i}:${id}`, label: a.label })));
+          addSlot({ ...base, title: ownTitle || localize("CHARWIZ.Naming.AbilityScoreIncrease"), key, kind: "asi-assign",
+            count: increases.length, increases, defaultSelection: defaults, options });
+          const chosen = selections[key] ?? [];
+          if ( chosen.length < increases.length ) return false;
+          return { type: "asi", assignments: assignmentsFrom(chosen, increases) };
+        }
+
+        // Fixed increases (2014 species) apply as they are. The system's own manager does this with `initial: true`.
+        if ( !config.points ) return hasFixed ? { type: "asi", assignments: fixed } : null;
+
+        // Spendable points (2024 backgrounds) are a choice.
         const locked = Array.from(config.locked ?? []);
-        const options = Object.entries(CONFIG.DND5E.abilities)
-          .filter(([id]) => advancement.canImprove(id) && !locked.includes(id))
-          .map(([value, a]) => ({ value, label: a.label }));
+        const options = improvable.filter(([id]) => !locked.includes(id)).map(([value, a]) => ({ value, label: a.label }));
         const key = keyFor("");
         addSlot({ ...base, key, kind: "asi", count: config.points, cap: config.cap ?? config.points, options });
         const chosen = selections[key] ?? [];
         if ( chosen.length < config.points ) return false;
         const assignments = tally(chosen);
-        for ( const [id, bonus] of Object.entries(config.fixed ?? {}) ) if ( bonus ) assignments[id] = (assignments[id] ?? 0) + bonus;
+        for ( const [id, bonus] of Object.entries(fixed) ) assignments[id] = (assignments[id] ?? 0) + bonus;
         return { type: "asi", assignments };
       }
 

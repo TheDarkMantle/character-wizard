@@ -82,6 +82,10 @@
       "AllowPlayers": {
         "Name": "Players can use the wizard",
         "Hint": "When off, only the GM sees the Character Wizard buttons."
+      },
+      "TashasAbilityScores": {
+        "Name": "Tasha's: customize racial ability score increases",
+        "Hint": "2014 rules only. Lets players apply each ability score increase their species gives (for example +2 and +1) to an ability of their choice, as in Tasha's Cauldron of Everything, Customizing Your Origin. No ability can take two increases. Off by default."
       }
     },
     "Choices": {
@@ -94,7 +98,11 @@
       "Points": "spend {count} points, {spent} spent, up to {cap} on one ability",
       "AbilityScore": "Ability score",
       "Add": "Add a point to {ability}",
-      "Remove": "Remove a point from {ability}"
+      "Remove": "Remove a point from {ability}",
+      "Increase": "Increase {value}",
+      "Standard": "Standard: {default}.",
+      "AssignHint": "Move each increase to the ability you want. An ability can only take one increase.",
+      "Apply": "Apply the +{value} increase to {ability}"
     },
     "Create": {
       "Button": "Create character",
@@ -136,7 +144,13 @@
         "ci": "Condition Immunity",
         "mixed": "Proficiencies"
       },
-      "CastingAbility": "Spellcasting ability"
+      "CastingAbility": "Spellcasting ability",
+      "AbilityScoreIncrease": "Ability Score Increase"
+    },
+    "Body": {
+      "Type": "Creature type",
+      "Speed": "Speed",
+      "Senses": "Senses"
     }
   }
 }

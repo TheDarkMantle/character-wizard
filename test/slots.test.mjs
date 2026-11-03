@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  adjustPoints, createBlocker, featsMatching, groupTraitSlots, picksRemaining, pruneSelections, tally, toggleSelection
+  adjustPoints, assignIncrease, assignmentsFrom, createBlocker, featsMatching, groupTraitSlots, increasesFor, picksRemaining, pruneSelections, tally, toggleSelection
 } from "../scripts/advancement/slots.mjs";
 
 const slot = (key, count, values, extra = {}) => ({ key, count, options: values.map(value => ({ value, label: value })), ...extra });
@@ -103,5 +103,28 @@ describe("ability score points", () => {
 
   it("counts points as picks remaining", () => {
     expect(picksRemaining([asi], { bg: ["int", "wis"] })).toBe(1);
+  });
+});
+
+describe("racial increases (Tasha's)", () => {
+  it("lists increases largest first with their standard abilities", () => {
+    expect(increasesFor({ fixed: { str: 0, dex: 1, int: 2 } })).toEqual({ increases: [2, 1], defaults: ["0:int", "1:dex"] });
+  });
+
+  it("adds a +1 for each spendable point, with no standard ability", () => {
+    expect(increasesFor({ fixed: { cha: 2 }, points: 2 })).toEqual({ increases: [2, 1, 1], defaults: ["0:cha"] });
+  });
+
+  it("moves an increase, and never stacks two on one ability", () => {
+    let sel = ["0:int", "1:dex"];
+    sel = assignIncrease(sel, 0, "con");
+    expect(sel).toEqual(["0:con", "1:dex"]);
+    sel = assignIncrease(sel, 1, "con");
+    expect(sel).toEqual(["1:con"]);
+    expect(assignIncrease(["0:con"], 0, "con")).toEqual(["0:con"]);
+  });
+
+  it("turns a selection into bonuses", () => {
+    expect(assignmentsFrom(["0:con", "1:wis"], [2, 1])).toEqual({ con: 2, wis: 1 });
   });
 });

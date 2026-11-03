@@ -99,6 +99,22 @@ describe("names", () => {
   });
 });
 
+describe("species ability score increases", () => {
+  it("shows fixed 2014 increases as granted", () => {
+    const board = buildBoard([{ _id: "a", type: "AbilityScoreImprovement", name: "", level: 0,
+      configuration: { points: 0, cap: 2, fixed: { str: 0, dex: 2, int: 1 }, locked: [] } }], { toLevel: 0, itemType: "race" });
+    expect(board.granted).toHaveLength(1);
+    expect(board.granted[0].abilities).toEqual({ dex: 2, int: 1 });
+    expect(board.choices).toHaveLength(0);
+  });
+
+  it("keeps spendable points as a choice", () => {
+    const board = buildBoard([{ _id: "a", type: "AbilityScoreImprovement", level: 0,
+      configuration: { points: 3, cap: 2, fixed: {}, locked: ["str"] } }], { toLevel: 0, itemType: "background" });
+    expect(board.choices[0].points).toBe(3);
+  });
+});
+
 describe("remainingChoices", () => {
   it("counts picks still needed", () => {
     const board = buildBoard(fighter, { fromLevel: 1, toLevel: 1, itemType: "class" });

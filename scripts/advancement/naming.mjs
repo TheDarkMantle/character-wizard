@@ -51,6 +51,7 @@ const TYPE_KEYS = Object.freeze({
  */
 export function fallbackTitleKey(adv, { itemType } = {}) {
   if ( adv.type === "ItemGrant" ) return GRANT_KEYS[itemType] ?? "CHARWIZ.Naming.Features";
+  if ( (adv.type === "AbilityScoreImprovement") && (itemType === "race") ) return "CHARWIZ.Naming.AbilityScoreIncrease";
   return TYPE_KEYS[adv.type] ?? null;
 }
 

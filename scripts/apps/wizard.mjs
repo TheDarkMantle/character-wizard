@@ -4,10 +4,11 @@ import { groupSpecies, searchEntries } from "../content/catalog-logic.mjs";
 import { buildBoard } from "../advancement/read.mjs";
 import { traitOptionLabel } from "../advancement/naming.mjs";
 import { blockedLanguageKeys } from "../content/languages.mjs";
+import { bodyLines } from "../content/species-info.mjs";
 import { getSetting } from "../settings.mjs";
 import { discoverSlots, runPicks } from "../advancement/simulate.mjs";
 import {
-  adjustPoints, createBlocker, picksRemaining, pruneSelections, tally, toggleSelection
+  adjustPoints, assignIncrease, assignmentsFrom, createBlocker, picksRemaining, pruneSelections, tally, toggleSelection
 } from "../advancement/slots.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -69,6 +70,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       choose: CharacterWizard.#onChoose,
       toggle: CharacterWizard.#onToggle,
       adjust: CharacterWizard.#onAdjust,
+      assign: CharacterWizard.#onAssign,
       create: CharacterWizard.#onCreate
     }
   };
@@ -206,6 +208,10 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( slot.kind === "asi" ) {
       return Object.entries(tally(selected)).map(([v, n]) => `${label(v)} +${n}`).join(", ");
     }
+    if ( slot.kind === "asi-assign" ) {
+      return Object.entries(assignmentsFrom(selected, slot.increases))
+        .map(([ability, n]) => `${slot.options.find(o => o.value.endsWith(`:${ability}`))?.label ?? ability} +${n}`).join(", ");
+    }
     return selected.map(label).join(", ");
   }
 
@@ -263,6 +269,31 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
           canAdd: !full && ((counts[o.value] ?? 0) < slot.cap),
           inspected: o.value === this.inspected?.value
         }))
+      };
+    }
+    if ( slot.kind === "asi-assign" ) {
+      const abilityLabels = Object.fromEntries(slot.options.map(o => [o.value.split(":")[1], o.label]));
+      const defaults = slot.defaultSelection ?? [];
+      const rows = slot.increases.map((value, index) => ({
+        value, index,
+        label: game.i18n.format("CHARWIZ.Choices.Increase", { value: `+${value}` }),
+        abilities: Object.entries(abilityLabels).map(([ability, label]) => ({
+          ability, label,
+          selected: selected.includes(`${index}:${ability}`),
+          standard: defaults.includes(`${index}:${ability}`)
+        }))
+      }));
+      return {
+        ...slot,
+        assign: true,
+        rows,
+        progress: game.i18n.format("CHARWIZ.Choices.Progress", { selected: selected.length, count: slot.count }),
+        hint: defaults.length ? game.i18n.format("CHARWIZ.Choices.Standard", {
+          default: Object.entries(assignmentsFrom(defaults, slot.increases))
+            .map(([a, v]) => `${abilityLabels[a]} +${v}`).join(", ")
+        }) : "",
+        complete: selected.length >= slot.count,
+        options: []
       };
     }
     const optional = slot.count === 0;
@@ -349,9 +380,15 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       for ( let pass = 0; pass < 4; pass++ ) {
         const { slots, deferred } = await discoverSlots({
           actor: this.actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
-          blocked: blockedLanguageKeys(getSetting("blockedLanguages"))
+          blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores")
         });
         if ( token !== this.refreshToken ) return;
+        // A slot that starts on the standard answer (racial increases) begins with it chosen.
+        for ( const slot of slots ) {
+          if ( slot.defaultSelection && (this.draft.choices[slot.key] === undefined) ) {
+            this.draft.choices[slot.key] = [...slot.defaultSelection];
+          }
+        }
         const pruned = pruneSelections(slots, this.draft.choices);
         const changed = Object.keys(pruned).length !== Object.keys(this.draft.choices).length
           || Object.entries(pruned).some(([k, v]) => v.length !== this.draft.choices[k]?.length);
@@ -391,18 +428,35 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     const hostId = item.system.identifier || item.identifier;
     // Features this item grants can carry choices of their own (Fighting Style, Weapon Mastery).
     board.choices.push(...await this.#nestedChoices(board.granted));
+    const body = (item.type === "race") ? this.#bodyLines(item) : [];
     const preview = {
       uuid,
       name: item.name,
       img: item.img,
       source: item.system.source?.label ?? "",
       description: await TextEditor.enrichHTML(item.system.description?.value ?? "", { relativeTo: item }),
-      granted: board.granted.map(e => this.#labelEntry(e, hostId)),
+      granted: [...board.granted.map(e => this.#labelEntry(e, hostId)), ...body],
       choices: board.choices.map(e => this.#labelEntry(e, hostId)),
       native: board.native.map(e => this.#labelEntry(e, hostId))
     };
     this.previews.set(uuid, preview);
     return preview;
+  }
+
+  /** Speed, senses and creature type from a species item, as "You get" lines. */
+  #bodyLines(item) {
+    const label = value => game.i18n.localize(typeof value === "string" ? value : (value?.label ?? ""));
+    const lines = bodyLines(item.system, {
+      movement: key => label(CONFIG.DND5E.movementTypes[key]) || key,
+      sense: key => label(CONFIG.DND5E.senses[key]) || key,
+      units: units => CONFIG.DND5E.movementUnits?.[units]?.abbreviation ?? units,
+      type: type => {
+        const base = type.value === "custom" ? type.custom : label(CONFIG.DND5E.creatureTypes[type.value]);
+        return base ? `${base}${type.subtype ? ` (${type.subtype})` : ""}` : "";
+      }
+    });
+    const titles = { type: "CHARWIZ.Body.Type", speed: "CHARWIZ.Body.Speed", special: "CHARWIZ.Body.Senses" };
+    return lines.map(l => ({ title: titles[l.id] ? game.i18n.localize(titles[l.id]) : l.title, detail: l.detail }));
   }
 
   /**
@@ -443,6 +497,9 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     else if ( entry.choiceType === "item" && entry.pool?.length ) detail = entry.pool.map(itemName).join(", ");
     else if ( entry.choiceType === "item" && entry.restriction?.subtype ) {
       detail = CONFIG.DND5E.featureTypes[entry.restriction.type]?.subtypes?.[entry.restriction.subtype] ?? "";
+    }
+    if ( entry.abilities ) {
+      detail = Object.entries(entry.abilities).map(([id, n]) => `${CONFIG.DND5E.abilities[id]?.label ?? id} +${n}`).join(", ");
     }
     let countLabel = entry.count ? game.i18n.format("CHARWIZ.Board.Choose", { count: entry.count }) : "";
     if ( entry.choiceType === "asi" && entry.points ) {
@@ -527,7 +584,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       if ( !actor ) actor = created = await Actor.implementation.create({ name, type: "character" });
       const { engine } = await runPicks({
         actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
-        blocked: blockedLanguageKeys(getSetting("blockedLanguages"))
+        blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores")
       });
       engine.clone.updateSource({ name });
       await engine.commit();
@@ -540,6 +597,17 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       ui.notifications.error("CHARWIZ.Create.Failed", { localize: true });
       target.disabled = false;
     }
+  }
+
+  /** Apply one of a species' ability score increases to an ability (Tasha's customization). */
+  static async #onAssign(event, target) {
+    const slot = this.slots.find(s => s.key === target.dataset.slot);
+    if ( !slot ) return;
+    const { index, ability } = target.dataset;
+    this.draft.choices[slot.key] = assignIncrease(this.draft.choices[slot.key], Number(index), ability);
+    this.inspected = { kind: "ability", value: ability };
+    await this.#refreshSlots();
+    this.render();
   }
 
   /** Add or remove a point on an ability in an ability score slot. */

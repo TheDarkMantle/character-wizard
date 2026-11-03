@@ -71,6 +71,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       group: CharacterWizard.#onGroup,
       choose: CharacterWizard.#onChoose,
       toggle: CharacterWizard.#onToggle,
+      inspect: CharacterWizard.#onInspect,
       adjust: CharacterWizard.#onAdjust,
       resetPoints: CharacterWizard.#onResetPoints,
       create: CharacterWizard.#onCreate
@@ -79,7 +80,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
 
   static PARTS = {
     steps: { template: `${TEMPLATE_PATH}/wizard/steps.hbs` },
-    body: { template: `${TEMPLATE_PATH}/wizard/body.hbs`, scrollable: [".charwiz-list", ".charwiz-preview"] },
+    body: { template: `${TEMPLATE_PATH}/wizard/body.hbs`, scrollable: [".charwiz-list", ".charwiz-slots", ".charwiz-preview"] },
     footer: { template: `${TEMPLATE_PATH}/wizard/footer.hbs` }
   };
 
@@ -161,7 +162,19 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( context.isChoices ) {
       context.itemName = this.draft.picks[choiceSource]?.name;
       context.slots = this.#slotsFor(choiceSource).map(slot => this.#prepareSlot(slot));
-      context.info = this.inspected ? await this.#describe(this.inspected) : null;
+      context.info = null;
+      if ( this.inspected ) {
+        const info = await this.#describe(this.inspected);
+        const slot = this.slots.find(s => s.key === this.inspected.slotKey);
+        // Items, traits, sizes and the like can be chosen from the panel. Point controls can't.
+        context.info = info && {
+          ...info,
+          canChoose: !!slot && (slot.kind !== "asi"),
+          slotKey: slot?.key,
+          value: this.inspected.value,
+          selected: !!slot && (this.draft.choices[slot.key] ?? []).includes(this.inspected.value)
+        };
+      }
     }
 
     if ( context.isReview ) {
@@ -609,13 +622,21 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.render();
   }
 
+  /** Show an option's description without choosing it. */
+  static #onInspect(event, target) {
+    const slot = this.slots.find(s => s.key === target.dataset.slot);
+    if ( !slot ) return;
+    this.inspected = { slotKey: slot.key, kind: slot.kind, value: target.dataset.value };
+    this.render({ parts: ["body"] });
+  }
+
   /** Select or deselect an option in a choice slot, and show its description. */
   static async #onToggle(event, target) {
     const slot = this.slots.find(s => s.key === target.dataset.slot);
     if ( !slot ) return;
     const { value } = target.dataset;
     this.draft.choices[slot.key] = toggleSelection(slot, this.draft.choices, value);
-    this.inspected = { kind: slot.kind, value };
+    this.inspected = { slotKey: slot.key, kind: slot.kind, value };
     await this.#refreshSlots();
     this.render();
   }

@@ -91,18 +91,20 @@
       }
     },
     "Choices": {
-      "Hint": "{name} asks you to decide the following. Pick an option to see what it does.",
+      "Hint": "{name} asks you to decide the following. Click an option's name to read about it, and tick it to choose it.",
       "Progress": "choose {count} ({selected} picked)",
       "Optional": "optional, up to {max} ({selected} picked)",
       "Left": "Choices left: {count}",
-      "Inspect": "Pick an option to read what it does.",
+      "Inspect": "Click an option's name to read what it does. Use its checkbox, or Choose here, to pick it.",
       "SkillAbility": "Uses your {ability} modifier.",
       "Points": "spend {count} points, {spent} spent, up to {cap} on one ability",
       "AbilityScore": "Ability score",
       "Add": "Add a point to {ability}",
       "Remove": "Remove a point from {ability}",
       "Standard": "Standard: {default}. Spend the points below to change them.",
-      "ResetStandard": "Back to standard"
+      "ResetStandard": "Back to standard",
+      "Select": "Choose {name}",
+      "Deselect": "Remove choice"
     },
     "Create": {
       "Button": "Create character",

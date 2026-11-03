@@ -128,13 +128,18 @@
         <ul class="charwiz-options">
           {{#each options}}
           <li>
-            <button type="button" class="charwiz-option {{#if selected}}selected{{/if}} {{#if inspected}}inspected{{/if}}"
-              data-action="toggle" data-slot="{{../key}}" data-value="{{value}}"
-              aria-pressed="{{#if selected}}true{{else}}false{{/if}}">
-              {{#if img}}<img src="{{img}}" alt="" width="28" height="28">{{/if}}
-              <span class="name">{{label}}</span>
-              {{#if selected}}<i class="fa-solid fa-circle-check" inert></i>{{/if}}
-            </button>
+            <div class="charwiz-option {{#if selected}}selected{{/if}} {{#if inspected}}inspected{{/if}}">
+              <button type="button" class="charwiz-check" data-action="toggle" data-slot="{{../key}}" data-value="{{value}}"
+                aria-pressed="{{#if selected}}true{{else}}false{{/if}}"
+                aria-label="{{localize 'CHARWIZ.Choices.Select' name=label}}">
+                <i class="fa-solid {{#if selected}}fa-square-check{{else}}fa-square{{/if}}" inert></i>
+              </button>
+              <button type="button" class="charwiz-option-label" data-action="inspect" data-slot="{{../key}}"
+                data-value="{{value}}">
+                {{#if img}}<img src="{{img}}" alt="" width="28" height="28">{{/if}}
+                <span class="name">{{label}}</span>
+              </button>
+            </div>
           </li>
           {{/each}}
         </ul>
@@ -150,6 +155,12 @@
           <h3>{{info.name}}</h3>
           {{#if info.kind}}<span class="meta">{{info.kind}}</span>{{/if}}
         </div>
+        {{#if info.canChoose}}
+        <button type="button" class="charwiz-choose" data-action="toggle" data-slot="{{info.slotKey}}"
+          data-value="{{info.value}}">
+          {{#if info.selected}}{{localize "CHARWIZ.Choices.Deselect"}}{{else}}{{localize "CHARWIZ.Choose"}}{{/if}}
+        </button>
+        {{/if}}
       </header>
       <div class="charwiz-description">{{{info.description}}}</div>
       {{else}}

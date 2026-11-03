@@ -18,11 +18,10 @@
  * @property {"class"|"species"|"background"} source  Which picker step it belongs to.
  * @property {string} itemName   Item whose advancement asks (a class, species, or a feat it granted).
  * @property {string} title      Advancement title, for example "Primal Order".
- * @property {"item"|"trait"|"size"|"optional-item"|"subclass"|"ability"|"asi"|"asi-assign"} kind
+ * @property {"item"|"trait"|"size"|"optional-item"|"subclass"|"ability"|"asi"} kind
  * @property {number} count      Picks required.
  * @property {number} [max]      Upper bound when more than `count` picks are allowed (optional grants).
- * @property {number[]} [increases]  For "asi-assign" slots: the size of each increase, e.g. [2, 1]. Selections are "index:ability".
- * @property {string[]} [defaultSelection]  Selection a slot starts with (the standard racial increases).
+ * @property {string[]} [defaultSelection]  Selection a slot starts with (the standard racial increases, one entry per point).
  * @property {number} [cap]      For "asi" slots: most points one ability can take. Selections repeat an ability once per point.
  * @property {SlotOption[]} options
  */
@@ -170,37 +169,19 @@ export function createBlocker({ picks, slots, selections, canCreate }) {
 }
 
 /**
- * The ability score increases a species gives, largest first: each fixed bonus is one increase, and each spendable
- * point is a +1. Under Tasha's "Customizing Your Origin" each increase can be applied to an ability of your choice.
+ * The points to spend when a species' fixed ability score increases are customized (Tasha's): the increases added
+ * together, with no more on one ability than the largest single increase. High Elf's +2 and +1 are 3 points, 2 per
+ * ability. A spendable point (Half-Elf's two +1s) adds to the total.
  * @param {{ fixed?: Record<string, number>, points?: number }} config  ASI advancement configuration.
- * @returns {{ increases: number[], defaults: string[] }}  `defaults` pairs fixed increases with their standard
- *   ability as "index:ability", and has nothing for increases the player already chose (points).
+ * @returns {{ total: number, cap: number, defaults: string[] }}  `defaults` is the standard increases as a selection,
+ *   one entry per point ("dex", "dex", "int"); spendable points have no standard answer.
  */
-export function increasesFor({ fixed = {}, points = 0 } = {}) {
-  const entries = Object.entries(fixed).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a);
-  const increases = [...entries.map(([, v]) => v), ...Array(Math.max(0, points)).fill(1)];
-  return { increases, defaults: entries.map(([ability], i) => `${i}:${ability}`) };
-}
-
-/**
- * Apply increase `index` to `ability`. An increase has one ability and an ability takes one increase, so choosing
- * an ability that another increase holds moves it. Choosing the same pair again changes nothing.
- * @returns {string[]}  The new selection, ordered by increase.
- */
-export function assignIncrease(selection = [], index, ability) {
-  const kept = selection.filter(v => {
-    const [i, a] = v.split(":");
-    return (Number(i) !== index) && (a !== ability);
-  });
-  return [...kept, `${index}:${ability}`].sort((a, b) => Number(a.split(":")[0]) - Number(b.split(":")[0]));
-}
-
-/** Ability score bonuses for an "asi-assign" selection: ["0:int", "1:cha"] with [2, 1] → { int: 2, cha: 1 }. */
-export function assignmentsFrom(selection = [], increases = []) {
-  const result = {};
-  for ( const v of selection ) {
-    const [i, ability] = v.split(":");
-    if ( increases[Number(i)] ) result[ability] = increases[Number(i)];
-  }
-  return result;
+export function standardPoints({ fixed = {}, points = 0 } = {}) {
+  const entries = Object.entries(fixed).filter(([, v]) => v > 0);
+  const defaults = entries.flatMap(([ability, value]) => Array(value).fill(ability));
+  return {
+    total: defaults.length + Math.max(0, points),
+    cap: Math.max(1, ...entries.map(([, v]) => v)),
+    defaults
+  };
 }

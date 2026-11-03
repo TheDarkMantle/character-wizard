@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  adjustPoints, assignIncrease, assignmentsFrom, createBlocker, featsMatching, groupTraitSlots, increasesFor, picksRemaining, pruneSelections, spellsMatching, tally, toggleSelection, uniqueByName
+  adjustPoints, createBlocker, featsMatching, groupTraitSlots, picksRemaining, pruneSelections, spellsMatching, standardPoints, tally, toggleSelection, uniqueByName
 } from "../scripts/advancement/slots.mjs";
 
 const slot = (key, count, values, extra = {}) => ({ key, count, options: values.map(value => ({ value, label: value })), ...extra });
@@ -107,25 +107,25 @@ describe("ability score points", () => {
 });
 
 describe("racial increases (Tasha's)", () => {
-  it("lists increases largest first with their standard abilities", () => {
-    expect(increasesFor({ fixed: { str: 0, dex: 1, int: 2 } })).toEqual({ increases: [2, 1], defaults: ["0:int", "1:dex"] });
+  it("pools the fixed increases, capped at the largest one", () => {
+    expect(standardPoints({ fixed: { str: 0, dex: 2, int: 1 } }))
+      .toEqual({ total: 3, cap: 2, defaults: ["dex", "dex", "int"] });
   });
 
-  it("adds a +1 for each spendable point, with no standard ability", () => {
-    expect(increasesFor({ fixed: { cha: 2 }, points: 2 })).toEqual({ increases: [2, 1, 1], defaults: ["0:cha"] });
+  it("keeps a species of +1s at one per ability", () => {
+    const fixed = { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 };
+    expect(standardPoints({ fixed })).toMatchObject({ total: 6, cap: 1 });
   });
 
-  it("moves an increase, and never stacks two on one ability", () => {
-    let sel = ["0:int", "1:dex"];
-    sel = assignIncrease(sel, 0, "con");
-    expect(sel).toEqual(["0:con", "1:dex"]);
-    sel = assignIncrease(sel, 1, "con");
-    expect(sel).toEqual(["1:con"]);
-    expect(assignIncrease(["0:con"], 0, "con")).toEqual(["0:con"]);
+  it("adds spendable points to the total with no standard answer", () => {
+    expect(standardPoints({ fixed: { cha: 2 }, points: 2 })).toEqual({ total: 4, cap: 2, defaults: ["cha", "cha"] });
   });
 
-  it("turns a selection into bonuses", () => {
-    expect(assignmentsFrom(["0:con", "1:wis"], [2, 1])).toEqual({ con: 2, wis: 1 });
+  it("starts as a valid selection for the points control", () => {
+    const { total, cap, defaults } = standardPoints({ fixed: { dex: 2, int: 1 } });
+    const slot = { key: "k", kind: "asi", count: total, cap, options: [{ value: "dex" }, { value: "int" }] };
+    expect(pruneSelections([slot], { k: defaults })).toEqual({ k: defaults });
+    expect(picksRemaining([slot], { k: defaults })).toBe(0);
   });
 });
 

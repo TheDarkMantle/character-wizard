@@ -1,6 +1,6 @@
 import { HeadlessAdvancer } from "./apply.mjs";
 import {
-  assignmentsFrom, featsMatching, groupTraitSlots, increasesFor, spellsMatching, tally, uniqueByName, withoutBlocked
+  featsMatching, groupTraitSlots, spellsMatching, standardPoints, tally, uniqueByName, withoutBlocked
 } from "./slots.mjs";
 import { isDraconicAncestry, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
@@ -157,18 +157,18 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
         const hasFixed = Object.keys(fixed).length > 0;
         const improvable = Object.entries(CONFIG.DND5E.abilities).filter(([id]) => advancement.canImprove(id));
 
-        // Tasha's: each fixed increase a 2014 species gives can be applied to an ability of the player's choice.
-        // The slot starts on the standard increases, so doing nothing keeps them. A species that only has points to
-        // spend (Centaur: +2/+1 or +1/+1/+1) is already flexible, so it keeps the points control and its own cap.
+        // Tasha's: a 2014 species' fixed increases become points to spend on any abilities, up to the largest single
+        // increase on one. The control starts on the standard increases, so doing nothing keeps them. A species that
+        // only has points to spend (Centaur: +2/+1 or +1/+1/+1) already works this way, so it keeps its own control.
         if ( tashas && hasFixed && (item.type === "race") && (item.system.source?.rules !== "2024") ) {
-          const { increases, defaults } = increasesFor({ fixed, points: config.points });
+          const { total, cap, defaults } = standardPoints({ fixed, points: config.points });
           const key = keyFor("");
-          const options = increases.flatMap((_, i) => improvable.map(([id, a]) => ({ value: `${i}:${id}`, label: a.label })));
-          addSlot({ ...base, title: ownTitle || localize("CHARWIZ.Naming.AbilityScoreIncrease"), key, kind: "asi-assign",
-            count: increases.length, increases, defaultSelection: defaults, options });
+          const options = improvable.map(([value, a]) => ({ value, label: a.label }));
+          addSlot({ ...base, title: ownTitle || localize("CHARWIZ.Naming.AbilityScoreIncrease"), key, kind: "asi",
+            count: total, cap, defaultSelection: defaults, options });
           const chosen = selections[key] ?? [];
-          if ( chosen.length < increases.length ) return false;
-          return { type: "asi", assignments: assignmentsFrom(chosen, increases) };
+          if ( chosen.length < total ) return false;
+          return { type: "asi", assignments: tally(chosen) };
         }
 
         // Fixed increases (2014 species) apply as they are. The system's own manager does this with `initial: true`.

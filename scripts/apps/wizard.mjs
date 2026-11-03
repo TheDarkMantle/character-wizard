@@ -8,7 +8,7 @@ import { bodyLines } from "../content/species-info.mjs";
 import { getSetting } from "../settings.mjs";
 import { discoverSlots, runPicks } from "../advancement/simulate.mjs";
 import {
-  adjustPoints, assignIncrease, assignmentsFrom, createBlocker, picksRemaining, pruneSelections, tally, toggleSelection
+  adjustPoints, createBlocker, picksRemaining, pruneSelections, tally, toggleSelection
 } from "../advancement/slots.mjs";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -52,6 +52,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     /** Species groups the player has opened, and the pick last revealed in its group. */
     this.expanded = new Set();
     this.revealed = null;
+    /** Slot keys the player has changed, so their standard answer isn't put back. */
+    this.touched = new Set();
     /** @type {Map<string, object>} Preview data by UUID. */
     this.previews = new Map();
     this.catalogData = null;
@@ -70,7 +72,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       choose: CharacterWizard.#onChoose,
       toggle: CharacterWizard.#onToggle,
       adjust: CharacterWizard.#onAdjust,
-      assign: CharacterWizard.#onAssign,
+      resetPoints: CharacterWizard.#onResetPoints,
       create: CharacterWizard.#onCreate
     }
   };
@@ -208,10 +210,6 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( slot.kind === "asi" ) {
       return Object.entries(tally(selected)).map(([v, n]) => `${label(v)} +${n}`).join(", ");
     }
-    if ( slot.kind === "asi-assign" ) {
-      return Object.entries(assignmentsFrom(selected, slot.increases))
-        .map(([ability, n]) => `${slot.options.find(o => o.value.endsWith(`:${ability}`))?.label ?? ability} +${n}`).join(", ");
-    }
     return selected.map(label).join(", ");
   }
 
@@ -260,6 +258,11 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       return {
         ...slot,
         asi: true,
+        hint: slot.defaultSelection ? game.i18n.format("CHARWIZ.Choices.Standard", {
+          default: Object.entries(tally(slot.defaultSelection))
+            .map(([a, n]) => `${slot.options.find(o => o.value === a)?.label ?? a} +${n}`).join(", ")
+        }) : "",
+        canReset: !!slot.defaultSelection,
         progress: game.i18n.format("CHARWIZ.Choices.Points", { spent: selected.length, count: slot.count, cap: slot.cap }),
         complete: full,
         options: slot.options.map(o => ({
@@ -269,31 +272,6 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
           canAdd: !full && ((counts[o.value] ?? 0) < slot.cap),
           inspected: o.value === this.inspected?.value
         }))
-      };
-    }
-    if ( slot.kind === "asi-assign" ) {
-      const abilityLabels = Object.fromEntries(slot.options.map(o => [o.value.split(":")[1], o.label]));
-      const defaults = slot.defaultSelection ?? [];
-      const rows = slot.increases.map((value, index) => ({
-        value, index,
-        label: game.i18n.format("CHARWIZ.Choices.Increase", { value: `+${value}` }),
-        abilities: Object.entries(abilityLabels).map(([ability, label]) => ({
-          ability, label,
-          selected: selected.includes(`${index}:${ability}`),
-          standard: defaults.includes(`${index}:${ability}`)
-        }))
-      }));
-      return {
-        ...slot,
-        assign: true,
-        rows,
-        progress: game.i18n.format("CHARWIZ.Choices.Progress", { selected: selected.length, count: slot.count }),
-        hint: defaults.length ? game.i18n.format("CHARWIZ.Choices.Standard", {
-          default: Object.entries(assignmentsFrom(defaults, slot.increases))
-            .map(([a, v]) => `${abilityLabels[a]} +${v}`).join(", ")
-        }) : "",
-        complete: selected.length >= slot.count,
-        options: []
       };
     }
     const optional = slot.count === 0;
@@ -386,7 +364,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         if ( token !== this.refreshToken ) return;
         // A slot that starts on the standard answer (racial increases) begins with it chosen.
         for ( const slot of slots ) {
-          if ( slot.defaultSelection && (this.draft.choices[slot.key] === undefined) ) {
+          if ( slot.defaultSelection && !this.touched.has(slot.key) && (this.draft.choices[slot.key] === undefined) ) {
             this.draft.choices[slot.key] = [...slot.defaultSelection];
           }
         }
@@ -609,13 +587,12 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     }
   }
 
-  /** Apply one of a species' ability score increases to an ability (Tasha's customization). */
-  static async #onAssign(event, target) {
+  /** Put an ability score slot back on the species' standard increases. */
+  static async #onResetPoints(event, target) {
     const slot = this.slots.find(s => s.key === target.dataset.slot);
-    if ( !slot ) return;
-    const { index, ability } = target.dataset;
-    this.draft.choices[slot.key] = assignIncrease(this.draft.choices[slot.key], Number(index), ability);
-    this.inspected = { kind: "ability", value: ability };
+    if ( !slot?.defaultSelection ) return;
+    this.touched.delete(slot.key);
+    this.draft.choices[slot.key] = [...slot.defaultSelection];
     await this.#refreshSlots();
     this.render();
   }
@@ -625,6 +602,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     const slot = this.slots.find(s => s.key === target.dataset.slot);
     if ( !slot ) return;
     const { value, delta } = target.dataset;
+    this.touched.add(slot.key);
     this.draft.choices[slot.key] = adjustPoints(slot, this.draft.choices, value, Number(delta));
     this.inspected = { kind: slot.kind, value };
     await this.#refreshSlots();

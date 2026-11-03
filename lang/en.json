@@ -87,7 +87,7 @@
       },
       "TashasAbilityScores": {
         "Name": "Tasha's: customize racial ability score increases",
-        "Hint": "2014 rules only. Lets players apply each ability score increase their species gives (for example +2 and +1) to an ability of their choice, as in Tasha's Cauldron of Everything, Customizing Your Origin. No ability can take two increases. Off by default."
+        "Hint": "2014 rules only. For a species with fixed increases (for example +2 and +1), players get those points to spend on any abilities instead, with no more on one ability than the species' largest increase. The standard increases are preselected. Off by default."
       }
     },
     "Choices": {
@@ -101,10 +101,8 @@
       "AbilityScore": "Ability score",
       "Add": "Add a point to {ability}",
       "Remove": "Remove a point from {ability}",
-      "Increase": "Increase {value}",
-      "Standard": "Standard: {default}.",
-      "AssignHint": "Move each increase to the ability you want. An ability can only take one increase.",
-      "Apply": "Apply the +{value} increase to {ability}"
+      "Standard": "Standard: {default}. Spend the points below to change them.",
+      "ResetStandard": "Back to standard"
     },
     "Create": {
       "Button": "Create character",

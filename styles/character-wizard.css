@@ -114,9 +114,7 @@
   .charwiz-create { width: auto; margin-top: 0.5rem; }
   .charwiz-blocker { color: var(--color-level-error, firebrick); }
 
-  .charwiz-assign { display: grid; gap: 0.4rem; }
-  .charwiz-assign-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
-  .charwiz-assign-row > .name { min-width: 6rem; font-weight: bold; }
+  .charwiz-reset { width: auto; margin-top: 0.4rem; }
 
   .charwiz-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
   .charwiz-points li { display: flex; align-items: center; gap: 0.5rem; padding: 0.15rem 0.4rem; border-radius: 4px; }

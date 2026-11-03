@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  adjustPoints, assignIncrease, assignmentsFrom, createBlocker, featsMatching, groupTraitSlots, increasesFor, picksRemaining, pruneSelections, tally, toggleSelection
+  adjustPoints, assignIncrease, assignmentsFrom, createBlocker, featsMatching, groupTraitSlots, increasesFor, picksRemaining, pruneSelections, spellsMatching, tally, toggleSelection, uniqueByName
 } from "../scripts/advancement/slots.mjs";
 
 const slot = (key, count, values, extra = {}) => ({ key, count, options: values.map(value => ({ value, label: value })), ...extra });
@@ -126,5 +126,28 @@ describe("racial increases (Tasha's)", () => {
 
   it("turns a selection into bonuses", () => {
     expect(assignmentsFrom(["0:con", "1:wis"], [2, 1])).toEqual({ con: 2, wis: 1 });
+  });
+});
+
+describe("spell choices", () => {
+  const spells = [
+    { name: "Fire Bolt", system: { level: 0, school: "evo" } },
+    { name: "Mage Hand", system: { level: 0, school: "con" } },
+    { name: "Magic Missile", system: { level: 1, school: "evo" } }
+  ];
+
+  it("filters by level and school", () => {
+    expect(spellsMatching(spells, { level: "0" }).map(s => s.name)).toEqual(["Fire Bolt", "Mage Hand"]);
+    expect(spellsMatching(spells, { level: "0", school: ["evo"] }).map(s => s.name)).toEqual(["Fire Bolt"]);
+    expect(spellsMatching(spells, { level: "" })).toHaveLength(3);
+  });
+
+  it("matches nothing for relative levels it can't resolve", () => {
+    expect(spellsMatching(spells, { level: "available" })).toEqual([]);
+  });
+
+  it("offers a spell once when several compendiums have it", () => {
+    expect(uniqueByName([{ name: "Fire Bolt", id: 1 }, { name: "fire bolt", id: 2 }, { name: "Light", id: 3 }])
+      .map(e => e.id)).toEqual([1, 3]);
   });
 });

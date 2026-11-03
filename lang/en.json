@@ -31,7 +31,9 @@
       "None": "Nothing at this level.",
       "Choose": "choose {count}",
       "Native": "uses the system's own dialog",
-      "Points": "spend {count} points, up to {cap} on one"
+      "Points": "spend {count} points, up to {cap} on one",
+      "FromSpellList": "{level} from the {lists} spell list",
+      "Cantrip": "cantrip"
     },
     "Details": {
       "Name": "Character name"

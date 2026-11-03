@@ -1,9 +1,9 @@
 import { HeadlessAdvancer } from "./apply.mjs";
 import {
-  assignmentsFrom, featsMatching, groupTraitSlots, increasesFor, tally, withoutBlocked
+  assignmentsFrom, featsMatching, groupTraitSlots, increasesFor, spellsMatching, tally, uniqueByName, withoutBlocked
 } from "./slots.mjs";
 import { isDraconicAncestry, traitOptionLabel, traitTitleKey } from "./naming.mjs";
-import { subclassesFor } from "../content/catalog-logic.mjs";
+import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
 
 /**
  * Discover the choices a set of picks asks for, by running the system's own advancements on a clone.
@@ -21,6 +21,7 @@ import { subclassesFor } from "../content/catalog-logic.mjs";
  * @param {Record<string, {uuid: string}>} options.picks   Picks by wizard step: species, class, background.
  * @param {Record<string, string[]>} options.selections    Chosen option values by slot key.
  * @param {{byType: Record<string, object[]>}} options.catalog  Built catalog (for feat searches).
+ * @param {{rules: string, untagged: string}} [options.ruleset]  The world's rules, to keep spells to the right edition.
  * @param {boolean} [options.tashas]  Tasha's "Customizing Your Origin": a species' ability score increases can go to any ability.
  * @param {Set<string>} [options.blocked]  Trait keys the GM has hidden from choices (languages). Grants still apply.
  * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[] }>}
@@ -36,7 +37,8 @@ export async function discoverSlots(options) {
  * Same as `discoverSlots`, but also returns the engine so the caller can `engine.commit()` the result.
  * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[], engine: HeadlessAdvancer }>}
  */
-export async function runPicks({ actor, picks, selections, catalog, blocked = new Set(), tashas = false }) {
+export async function runPicks({ actor, picks, selections, catalog, blocked = new Set(), tashas = false,
+  ruleset = { rules: "2024", untagged: "show" } }) {
   const slots = new Map();
   const deferred = new Set();
   let source = null;
@@ -51,6 +53,20 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
   const optionFor = uuid => {
     const doc = fromUuidSync(uuid);
     return { value: uuid, uuid, label: doc?.name ?? uuid, img: doc?.img };
+  };
+
+  /**
+   * Spells an open spell choice can offer, from the system's spell lists, kept to the world's ruleset.
+   * Returns null when the restriction can't be resolved here (no list, or a level relative to the character).
+   */
+  const spellOptions = restriction => {
+    const lists = Array.from(restriction.list ?? []);
+    if ( !lists.length ) return null;
+    if ( ["available", "availableNoCantrips"].includes(restriction.level) ) return null;
+    const indexes = lists.flatMap(id => dnd5e.registry.spellLists.forType(id)?.indexes ?? []);
+    const inRuleset = indexes.filter(i => matchesRules({ rules: rulesFor(i) }, ruleset.rules, ruleset.untagged));
+    return uniqueByName(spellsMatching(inRuleset, { level: restriction.level, school: restriction.school }))
+      .map(i => ({ value: i.uuid, uuid: i.uuid, label: i.name, img: i.img }));
   };
 
   /** @type {import("./apply.mjs").Resolver} */
@@ -73,11 +89,16 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
       case "ItemChoice": {
         const count = config.choices[level]?.count ?? 0;
         if ( !count ) return false;
-        if ( config.type === "spell" ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
         const pool = config.pool.map(p => p.uuid);
-        const options = pool.length
-          ? pool.map(optionFor)
-          : featsMatching(catalog.byType.feat, config.restriction).map(f => optionFor(f.uuid));
+        let options;
+        if ( config.type === "spell" ) {
+          options = pool.length ? pool.map(optionFor) : spellOptions(config.restriction);
+          if ( !options ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
+        } else {
+          options = pool.length
+            ? pool.map(optionFor)
+            : featsMatching(catalog.byType.feat, config.restriction).map(f => optionFor(f.uuid));
+        }
         const key = keyFor("");
         addSlot({ ...base, key, kind: "item", count, options });
         const chosen = (selections[key] ?? []).filter(v => options.some(o => o.value === v));

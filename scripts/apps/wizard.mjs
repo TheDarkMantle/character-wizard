@@ -380,7 +380,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       for ( let pass = 0; pass < 4; pass++ ) {
         const { slots, deferred } = await discoverSlots({
           actor: this.actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
-          blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores")
+          blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores"),
+          ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }
         });
         if ( token !== this.refreshToken ) return;
         // A slot that starts on the standard answer (racial increases) begins with it chosen.
@@ -470,8 +471,9 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     for ( const entry of granted ) {
       for ( const uuid of entry.items ?? [] ) {
         const feature = await fromUuid(uuid);
-        const advancement = feature?.toObject().system.advancement;
-        if ( !advancement?.length ) continue;
+        // 6.0 keeps an item's advancements as an object keyed by id, not an array.
+        const advancement = Object.values(feature?.toObject().system.advancement ?? {});
+        if ( !advancement.length ) continue;
         const board = buildBoard(advancement, { fromLevel: 0, toLevel: 1, itemType: feature.type });
         for ( const choice of board.choices ) {
           // Unnamed choices take the feature's name.
@@ -495,6 +497,13 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     else if ( entry.traits?.length ) detail = entry.traits.map(traitLabel).join(", ");
     else if ( entry.choiceType === "trait" ) detail = entry.pool.map(traitLabel).join(", ");
     else if ( entry.choiceType === "item" && entry.pool?.length ) detail = entry.pool.map(itemName).join(", ");
+    else if ( entry.choiceType === "item" && entry.restriction?.list?.length ) {
+      const names = entry.restriction.list.map(l => dnd5e.registry.spellLists.forType(l)?.name).filter(_ => _);
+      detail = game.i18n.format("CHARWIZ.Board.FromSpellList", {
+        lists: game.i18n.getListFormatter({ type: "disjunction" }).format(names),
+        level: entry.restriction.level === "0" ? game.i18n.localize("CHARWIZ.Board.Cantrip") : ""
+      }).trim();
+    }
     else if ( entry.choiceType === "item" && entry.restriction?.subtype ) {
       detail = CONFIG.DND5E.featureTypes[entry.restriction.type]?.subtypes?.[entry.restriction.subtype] ?? "";
     }
@@ -584,7 +593,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       if ( !actor ) actor = created = await Actor.implementation.create({ name, type: "character" });
       const { engine } = await runPicks({
         actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
-        blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores")
+        blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores"),
+        ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }
       });
       engine.clone.updateSource({ name });
       await engine.commit();

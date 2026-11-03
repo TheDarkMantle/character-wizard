@@ -64,6 +64,31 @@ export function withoutBlocked(group, blocked) {
 }
 
 /**
+ * Spell index entries matching an ItemChoice restriction. `level` is a spell level as a string ("0" for cantrips,
+ * "" for any); the system's relative values ("available") can't be resolved here and match nothing.
+ * @param {object[]} spells  Index entries with `system.level` and `system.school`.
+ * @param {{ level?: string, school?: Iterable<string> }} [restriction]
+ */
+export function spellsMatching(spells, { level = "", school = [] } = {}) {
+  const schools = new Set(school);
+  const wanted = (level === "") ? null : Number(level);
+  if ( (wanted !== null) && Number.isNaN(wanted) ) return [];
+  return spells.filter(s => ((wanted === null) || (Number(s.system?.level) === wanted))
+    && (!schools.size || schools.has(s.system?.school)));
+}
+
+/** First entry per name (case-insensitive), so a spell in several compendiums is offered once. */
+export function uniqueByName(entries) {
+  const seen = new Set();
+  return entries.filter(e => {
+    const key = String(e.name).toLowerCase();
+    if ( seen.has(key) ) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
  * Feats matching an ItemChoice restriction. `restriction.type` is the feat type (`system.type.value`)
  * and `restriction.subtype` the feat subtype (`system.type.subtype`), as in dnd5e's `_validateItemType`.
  * @param {object[]} feats        Catalog feat entries ({ featType, featSubtype }).

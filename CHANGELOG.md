@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- **Proficiencies you already have are greyed out.** Choices are now checked in the wizard's step order (2024: class, background, species; 2014: species, class, background), so a later step sees what an earlier one gave. Taken skills, tools and languages show dimmed and can't be ticked.
+- **Duplicates become a replacement.** If a fixed proficiency duplicates one you already have, or every option in a choice is already taken, you get to pick any other of that kind. Before, a duplicate grant was dropped and you lost the proficiency.
+- A choice with no real decision left (as many options as picks) is granted without asking.
+- Expertise and weapon mastery are unchanged.
+- Still untested in Foundry.
+
 ## 0.2.9
 
 - Cantrips and spells a **class** asks for are no longer offered in the Class choices step. They belong to the spells step, which isn't built yet, so for now they are listed on Review as not handled. Species and background spell picks (the High Elf cantrip) stay where they were.

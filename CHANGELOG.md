@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.1
+
+- **Use a compendium under any rules version.** New "Any rules version" checkbox for each compendium on the Sources tab of Configure content. When it's on, the wizard offers everything in that compendium whatever its 2014 or 2024 tag says, so a 2014-tagged homebrew class (the Drakkenheim Apothecary) can be used in a 2024 world. Entries from the other edition are marked with their rules version in the picker.
+- Point buy now shows the minus button on the left, the score in the middle and the plus on the right.
+- The ability scores table keeps its scroll position when you change a score, instead of jumping to the top.
+- Rolling 4d6 now goes through Foundry's dice and posts to chat as a normal roll, so Dice So Nice animates it. The scores appear once the 3D dice have landed.
+- The custom array setting no longer names where the sample array came from.
+- A choice that follows another in the same advancement (a tool from a short list, then "another of your choice") can't take what the first one picked.
+- Still untested in Foundry.
+
 ## 0.4.0
 
 - **Ability scores step.** Set scores by standard array, point buy (27 points, 8 to 15), rolling 4d6 and dropping the lowest, or typing them in. A table shows base score, bonus, final score and modifier for each ability.

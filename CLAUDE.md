@@ -11,6 +11,9 @@ subclasses, species, backgrounds and feats from every Item compendium in the wor
 - First release = **character creation only**. Level-up comes later.
 - Opening: Actors sidebar button (keep it), character sheet header menu entry, and a small wizard hat button in the sheet header beside the lock toggle (shown when a level 0 sheet is unlocked).
   Level 0 opens creation for that actor; level > 0 shows a "level-up coming later" notice.
+- Spell picks from the **class** (cantrips known, spells) belong to the **spells step**, not the class choices step. Spell
+  picks from a species or background (High Elf cantrip) stay in that step's choices. Until the spells step exists, class
+  spell picks are listed on Review as not handled.
 - On picker steps, **Next** chooses the highlighted option if Choose wasn't clicked. Jumping via the step list doesn't.
 - UX goal: a **features board**. When a class/species/background is picked, show "granted" features (locked),
   "your choices" slots (fighting style, skills, tools, languages, weapon mastery, ASI/feat, subclass), and a pool of

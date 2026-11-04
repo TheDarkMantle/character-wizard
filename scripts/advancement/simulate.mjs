@@ -92,6 +92,8 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
         const pool = config.pool.map(p => p.uuid);
         let options;
         if ( config.type === "spell" ) {
+          // A class' cantrips and spells belong to the spells step, not the class choices.
+          if ( owner === "class" ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
           options = pool.length ? pool.map(optionFor) : spellOptions(config.restriction);
           if ( !options ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
         } else {

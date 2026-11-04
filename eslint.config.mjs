@@ -2,7 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 
 const foundryGlobals = Object.fromEntries([
-  "foundry", "game", "ui", "Hooks", "CONFIG", "Actor", "Item", "fromUuid", "fromUuidSync", "dnd5e", "Roll"
+  "foundry", "game", "ui", "Hooks", "CONFIG", "Actor", "Item", "fromUuid", "fromUuidSync", "dnd5e", "Roll", "ChatMessage"
 ].map(name => [name, "readonly"]));
 
 export default [

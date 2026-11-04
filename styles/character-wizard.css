@@ -125,7 +125,7 @@
 
   .charwiz-reset { width: auto; margin-top: 0.4rem; }
 
-  .charwiz-abilities { overflow-y: auto; padding-right: 0.25rem; }
+  .charwiz-abilities { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 0.25rem; }
   .charwiz-methods { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.5rem; }
   .charwiz-methods button { width: auto; }
   .charwiz-method.active { border-color: var(--color-level-success, green); background: var(--color-cool-4, rgb(0 0 0 / 10%)); }
@@ -138,8 +138,10 @@
   .charwiz-scores tbody th { text-align: left; }
   .charwiz-control { white-space: nowrap; }
   .charwiz-control select, .charwiz-control input { width: 5rem; }
-  .charwiz-control button { width: 1.75rem; height: 1.75rem; }
-  .charwiz-control output { display: inline-block; min-width: 2rem; font-weight: bold; }
+  /* Point buy: minus on the left, value, plus on the right. */
+  .charwiz-stepper { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+  .charwiz-stepper button { flex: 0 0 auto; width: 1.75rem; height: 1.75rem; padding: 0; }
+  .charwiz-stepper output { min-width: 2rem; text-align: center; font-weight: bold; }
   .charwiz-bonus { color: var(--color-level-success, green); }
   .charwiz-final { font-weight: bold; }
 

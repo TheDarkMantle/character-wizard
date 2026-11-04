@@ -97,7 +97,7 @@
       },
       "CustomArray": {
         "Name": "Custom array",
-        "Hint": "Six scores separated by commas. Starts as the Dungeon Dudes' alternative array. Only used while the setting above is on.",
+        "Hint": "Six scores separated by commas. A sample array has already been entered. Only used while the setting above is on.",
         "Invalid": "The custom ability score array must be six whole numbers from 1 to 20, for example 17, 15, 13, 12, 10, 8. Until it is, the wizard won't offer it."
       },
       "RerollOnes": {
@@ -197,7 +197,8 @@
       "Bonus": "Bonus",
       "Score": "Score",
       "Modifier": "Mod",
-      "BonusNote": "Bonuses from your species and background are added to the base scores."
+      "BonusNote": "Bonuses from your species and background are added to the base scores.",
+      "RollFlavor": "Ability scores ({formula})"
     },
     "OtherRules": "{rules} rules"
   }

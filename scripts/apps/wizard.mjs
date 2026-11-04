@@ -89,7 +89,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
 
   static PARTS = {
     steps: { template: `${TEMPLATE_PATH}/wizard/steps.hbs` },
-    body: { template: `${TEMPLATE_PATH}/wizard/body.hbs`, scrollable: [".charwiz-list", ".charwiz-slots", ".charwiz-preview"] },
+    body: { template: `${TEMPLATE_PATH}/wizard/body.hbs`, scrollable: [".charwiz-list", ".charwiz-slots", ".charwiz-preview", ".charwiz-abilities"] },
     footer: { template: `${TEMPLATE_PATH}/wizard/footer.hbs` }
   };
 
@@ -759,18 +759,37 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.render();
   }
 
-  /** Roll the six scores once (4d6, drop the lowest; rerolling 1s if the GM allows it). */
+  /**
+   * Roll the six scores once (4d6, drop the lowest; rerolling 1s if the GM allows it). The dice go to chat as a
+   * normal roll, so they show up for everyone and a 3D dice module such as Dice So Nice animates them.
+   */
   static async #onAbilityRoll(event, target) {
     const abilities = this.draft.abilities;
     if ( abilities.rolled?.length ) return;
     target.disabled = true;
     const formula = rollFormula(getSetting("rerollOnes"));
-    const totals = [];
-    for ( let i = 0; i < this.#abilityIds.length; i++ ) {
-      const roll = await new Roll(formula).evaluate();
-      totals.push(roll.total);
+    const rolls = [];
+    for ( let i = 0; i < this.#abilityIds.length; i++ ) rolls.push(await new Roll(formula).evaluate());
+    const totals = rolls.map(roll => roll.total).sort((a, b) => b - a);
+
+    try {
+      const data = {
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        flavor: game.i18n.format("CHARWIZ.Abilities.RollFlavor", { formula }),
+        content: `<p>${totals.join(", ")}</p>`,
+        rolls,
+        sound: CONFIG.sounds.dice
+      };
+      ChatMessage.implementation.applyRollMode?.(data, game.settings.get("core", "rollMode"));
+      const message = await ChatMessage.implementation.create(data);
+      // Keep the numbers back until the 3D dice have landed.
+      await game.dice3d?.waitFor3DAnimationByMessageID?.(message.id);
+    } catch(err) {
+      // The roll still counts if it couldn't be posted.
+      console.warn(`${MODULE_ID} | Could not post the ability score roll to chat`, err);
     }
-    abilities.rolled = totals.sort((a, b) => b - a);
+
+    abilities.rolled = totals;
     abilities.scores = {};
     await this.#refreshSlots();
     this.render();

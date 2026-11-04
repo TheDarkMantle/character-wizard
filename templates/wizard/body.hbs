@@ -214,11 +214,13 @@
               {{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{value}}</option>{{/each}}
             </select>
             {{else if isPoints}}
-            <button type="button" data-action="abilityPoint" data-ability="{{id}}" data-delta="-1" {{#unless canDown}}disabled{{/unless}}
-              aria-label="{{localize 'CHARWIZ.Choices.Remove' ability=label}}"><i class="fa-solid fa-minus" inert></i></button>
-            <output aria-live="polite">{{value}}</output>
-            <button type="button" data-action="abilityPoint" data-ability="{{id}}" data-delta="1" {{#unless canUp}}disabled{{/unless}}
-              aria-label="{{localize 'CHARWIZ.Choices.Add' ability=label}}"><i class="fa-solid fa-plus" inert></i></button>
+            <div class="charwiz-stepper">
+              <button type="button" data-action="abilityPoint" data-ability="{{id}}" data-delta="-1" {{#unless canDown}}disabled{{/unless}}
+                aria-label="{{localize 'CHARWIZ.Choices.Remove' ability=label}}"><i class="fa-solid fa-minus" inert></i></button>
+              <output aria-live="polite">{{value}}</output>
+              <button type="button" data-action="abilityPoint" data-ability="{{id}}" data-delta="1" {{#unless canUp}}disabled{{/unless}}
+                aria-label="{{localize 'CHARWIZ.Choices.Add' ability=label}}"><i class="fa-solid fa-plus" inert></i></button>
+            </div>
             {{else if isNumber}}
             <input type="number" min="1" max="20" step="1" data-ability-input data-ability="{{id}}" value="{{value}}"
               aria-label="{{label}}">

@@ -2,7 +2,7 @@ import { MODULE_ID, UNTAGGED } from "./constants.mjs";
 import ContentSettings from "./apps/content-settings.mjs";
 import { parseArray } from "./abilities/scores.mjs";
 
-/** The Dungeon Dudes' alternative starting array, offered as the custom array until the GM changes it. */
+/** A sample array, offered as the custom array until the GM changes it. */
 export const DEFAULT_CUSTOM_ARRAY = "17, 15, 13, 12, 10, 8";
 
 /**
@@ -99,7 +99,7 @@ export function registerSettings() {
     default: false
   });
 
-  // Ability scores. The custom array is off by default; its field holds the Dungeon Dudes array until changed.
+  // Ability scores. The custom array is off by default; its field holds a sample array until changed.
   game.settings.register(MODULE_ID, "customArrayEnabled", {
     name: "CHARWIZ.Settings.CustomArrayEnabled.Name",
     hint: "CHARWIZ.Settings.CustomArrayEnabled.Hint",

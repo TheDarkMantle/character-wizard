@@ -171,6 +171,70 @@
   </div>
   {{/if}}
 
+  {{#if isAbilities}}
+  <div class="charwiz-abilities">
+    <div class="charwiz-methods" role="group" aria-label="{{localize 'CHARWIZ.Abilities.MethodsLabel'}}">
+      {{#each abilities.methods}}
+      <button type="button" class="charwiz-method {{#if active}}active{{/if}}" data-action="abilityMethod"
+        data-method="{{id}}" aria-pressed="{{#if active}}true{{else}}false{{/if}}">{{localize label}}</button>
+      {{/each}}
+    </div>
+    <p class="hint">{{abilities.hint}}</p>
+
+    {{#if abilities.isRoll}}
+    <div class="charwiz-roll">
+      <button type="button" data-action="abilityRoll" {{disabled abilities.hasRolled}}>
+        <i class="fa-solid fa-dice" inert></i> {{localize "CHARWIZ.Abilities.Roll" formula=abilities.formula}}
+      </button>
+      {{#if abilities.hasRolled}}<span>{{localize "CHARWIZ.Abilities.Rolled"}}: <strong>{{abilities.rolled}}</strong></span>{{/if}}
+    </div>
+    {{/if}}
+    {{#if abilities.isPointBuy}}
+    <p class="charwiz-budget" role="status">{{localize "CHARWIZ.Abilities.PointsLeft" left=abilities.pointsLeft budget=abilities.budget}}</p>
+    {{/if}}
+
+    <table class="charwiz-scores">
+      <thead>
+        <tr>
+          <th scope="col">{{localize "CHARWIZ.Abilities.Ability"}}</th>
+          <th scope="col">{{localize "CHARWIZ.Abilities.Base"}}</th>
+          <th scope="col">{{localize "CHARWIZ.Abilities.Bonus"}}</th>
+          <th scope="col">{{localize "CHARWIZ.Abilities.Score"}}</th>
+          <th scope="col">{{localize "CHARWIZ.Abilities.Modifier"}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each abilities.rows}}
+        <tr>
+          <th scope="row">{{label}}</th>
+          <td class="charwiz-control">
+            {{#if isSelect}}
+            <select data-ability-input data-ability="{{id}}" aria-label="{{label}}">
+              <option value="">—</option>
+              {{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{value}}</option>{{/each}}
+            </select>
+            {{else if isPoints}}
+            <button type="button" data-action="abilityPoint" data-ability="{{id}}" data-delta="-1" {{#unless canDown}}disabled{{/unless}}
+              aria-label="{{localize 'CHARWIZ.Choices.Remove' ability=label}}"><i class="fa-solid fa-minus" inert></i></button>
+            <output aria-live="polite">{{value}}</output>
+            <button type="button" data-action="abilityPoint" data-ability="{{id}}" data-delta="1" {{#unless canUp}}disabled{{/unless}}
+              aria-label="{{localize 'CHARWIZ.Choices.Add' ability=label}}"><i class="fa-solid fa-plus" inert></i></button>
+            {{else if isNumber}}
+            <input type="number" min="1" max="20" step="1" data-ability-input data-ability="{{id}}" value="{{value}}"
+              aria-label="{{label}}">
+            {{/if}}
+          </td>
+          <td class="charwiz-bonus">{{bonusLabel}}</td>
+          <td class="charwiz-final">{{#if final}}{{final}}{{else}}—{{/if}}</td>
+          <td class="charwiz-mod">{{modLabel}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    {{#if abilities.hasBonus}}<p class="hint">{{localize "CHARWIZ.Abilities.BonusNote"}}</p>{{/if}}
+  </div>
+  {{/if}}
+
   {{#if isPending}}
   <p class="charwiz-empty">{{localize "CHARWIZ.Pending"}}</p>
   {{/if}}
@@ -185,6 +249,7 @@
   {{#if isReview}}
   <dl class="charwiz-summary">
     <dt>{{localize "CHARWIZ.Details.Name"}}</dt><dd>{{#if draft.name}}{{draft.name}}{{else}}—{{/if}}</dd>
+    {{#if abilityLine}}<dt>{{localize "CHARWIZ.Steps.abilities"}}</dt><dd>{{abilityLine}}</dd>{{/if}}
     {{#each summary}}
     <dt>{{localize label}}</dt>
     <dd>{{#if name}}{{name}}{{else}}—{{/if}}

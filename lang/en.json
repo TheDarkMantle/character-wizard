@@ -40,7 +40,7 @@
     },
     "Review": {
       "Deferred": "Not handled by the wizard yet:",
-      "Scope": "This builds the class, species and background features and your choices. Ability scores, equipment and spells aren't part of creation yet; set them on the character sheet."
+      "Scope": "This builds your class, species and background features, your choices and your ability scores. Equipment and spells aren't part of creation yet; set them on the character sheet."
     },
     "Notify": {
       "LevelUpLater": "Levelling up from the wizard is coming in a later version.",
@@ -88,6 +88,19 @@
       "TashasAbilityScores": {
         "Name": "Tasha's: customize racial ability score increases",
         "Hint": "2014 rules only. For a species with fixed increases (for example +2 and +1), players get those points to spend on any abilities instead, with no more on one ability than the species' largest increase. The standard increases are preselected. Off by default."
+      },
+      "CustomArrayEnabled": {
+        "Name": "Offer a custom ability score array",
+        "Hint": "Adds your own array as a way to set ability scores in the wizard, next to the standard array. Turn it on to edit the array below. Off by default."
+      },
+      "CustomArray": {
+        "Name": "Custom array",
+        "Hint": "Six scores separated by commas. Starts as the Dungeon Dudes' alternative array. Only used while the setting above is on.",
+        "Invalid": "The custom ability score array must be six whole numbers from 1 to 20, for example 17, 15, 13, 12, 10, 8. Until it is, the wizard won't offer it."
+      },
+      "RerollOnes": {
+        "Name": "4d6: reroll 1s",
+        "Hint": "For old-school tables. When a player rolls 4d6 and drops the lowest, any die that shows a 1 is rolled again. Off by default."
       }
     },
     "Choices": {
@@ -116,7 +129,8 @@
       "Blocked": {
         "NoPermission": "You don't have permission to create actors. Ask your GM for a blank character to build onto.",
         "NeedClass": "Pick a class first.",
-        "NeedChoices": "Finish your choices first."
+        "NeedChoices": "Finish your choices first.",
+        "NeedAbilities": "Set your ability scores first."
       }
     },
     "Naming": {
@@ -155,6 +169,33 @@
       "Type": "Creature type",
       "Speed": "Speed",
       "Senses": "Senses"
+    },
+    "Abilities": {
+      "MethodsLabel": "How to set ability scores",
+      "Incomplete": "Set all six ability scores to continue.",
+      "Method": {
+        "standard": "Standard array",
+        "pointbuy": "Point buy",
+        "roll": "Roll 4d6",
+        "manual": "Manual",
+        "custom": "Custom array"
+      },
+      "Hint": {
+        "standard": "Assign each of {values} to one ability.",
+        "custom": "Assign each of {values} to one ability. This is the array your GM set up.",
+        "pointbuy": "Spend up to {budget} points. Scores start at {min} and go up to {max} before bonuses.",
+        "roll": "Roll once for all six scores. Each is four d6 with the lowest die dropped. Then assign each result to one ability.",
+        "manual": "Type in each score, from 1 to 20, before bonuses."
+      },
+      "Roll": "Roll ({formula})",
+      "Rolled": "Rolled",
+      "PointsLeft": "Points left: {left} of {budget}",
+      "Ability": "Ability",
+      "Base": "Base",
+      "Bonus": "Bonus",
+      "Score": "Score",
+      "Modifier": "Mod",
+      "BonusNote": "Bonuses from your species and background are added to the base scores."
     }
   }
 }

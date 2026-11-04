@@ -5,7 +5,11 @@ import { buildBoard } from "../advancement/read.mjs";
 import { traitOptionLabel } from "../advancement/naming.mjs";
 import { blockedLanguageKeys } from "../content/languages.mjs";
 import { bodyLines } from "../content/species-info.mjs";
-import { getSetting } from "../settings.mjs";
+import { customArray, getSetting } from "../settings.mjs";
+import {
+  adjustPointBuy, breakdown, isComplete, METHODS, modifier, POINT_BUY, pointBuySpent, remainingValues, rollFormula,
+  STANDARD_ARRAY
+} from "../abilities/scores.mjs";
 import { discoverSlots, runPicks } from "../advancement/simulate.mjs";
 import {
   adjustPoints, createBlocker, picksRemaining, pruneSelections, tally, toggleSelection
@@ -46,7 +50,9 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.inspected = null;
     this.descriptions = new Map();
     this.refreshToken = 0;
-    this.draft = { name: actor?.name ?? "", picks: {}, choices: {} };
+    this.draft = { name: actor?.name ?? "", picks: {}, choices: {}, abilities: { method: "standard", scores: {}, rolled: null } };
+    /** Ability scores after the species and background bonuses, from the last simulation. */
+    this.finals = {};
     this.query = "";
     this.focused = null;
     /** Species groups the player has opened, and the pick last revealed in its group. */
@@ -74,6 +80,9 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       inspect: CharacterWizard.#onInspect,
       adjust: CharacterWizard.#onAdjust,
       resetPoints: CharacterWizard.#onResetPoints,
+      abilityMethod: CharacterWizard.#onAbilityMethod,
+      abilityPoint: CharacterWizard.#onAbilityPoint,
+      abilityRoll: CharacterWizard.#onAbilityRoll,
       create: CharacterWizard.#onCreate
     }
   };
@@ -107,6 +116,62 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     return this.stepId;
   }
 
+  /** Everything the ability scores step shows: methods, the table of scores, and what each method needs. */
+  #abilitiesContext() {
+    const ids = this.#abilityIds;
+    const { method, scores, rolled } = this.draft.abilities;
+    const array = this.#abilityArray();
+    const sign = n => (n === undefined) ? "" : (n >= 0 ? `+${n}` : `${n}`);
+    const isArray = ["standard", "custom", "roll"].includes(method);
+    const spent = pointBuySpent(scores, ids);
+
+    const rows = breakdown(scores, this.finals, ids).map(row => {
+      const config = CONFIG.DND5E.abilities[row.id];
+      const value = scores[row.id];
+      return {
+        ...row,
+        label: config.label,
+        bonusLabel: row.bonus ? sign(row.bonus) : "",
+        modLabel: sign(row.mod),
+        isSelect: isArray,
+        isPoints: method === "pointbuy",
+        isNumber: method === "manual",
+        value: value ?? (method === "pointbuy" ? POINT_BUY.min : ""),
+        options: isArray ? remainingValues(array, scores, ids, row.id).map(v => ({ value: v, selected: v === value })) : [],
+        canUp: (method === "pointbuy") && (adjustPointBuy(scores, row.id, 1, ids) !== scores),
+        canDown: (method === "pointbuy") && (adjustPointBuy(scores, row.id, -1, ids) !== scores)
+      };
+    });
+
+    return {
+      methods: this.#abilityMethods().map(id => ({
+        id, active: id === method, label: `CHARWIZ.Abilities.Method.${id}`
+      })),
+      hint: game.i18n.format(`CHARWIZ.Abilities.Hint.${method}`, {
+        values: array.join(", "), budget: POINT_BUY.budget, min: POINT_BUY.min, max: POINT_BUY.max
+      }),
+      rows,
+      isRoll: method === "roll",
+      isPointBuy: method === "pointbuy",
+      rolled: rolled?.length ? rolled.join(", ") : "",
+      hasRolled: !!rolled?.length,
+      formula: rollFormula(getSetting("rerollOnes")),
+      pointsLeft: POINT_BUY.budget - spent,
+      budget: POINT_BUY.budget,
+      hasBonus: rows.some(r => r.bonus)
+    };
+  }
+
+  /** A typed or picked ability score. Blank clears it. */
+  async #setScore(id, raw) {
+    const value = (raw === "") ? undefined : Number(raw);
+    const { scores } = this.draft.abilities;
+    if ( Number.isInteger(value) ) scores[id] = value;
+    else delete scores[id];
+    await this.#refreshSlots();
+    this.render();
+  }
+
   /** The picker steps in the order the wizard shows them, which is the order choices are checked in. */
   #pickOrder() {
     return STEP_ORDER[this.rules].filter(id => id in PICKER_STEPS);
@@ -115,6 +180,37 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
   /** Slots belonging to a picker step, with the current selections. */
   #slotsFor(source) {
     return this.slots.filter(s => s.source === source);
+  }
+
+  /** The abilities the wizard sets: the six core ones the system has. */
+  get #abilityIds() {
+    return ["str", "dex", "con", "int", "wis", "cha"].filter(id => id in CONFIG.DND5E.abilities);
+  }
+
+  /** Methods on offer. The custom array only appears when the GM has turned it on and entered a usable one. */
+  #abilityMethods() {
+    return METHODS.filter(id => (id !== "custom") || customArray());
+  }
+
+  /** The values to assign for an array method: the standard array, the GM's array, or the player's roll. */
+  #abilityArray() {
+    switch ( this.draft.abilities.method ) {
+      case "standard": return [...STANDARD_ARRAY];
+      case "custom": return customArray() ?? [];
+      case "roll": return this.draft.abilities.rolled ?? [];
+      default: return [];
+    }
+  }
+
+  #abilitiesReady() {
+    const { method, scores } = this.draft.abilities;
+    return this.#abilityMethods().includes(method) && isComplete(method, scores, this.#abilityIds, this.#abilityArray());
+  }
+
+  /** Base scores to give the engine: the finished set, or whatever has been entered so far. */
+  #baseScores() {
+    return Object.fromEntries(Object.entries(this.draft.abilities.scores).filter(([id, v]) => Number.isInteger(v)
+      && this.#abilityIds.includes(id)));
   }
 
   #remainingFor(source) {
@@ -149,13 +245,21 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       isChoices: !!choiceSource,
       isDetails: step === "details",
       isReview: step === "review",
-      isPending: ["abilities", "equipment", "spells"].includes(step),
+      isAbilities: step === "abilities",
+      isPending: ["equipment", "spells"].includes(step),
       first: this.stepIndex === 0,
       last: this.stepIndex === steps.length - 1,
-      remaining: choiceSource ? this.#remainingFor(choiceSource) : 0,
       draft: this.draft,
       query: this.query
     };
+
+    // What stops Next on this step, if anything.
+    const remaining = choiceSource ? this.#remainingFor(choiceSource) : 0;
+    context.blockLabel = remaining ? game.i18n.format("CHARWIZ.Choices.Left", { count: remaining })
+      : ((step === "abilities") && !this.#abilitiesReady()) ? game.i18n.localize("CHARWIZ.Abilities.Incomplete") : "";
+    context.blocked = !!context.blockLabel;
+
+    if ( context.isAbilities ) context.abilities = this.#abilitiesContext();
 
     if ( context.isPicker ) {
       const picked = this.draft.picks[step]?.uuid;
@@ -191,8 +295,15 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         })).filter(c => c.picked)
       }));
       context.deferred = this.deferred;
+      context.abilityLine = this.#abilitiesReady()
+        ? this.#abilityIds.map(id => {
+          const final = this.finals[id] ?? this.draft.abilities.scores[id];
+          const mod = modifier(final);
+          return `${CONFIG.DND5E.abilities[id].abbreviation?.toUpperCase() ?? id.toUpperCase()} ${final} (${mod >= 0 ? "+" : ""}${mod})`;
+        }).join(" · ") : "";
       const blocker = createBlocker({
-        picks: this.draft.picks, slots: this.slots, selections: this.draft.choices, canCreate: this.#canCreate()
+        picks: this.draft.picks, slots: this.slots, selections: this.draft.choices, canCreate: this.#canCreate(),
+        abilitiesReady: this.#abilitiesReady()
       });
       context.blocker = blocker ? `CHARWIZ.Create.Blocked.${blocker}` : null;
       context.createLabel = this.actor ? "CHARWIZ.Create.Build" : "CHARWIZ.Create.Button";
@@ -215,6 +326,10 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.element.querySelector("input[name=name]")?.addEventListener("change", event => {
       this.draft.name = event.target.value.trim();
     });
+    // Ability scores typed in or picked from a dropdown.
+    for ( const input of this.element.querySelectorAll("[data-ability-input]") ) {
+      input.addEventListener("change", event => this.#setScore(input.dataset.ability, event.target.value));
+    }
   }
 
   /* -------------------------------------------- */
@@ -374,10 +489,10 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     const token = ++this.refreshToken;
     try {
       for ( let pass = 0; pass < 4; pass++ ) {
-        const { slots, deferred } = await discoverSlots({
+        const { slots, deferred, finals } = await discoverSlots({
           actor: this.actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
           blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores"), order: this.#pickOrder(),
-          ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }
+          ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }, abilities: this.#baseScores()
         });
         if ( token !== this.refreshToken ) return;
         // A slot that starts on the standard answer (racial increases) begins with it chosen.
@@ -391,6 +506,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
           || Object.entries(pruned).some(([k, v]) => v.length !== this.draft.choices[k]?.length);
         this.slots = slots;
         this.deferred = deferred;
+        this.finals = finals;
         this.draft.choices = pruned;
         if ( !changed ) break;
       }
@@ -404,6 +520,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
 
   #pickFor(stepId) {
     if ( stepId === "details" ) return this.draft.name;
+    if ( stepId === "abilities" ) return this.#abilitiesReady();
     return this.draft.picks[stepId];
   }
 
@@ -547,6 +664,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       if ( this.#pick(this.focused) ) await this.#refreshSlots();
     }
     if ( CHOICE_STEPS[this.step] && this.#remainingFor(CHOICE_STEPS[this.step]) ) return;
+    if ( (this.step === "abilities") && !this.#abilitiesReady() ) return;
     this.#setStep(this.stepIndex + 1);
   }
 
@@ -578,7 +696,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
    */
   static async #onCreate(event, target) {
     const blocker = createBlocker({
-      picks: this.draft.picks, slots: this.slots, selections: this.draft.choices, canCreate: this.#canCreate()
+      picks: this.draft.picks, slots: this.slots, selections: this.draft.choices, canCreate: this.#canCreate(),
+      abilitiesReady: this.#abilitiesReady()
     });
     if ( blocker ) return;
     target.disabled = true;
@@ -590,7 +709,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       const { engine } = await runPicks({
         actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
         blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores"), order: this.#pickOrder(),
-        ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }
+        ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }, abilities: this.#baseScores()
       });
       engine.clone.updateSource({ name });
       await engine.commit();
@@ -611,6 +730,44 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( !slot?.defaultSelection ) return;
     this.touched.delete(slot.key);
     this.draft.choices[slot.key] = [...slot.defaultSelection];
+    await this.#refreshSlots();
+    this.render();
+  }
+
+  /** Switch how ability scores are set. The scores start again; a roll already made is kept. */
+  static async #onAbilityMethod(event, target) {
+    const { method } = target.dataset;
+    if ( !this.#abilityMethods().includes(method) ) return;
+    const abilities = this.draft.abilities;
+    abilities.method = method;
+    abilities.scores = (method === "pointbuy")
+      ? Object.fromEntries(this.#abilityIds.map(id => [id, POINT_BUY.min])) : {};
+    await this.#refreshSlots();
+    this.render();
+  }
+
+  /** Raise or lower one ability in point buy. */
+  static async #onAbilityPoint(event, target) {
+    const { ability, delta } = target.dataset;
+    const abilities = this.draft.abilities;
+    abilities.scores = adjustPointBuy(abilities.scores, ability, Number(delta), this.#abilityIds);
+    await this.#refreshSlots();
+    this.render();
+  }
+
+  /** Roll the six scores once (4d6, drop the lowest; rerolling 1s if the GM allows it). */
+  static async #onAbilityRoll(event, target) {
+    const abilities = this.draft.abilities;
+    if ( abilities.rolled?.length ) return;
+    target.disabled = true;
+    const formula = rollFormula(getSetting("rerollOnes"));
+    const totals = [];
+    for ( let i = 0; i < this.#abilityIds.length; i++ ) {
+      const roll = await new Roll(formula).evaluate();
+      totals.push(roll.total);
+    }
+    abilities.rolled = totals.sort((a, b) => b - a);
+    abilities.scores = {};
     await this.#refreshSlots();
     this.render();
   }

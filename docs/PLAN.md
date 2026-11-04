@@ -64,8 +64,8 @@ How it behaves:
 4. Review → Create (a new actor, or the level-0 actor the wizard was opened from). Players without Create Actor permission build onto a GM-provided blank actor.
 5. Polish, docs, release 0.3/1.0. Later: level-up from the sheet.
 
-## Ability score settings (planned, not built)
-Shawn wants GM options for the ability scores step. Add them when that step is built. Both are **off by default**.
+## Ability score settings (built, unreleased)
+GM options for the ability scores step. Both are **off by default**.
 - **Custom array.** A text field where the GM enters their own array, for example the Dungeon Dudes' modified array
   **17, 15, 13, 12, 10, 8** (the standard array is 15, 14, 13, 12, 10, 8). Sources:
   https://x.com/dungeon_dudes/status/1225562072181854210 and

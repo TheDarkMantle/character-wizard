@@ -1,5 +1,34 @@
 import { MODULE_ID, UNTAGGED } from "./constants.mjs";
 import ContentSettings from "./apps/content-settings.mjs";
+import { parseArray } from "./abilities/scores.mjs";
+
+/** The Dungeon Dudes' alternative starting array, offered as the custom array until the GM changes it. */
+export const DEFAULT_CUSTOM_ARRAY = "17, 15, 13, 12, 10, 8";
+
+/**
+ * The GM's custom array, or null when it is off or isn't six usable numbers.
+ * @returns {number[]|null}
+ */
+export function customArray() {
+  return getSetting("customArrayEnabled") ? parseArray(getSetting("customArray")) : null;
+}
+
+/**
+ * The array field only takes input while the toggle above it is on. It is read-only rather than disabled, because a
+ * disabled field isn't submitted and the saved array would be lost.
+ */
+function onRenderSettingsConfig(app, html) {
+  const root = html instanceof HTMLElement ? html : html[0];
+  const toggle = root?.querySelector(`[name="${MODULE_ID}.customArrayEnabled"]`);
+  const field = root?.querySelector(`[name="${MODULE_ID}.customArray"]`);
+  if ( !toggle || !field ) return;
+  const sync = () => {
+    field.readOnly = !toggle.checked;
+    field.closest(".form-group")?.classList.toggle("charwiz-dimmed", !toggle.checked);
+  };
+  toggle.addEventListener("change", sync);
+  sync();
+}
 
 /** Shorthand for reading a module setting. */
 export function getSetting(key) {
@@ -69,6 +98,39 @@ export function registerSettings() {
     type: Boolean,
     default: false
   });
+
+  // Ability scores. The custom array is off by default; its field holds the Dungeon Dudes array until changed.
+  game.settings.register(MODULE_ID, "customArrayEnabled", {
+    name: "CHARWIZ.Settings.CustomArrayEnabled.Name",
+    hint: "CHARWIZ.Settings.CustomArrayEnabled.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
+  game.settings.register(MODULE_ID, "customArray", {
+    name: "CHARWIZ.Settings.CustomArray.Name",
+    hint: "CHARWIZ.Settings.CustomArray.Hint",
+    scope: "world",
+    config: true,
+    type: String,
+    default: DEFAULT_CUSTOM_ARRAY,
+    onChange: value => {
+      if ( !parseArray(value) && game.user.isGM ) ui.notifications.warn("CHARWIZ.Settings.CustomArray.Invalid", { localize: true });
+    }
+  });
+
+  game.settings.register(MODULE_ID, "rerollOnes", {
+    name: "CHARWIZ.Settings.RerollOnes.Name",
+    hint: "CHARWIZ.Settings.RerollOnes.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
+  Hooks.on("renderSettingsConfig", onRenderSettingsConfig);
 
   game.settings.register(MODULE_ID, "allowPlayers", {
     name: "CHARWIZ.Settings.AllowPlayers.Name",

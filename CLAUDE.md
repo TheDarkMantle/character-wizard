@@ -81,22 +81,23 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
    `https://github.com/TheDarkMantle/character-wizard/releases/latest/download/module.json`.
 - Commit author: Shawn <darkmantle@gmail.com>.
 
-## Status (2026-11-02)
-- v0.2.5 released. Catalog, GM content settings, entry points (sidebar button, header menu entry, hat button beside
-  the lock toggle on unlocked level 0 sheets), pickers with previews, choices steps after class/species/background
-  (item choices, trait choices, subclass, size, optional grants, spellcasting ability, background ASI points) and
-  Review → Create are in.
-- **Verified in Foundry by Shawn (2026-11-02):** a 2024 character built from the wizard (new actor) and from a level 0
-  character, both worked. The simulation + `HeadlessAdvancer` + commit path is therefore good for 2024.
-- **Not yet verified:** 2014 builds (2014 Cleric subclass at level 1 was fixed in 0.2.3, untested), Druid Primal Order,
-  Dragonborn ancestry, the proficiency details panel.
-- Abilities (base scores), equipment and spells steps are placeholders. Spell picks are reported on Review as not handled.
+## Status (2026-11-04)
+- v0.3.0 released. Catalog, GM content settings (sources, species, subclasses, languages), entry points, pickers with
+  previews, choices steps (item/trait/spell/subclass/size/ability choices, ability score points, greyed-out
+  proficiencies, replacements) and Review → Create are in.
+- **Verified by Shawn in Foundry:** 2024 builds (new actor and level 0 actor), 2014 species and class choices, the
+  proficiency greying and replacements in 0.3.0.
+- **Built after 0.3.0, not yet released or tested:** the **ability scores step** (standard array, point buy, roll 4d6,
+  manual, and the GM's custom array). Base scores are applied to the clone first so species/background increases add to
+  them; the step shows base, bonus, final and modifier. GM settings (all off by default): custom array toggle with a
+  text field (starts as the Dungeon Dudes array 17, 15, 13, 12, 10, 8; read-only until the toggle is on) and "4d6:
+  reroll 1s". Create is blocked until scores are set.
+- Equipment and spells steps are placeholders. Class spell picks are reported on Review as not handled.
 - dnd5e 6.0 renamed an advancement's `title` to `name`. Read `name` (see `advancement/naming.mjs`).
 
 ## Next
-1. Test a 2014 build end to end and fix what breaks.
-2. Ability scores (standard array, point buy, 4d6 drop lowest, manual). Planned GM settings, both off by default
-   (see `docs/PLAN.md`): a custom array text field (Dungeon Dudes' array 17, 15, 13, 12, 10, 8) and "reroll 1s" for 4d6.
-3. Equipment, spells (including origin feat and class spell picks), details.
+1. Test the ability scores step in 2024 and 2014 worlds (and the settings toggle).
+2. Spells step (class cantrips and spells), equipment, details.
+3. Tasha's languages and proficiency swaps (see `docs/PLAN.md`).
 4. Players without Create Actor permission build onto a GM-provided blank actor.
 5. Later: level-up from the sheet, including multiclassing.

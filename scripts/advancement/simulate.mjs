@@ -22,6 +22,8 @@ import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.
  * @param {Record<string, string[]>} options.selections    Chosen option values by slot key.
  * @param {{byType: Record<string, object[]>}} options.catalog  Built catalog (for feat searches).
  * @param {{rules: string, untagged: string}} [options.ruleset]  The world's rules, to keep spells to the right edition.
+ * @param {Record<string, number>} [options.abilities]  Base ability scores the player set. Applied first, so the species'
+ *   and background's increases add to them.
  * @param {string[]} [options.order]  Which picks to apply first. Follows the wizard's step order, so a choice is checked
  *   against what earlier steps already gave the character.
  * @param {boolean} [options.tashas]  Tasha's "Customizing Your Origin": a species' ability score increases can go to any ability.
@@ -31,15 +33,16 @@ import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.
  *   unknown types) as "Item: Title".
  */
 export async function discoverSlots(options) {
-  const { slots, deferred } = await runPicks(options);
-  return { slots, deferred };
+  const { slots, deferred, finals } = await runPicks(options);
+  return { slots, deferred, finals };
 }
 
 /**
  * Same as `discoverSlots`, but also returns the engine so the caller can `engine.commit()` the result.
- * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[], engine: HeadlessAdvancer }>}
+ * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[], engine: HeadlessAdvancer,
+ *   finals: Record<string, number> }>}  `finals` are the ability scores once everything has been applied.
  */
-export async function runPicks({ actor, picks, selections, catalog, blocked = new Set(), tashas = false, order = ["species", "class", "background"],
+export async function runPicks({ actor, picks, selections, catalog, blocked = new Set(), tashas = false, order = ["species", "class", "background"], abilities = {},
   ruleset = { rules: "2024", untagged: "show" } }) {
   const slots = new Map();
   const deferred = new Set();
@@ -258,6 +261,11 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
 
   const target = actor ?? new Actor.implementation({ name: "Character Wizard", type: "character" });
   const engine = new HeadlessAdvancer(target, { resolve });
+  // Base scores go in before any advancement, so the increases they add (and the cap of 20) work on them.
+  const baseScores = Object.fromEntries(Object.entries(abilities).filter(([id, v]) => Number.isInteger(v) && (id in CONFIG.DND5E.abilities)));
+  if ( Object.keys(baseScores).length ) {
+    engine.clone.updateSource({ system: { abilities: Object.fromEntries(Object.entries(baseScores).map(([id, value]) => [id, { value }])) } });
+  }
   // In the wizard's step order, so a later step sees what an earlier one gave (and greys it out).
   for ( const step of order ) {
     const pick = picks[step];
@@ -269,5 +277,7 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
   }
   // Anything the engine had to skip for lack of input would otherwise vanish without a trace.
   for ( const u of engine.unresolved ) deferred.add(`${u.item}: ${u.title}`);
-  return { slots: [...slots.values()], deferred: [...deferred], engine };
+  const finals = Object.fromEntries(Object.keys(CONFIG.DND5E.abilities)
+    .map(id => [id, engine.clone.system._source.abilities?.[id]?.value]));
+  return { slots: [...slots.values()], deferred: [...deferred], engine, finals };
 }

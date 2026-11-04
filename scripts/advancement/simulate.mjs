@@ -1,6 +1,6 @@
 import { HeadlessAdvancer } from "./apply.mjs";
 import {
-  featsMatching, groupTraitSlots, spellsMatching, standardPoints, tally, uniqueByName, withoutBlocked
+  featsMatching, groupTraitSlots, spellsMatching, standardPoints, tally, traitGroups, uniqueByName, withoutBlocked
 } from "./slots.mjs";
 import { isDraconicAncestry, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
@@ -22,6 +22,8 @@ import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.
  * @param {Record<string, string[]>} options.selections    Chosen option values by slot key.
  * @param {{byType: Record<string, object[]>}} options.catalog  Built catalog (for feat searches).
  * @param {{rules: string, untagged: string}} [options.ruleset]  The world's rules, to keep spells to the right edition.
+ * @param {string[]} [options.order]  Which picks to apply first. Follows the wizard's step order, so a choice is checked
+ *   against what earlier steps already gave the character.
  * @param {boolean} [options.tashas]  Tasha's "Customizing Your Origin": a species' ability score increases can go to any ability.
  * @param {Set<string>} [options.blocked]  Trait keys the GM has hidden from choices (languages). Grants still apply.
  * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[] }>}
@@ -37,7 +39,7 @@ export async function discoverSlots(options) {
  * Same as `discoverSlots`, but also returns the engine so the caller can `engine.commit()` the result.
  * @returns {Promise<{ slots: import("./slots.mjs").ChoiceSlot[], deferred: string[], engine: HeadlessAdvancer }>}
  */
-export async function runPicks({ actor, picks, selections, catalog, blocked = new Set(), tashas = false,
+export async function runPicks({ actor, picks, selections, catalog, blocked = new Set(), tashas = false, order = ["species", "class", "background"],
   ruleset = { rules: "2024", untagged: "show" } }) {
   const slots = new Map();
   const deferred = new Set();
@@ -108,27 +110,64 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
       }
 
       case "Trait": {
-        const { available } = await advancement.unfulfilledChoices();
-        const grouped = groupTraitSlots(available.map(a => Array.from(a.choices.asSet())));
-        const grants = grouped.grants;
-        // Hidden languages are only removed from what the player picks; fixed grants are left alone.
-        const groups = grouped.groups.map(g => withoutBlocked(g, blocked));
-        if ( !groups.length ) return null;
+        const Trait = dnd5e.documents.Trait;
+        const mode = config.mode ?? "default";
+
+        // Expertise and weapon mastery build on proficiencies the character already has, so the system's own
+        // filtering is right for them.
+        if ( mode !== "default" ) {
+          const { available } = await advancement.unfulfilledChoices();
+          const grouped = groupTraitSlots(available.map(a => Array.from(a.choices.asSet())));
+          const groups = grouped.groups.map(g => withoutBlocked(g, blocked));
+          if ( !groups.length ) return null;
+          const picked = [];
+          let complete = true;
+          groups.forEach((group, i) => {
+            const key = keyFor(`:${i}`);
+            const options = group.options.map(value => ({ value, label: Trait.keyLabel(value) || value }));
+            addSlot({ ...base, title: ownTitle || localize(traitTitleKey(group.options, mode)), key, kind: "trait",
+              count: group.count, options });
+            const chosen = (selections[key] ?? []).filter(v => group.options.includes(v)).slice(0, group.count);
+            picked.push(...chosen);
+            if ( chosen.length < group.count ) complete = false;
+          });
+          return complete ? { chosen: [...grouped.grants, ...picked] } : false;
+        }
+
+        // Proficiencies: what the character already has is greyed out, a duplicate grant or an exhausted choice
+        // becomes "pick any other", and the rest is offered as the pool says.
+        const held = (await advancement.actorSelected()).selected;
+        const slotsIn = Array.from(config.grants ?? [], g => ({ type: "grant", full: [g] }));
+        for ( const [idx, choice] of config.choices.entries() ) {
+          const full = Array.from((await Trait.mixedChoices(choice.pool)).asSet());
+          for ( let n = 0; n < (choice.count ?? 1); n++ ) slotsIn.push({ type: "choice", idx, full });
+        }
+        const everyKey = {};
+        for ( const type of new Set(slotsIn.map(sl => String(sl.full[0] ?? "").split(":")[0]).filter(Boolean)) ) {
+          const keys = Array.from((await Trait.choices(type, { prefixed: true })).asSet())
+            .filter(k => k.includes(":") && !k.endsWith(":ALL"));
+          // Leave out category keys such as "tool:art"; only the individual proficiencies are replacements.
+          everyKey[type] = keys.filter(k => !keys.some(o => o.startsWith(`${k}:`)));
+        }
+        const { grants, groups } = traitGroups({ slots: slotsIn, anyKeys: type => everyKey[type] ?? [], held, blocked });
         const picked = [];
         let complete = true;
-        groups.forEach((group, i) => {
-          const key = keyFor(`:${i}`);
-          const options = group.options.map(value => ({
-            value, label: traitOptionLabel(value, dnd5e.documents.Trait.keyLabel(value) || value, hostId)
+        for ( const group of groups ) {
+          const key = keyFor(`:${group.id}`);
+          const keys = group.options.map(o => o.value);
+          const options = group.options.map(o => ({
+            value: o.value, disabled: o.disabled, label: traitOptionLabel(o.value, Trait.keyLabel(o.value) || o.value, hostId)
           }));
-          const title = isDraconicAncestry(hostId, group.options) ? localize("CHARWIZ.Naming.DraconicAncestry")
-            : (ownTitle || localize(traitTitleKey(group.options, config.mode)));
+          const title = isDraconicAncestry(hostId, keys) ? localize("CHARWIZ.Naming.DraconicAncestry")
+            : (group.id.startsWith("r:") ? game.i18n.format("CHARWIZ.Naming.AnotherOfKind", { kind: localize(traitTitleKey(keys, mode)) })
+              : (ownTitle || localize(traitTitleKey(keys, mode))));
           addSlot({ ...base, title, key, kind: "trait", count: group.count, options });
-          const chosen = (selections[key] ?? []).filter(v => group.options.includes(v)).slice(0, group.count);
+          const chosen = (selections[key] ?? [])
+            .filter(v => group.options.some(o => (o.value === v) && !o.disabled)).slice(0, group.count);
           picked.push(...chosen);
           if ( chosen.length < group.count ) complete = false;
-        });
-        return complete ? { chosen: [...grants, ...picked] } : false;
+        }
+        return complete ? { chosen: [...new Set([...grants, ...picked])] } : false;
       }
 
       case "ItemGrant": {
@@ -219,8 +258,8 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
 
   const target = actor ?? new Actor.implementation({ name: "Character Wizard", type: "character" });
   const engine = new HeadlessAdvancer(target, { resolve });
-  // Same order as the spike and the system's manager: species, class, then background.
-  for ( const step of ["species", "class", "background"] ) {
+  // In the wizard's step order, so a later step sees what an earlier one gave (and greys it out).
+  for ( const step of order ) {
     const pick = picks[step];
     if ( !pick ) continue;
     const document = await fromUuid(pick.uuid);

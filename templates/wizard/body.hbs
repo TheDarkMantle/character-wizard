@@ -128,9 +128,10 @@
         <ul class="charwiz-options">
           {{#each options}}
           <li>
-            <div class="charwiz-option {{#if selected}}selected{{/if}} {{#if inspected}}inspected{{/if}}">
+            <div class="charwiz-option {{#if selected}}selected{{/if}} {{#if inspected}}inspected{{/if}} {{#if disabled}}disabled{{/if}}"
+              {{#if disabled}}data-tooltip="CHARWIZ.Choices.Taken"{{/if}}>
               <button type="button" class="charwiz-check" data-action="toggle" data-slot="{{../key}}" data-value="{{value}}"
-                aria-pressed="{{#if selected}}true{{else}}false{{/if}}"
+                aria-pressed="{{#if selected}}true{{else}}false{{/if}}" {{#if disabled}}disabled{{/if}}
                 aria-label="{{localize 'CHARWIZ.Choices.Select' name=label}}">
                 <i class="fa-solid {{#if selected}}fa-square-check{{else}}fa-square{{/if}}" inert></i>
               </button>

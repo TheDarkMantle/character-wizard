@@ -113,6 +113,8 @@
   .charwiz-option .charwiz-check { padding-right: 0.2rem; }
   .charwiz-option.selected { border-color: var(--color-level-success, green); background: var(--color-cool-4, rgb(0 0 0 / 10%)); }
   .charwiz-option.selected .charwiz-check { color: var(--color-level-success, green); }
+  .charwiz-option.disabled { opacity: 0.45; }
+  .charwiz-option.disabled .charwiz-check { cursor: not-allowed; }
   .charwiz-option.inspected { outline: 1px solid var(--color-border-highlight, currentColor); }
 
   .charwiz-create { width: auto; margin-top: 0.5rem; }

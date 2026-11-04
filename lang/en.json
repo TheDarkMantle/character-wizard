@@ -104,7 +104,8 @@
       "Standard": "Standard: {default}. Spend the points below to change them.",
       "ResetStandard": "Back to standard",
       "Select": "Choose {name}",
-      "Deselect": "Remove choice"
+      "Deselect": "Remove choice",
+      "Taken": "You already have this from an earlier choice."
     },
     "Create": {
       "Button": "Create character",
@@ -147,7 +148,8 @@
         "mixed": "Proficiencies"
       },
       "CastingAbility": "Spellcasting ability",
-      "AbilityScoreIncrease": "Ability Score Increase"
+      "AbilityScoreIncrease": "Ability Score Increase",
+      "AnotherOfKind": "{kind}: you already have these, choose another"
     },
     "Body": {
       "Type": "Creature type",

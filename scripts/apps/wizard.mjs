@@ -107,6 +107,11 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     return this.stepId;
   }
 
+  /** The picker steps in the order the wizard shows them, which is the order choices are checked in. */
+  #pickOrder() {
+    return STEP_ORDER[this.rules].filter(id => id in PICKER_STEPS);
+  }
+
   /** Slots belonging to a picker step, with the current selections. */
   #slotsFor(source) {
     return this.slots.filter(s => s.source === source);
@@ -169,7 +174,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         // Items, traits, sizes and the like can be chosen from the panel. Point controls can't.
         context.info = info && {
           ...info,
-          canChoose: !!slot && (slot.kind !== "asi"),
+          canChoose: !!slot && (slot.kind !== "asi") && !slot.options.find(o => o.value === this.inspected.value)?.disabled,
           slotKey: slot?.key,
           value: this.inspected.value,
           selected: !!slot && (this.draft.choices[slot.key] ?? []).includes(this.inspected.value)
@@ -371,7 +376,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       for ( let pass = 0; pass < 4; pass++ ) {
         const { slots, deferred } = await discoverSlots({
           actor: this.actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
-          blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores"),
+          blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores"), order: this.#pickOrder(),
           ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }
         });
         if ( token !== this.refreshToken ) return;
@@ -584,7 +589,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       if ( !actor ) actor = created = await Actor.implementation.create({ name, type: "character" });
       const { engine } = await runPicks({
         actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
-        blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores"),
+        blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores"), order: this.#pickOrder(),
         ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }
       });
       engine.clone.updateSource({ name });
@@ -635,6 +640,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     const slot = this.slots.find(s => s.key === target.dataset.slot);
     if ( !slot ) return;
     const { value } = target.dataset;
+    if ( slot.options.find(o => o.value === value)?.disabled ) return;
     this.draft.choices[slot.key] = toggleSelection(slot, this.draft.choices, value);
     this.inspected = { slotKey: slot.key, kind: slot.kind, value };
     await this.#refreshSlots();

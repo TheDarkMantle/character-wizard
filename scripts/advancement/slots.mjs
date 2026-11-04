@@ -10,6 +10,7 @@
  * @property {string} label
  * @property {string} [img]
  * @property {string} [uuid]     For item options: the item to describe.
+ * @property {boolean} [disabled]  Shown but not choosable, for example a skill the character already has.
  */
 
 /**
@@ -23,7 +24,7 @@
  * @property {number} [max]      Upper bound when more than `count` picks are allowed (optional grants).
  * @property {string[]} [defaultSelection]  Selection a slot starts with (the standard racial increases, one entry per point).
  * @property {number} [cap]      For "asi" slots: most points one ability can take. Selections repeat an ability once per point.
- * @property {SlotOption[]} options
+ * @property {SlotOption[]} options  Options with `disabled: true` are shown greyed out and can't be chosen.
  */
 
 /**
@@ -48,6 +49,55 @@ export function groupTraitSlots(available) {
     else groups.set(signature, { options, count: 1 });
   }
   return { grants, groups: [...groups.values()] };
+}
+
+/**
+ * Work out the choices a default-mode Trait advancement gives the player.
+ *
+ * A fixed proficiency the character doesn't have yet is simply granted. If they already have it (from the class, say)
+ * it becomes a replacement: pick any other of that kind. A choice offers its own pool with the proficiencies already
+ * held greyed out, and if the whole pool is held it also becomes "pick any other". Whatever is left with no real
+ * decision (as many options as picks) is granted without asking.
+ *
+ * @param {object} input
+ * @param {{ type: "grant"|"choice", idx?: number, full: string[] }[]} input.slots  One per unfulfilled pick: the keys
+ *   it may offer (a grant offers itself), before anything the character holds is removed.
+ * @param {(type: string) => string[]} input.anyKeys  Every key of a trait type, for replacements.
+ * @param {Set<string>} [input.held]     Keys the character already has.
+ * @param {Set<string>} [input.blocked]  Keys the GM hid from choices (never removes a fixed grant).
+ * @returns {{ grants: string[], groups: { id: string, count: number, options: { value: string, disabled: boolean }[] }[] }}
+ */
+export function traitGroups({ slots, anyKeys, held = new Set(), blocked = new Set() }) {
+  const grants = new Set();
+  const buckets = new Map();
+  for ( const slot of slots ) {
+    let replacement = false;
+    if ( slot.type === "grant" ) {
+      if ( !held.has(slot.full[0]) ) { grants.add(slot.full[0]); continue; }
+      replacement = true;
+    } else if ( slot.full.every(k => held.has(k)) ) replacement = true;
+
+    const type = String(slot.full[0] ?? "").split(":")[0];
+    const pool = replacement ? anyKeys(type) : slot.full;
+    const id = replacement ? `r:${type}` : `c${slot.idx}`;
+    const bucket = buckets.get(`${id}|${[...pool].sort().join("|")}`) ?? { id, pool, count: 0 };
+    bucket.count++;
+    buckets.set(`${id}|${[...pool].sort().join("|")}`, bucket);
+  }
+
+  const groups = [];
+  for ( const { id, pool, count } of buckets.values() ) {
+    const options = pool.filter(k => !blocked.has(k)).map(value => ({ value, disabled: held.has(value) }));
+    const free = options.filter(o => !o.disabled);
+    const picks = Math.min(count, free.length);
+    if ( !picks ) continue;
+    // As many options as picks: nothing to decide.
+    if ( free.length <= picks ) { free.forEach(o => grants.add(o.value)); continue; }
+    groups.push({ id, count: picks, options });
+  }
+  // Something granted outright can't also be picked.
+  for ( const group of groups ) for ( const o of group.options ) if ( grants.has(o.value) ) o.disabled = true;
+  return { grants: [...grants], groups };
 }
 
 /**
@@ -102,7 +152,7 @@ export function featsMatching(feats, restriction = {}) {
 export function pruneSelections(slots, selections = {}) {
   const pruned = {};
   for ( const slot of slots ) {
-    const valid = new Set(slot.options.map(o => o.value));
+    const valid = new Set(slot.options.filter(o => !o.disabled).map(o => o.value));
     if ( slot.kind === "asi" ) {
       const kept = [];
       for ( const v of selections[slot.key] ?? [] ) {

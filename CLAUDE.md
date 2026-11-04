@@ -14,6 +14,9 @@ subclasses, species, backgrounds and feats from every Item compendium in the wor
 - Spell picks from the **class** (cantrips known, spells) belong to the **spells step**, not the class choices step. Spell
   picks from a species or background (High Elf cantrip) stay in that step's choices. Until the spells step exists, class
   spell picks are listed on Review as not handled.
+- Choices are checked **in wizard step order** (2024: class, background, species; 2014: species, class, background), so
+  a later step greys out proficiencies an earlier one gave. A duplicate grant, or a choice whose whole pool is already
+  held, becomes "pick any other of that kind" (`traitGroups` in `advancement/slots.mjs`).
 - On picker steps, **Next** chooses the highlighted option if Choose wasn't clicked. Jumping via the step list doesn't.
 - UX goal: a **features board**. When a class/species/background is picked, show "granted" features (locked),
   "your choices" slots (fighting style, skills, tools, languages, weapon mastery, ASI/feat, subclass), and a pool of

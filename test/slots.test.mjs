@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  adjustPoints, createBlocker, featsMatching, groupTraitSlots, picksRemaining, pruneSelections, spellsMatching, standardPoints, tally, toggleSelection, uniqueByName
+  adjustPoints, createBlocker, featsMatching, groupTraitSlots, picksRemaining, pruneSelections, spellsMatching, standardPoints, tally, toggleSelection, traitGroups, uniqueByName
 } from "../scripts/advancement/slots.mjs";
 
 const slot = (key, count, values, extra = {}) => ({ key, count, options: values.map(value => ({ value, label: value })), ...extra });
@@ -149,5 +149,63 @@ describe("spell choices", () => {
   it("offers a spell once when several compendiums have it", () => {
     expect(uniqueByName([{ name: "Fire Bolt", id: 1 }, { name: "fire bolt", id: 2 }, { name: "Light", id: 3 }])
       .map(e => e.id)).toEqual([1, 3]);
+  });
+});
+
+describe("traitGroups", () => {
+  const skills = ["skills:acr", "skills:ath", "skills:ins", "skills:prc", "skills:rel"];
+  const anyKeys = type => (type === "skills" ? skills : []);
+  const choice = (full, idx = 0) => ({ type: "choice", idx, full });
+  const grant = key => ({ type: "grant", full: [key] });
+  const values = group => group.options.map(o => `${o.value}${o.disabled ? "!" : ""}`);
+
+  it("grants a proficiency the character doesn't have", () => {
+    expect(traitGroups({ slots: [grant("skills:ins")], anyKeys })).toEqual({ grants: ["skills:ins"], groups: [] });
+  });
+
+  it("turns a grant the character already has into a pick of any other", () => {
+    const { grants, groups } = traitGroups({ slots: [grant("skills:ins")], anyKeys, held: new Set(["skills:ins", "skills:ath"]) });
+    expect(grants).toEqual([]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({ id: "r:skills", count: 1 });
+    expect(values(groups[0])).toEqual(["skills:acr", "skills:ath!", "skills:ins!", "skills:prc", "skills:rel"]);
+  });
+
+  it("greys out what the character holds but still offers the rest of the pool", () => {
+    const pool = ["skills:acr", "skills:ath", "skills:prc", "skills:rel"];
+    const { groups } = traitGroups({ slots: [choice(pool), choice(pool)], anyKeys, held: new Set(["skills:ath"]) });
+    expect(groups).toHaveLength(1);
+    expect(groups[0].count).toBe(2);
+    expect(values(groups[0])).toEqual(["skills:acr", "skills:ath!", "skills:prc", "skills:rel"]);
+  });
+
+  it("offers any proficiency of the kind when the whole pool is already held", () => {
+    const { groups } = traitGroups({ slots: [choice(["skills:ath", "skills:prc"])], anyKeys, held: new Set(["skills:ath", "skills:prc"]) });
+    expect(groups[0].id).toBe("r:skills");
+    expect(values(groups[0])).toEqual(["skills:acr", "skills:ath!", "skills:ins", "skills:prc!", "skills:rel"]);
+  });
+
+  it("grants outright what has no real choice left", () => {
+    const { grants, groups } = traitGroups({ slots: [choice(["skills:ath", "skills:prc"])], anyKeys, held: new Set(["skills:ath"]) });
+    expect(grants).toEqual(["skills:prc"]);
+    expect(groups).toEqual([]);
+  });
+
+  it("hides blocked options from choices but never from fixed grants", () => {
+    const blocked = new Set(["skills:rel", "skills:ins"]);
+    const { grants, groups } = traitGroups({ slots: [grant("skills:ins"), choice(skills)], anyKeys, blocked });
+    expect(grants).toEqual(["skills:ins"]);
+    expect(values(groups[0])).toEqual(["skills:acr", "skills:ath", "skills:prc"]);
+  });
+
+  it("can't offer something it grants", () => {
+    const { groups } = traitGroups({ slots: [grant("skills:ath"), choice(skills)], anyKeys });
+    expect(values(groups[0])).toContain("skills:ath!");
+  });
+
+  it("ignores disabled options when pruning selections", () => {
+    const slot = { key: "k", kind: "trait", count: 1, options: [{ value: "a", disabled: true }, { value: "b" }] };
+    expect(pruneSelections([slot], { k: ["a"] })).toEqual({});
+    expect(pruneSelections([slot], { k: ["b"] })).toEqual({ k: ["b"] });
   });
 });

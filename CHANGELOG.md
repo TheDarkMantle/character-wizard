@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- **Ability scores step.** Set scores by standard array, point buy (27 points, 8 to 15), rolling 4d6 and dropping the lowest, or typing them in. A table shows base score, bonus, final score and modifier for each ability.
+- Your base scores are applied before the species and background, so their increases (including Tasha's choices and a background's +2/+1) add on top, up to 20. Next and Create wait until all six scores are set, and Review shows the final scores.
+- **GM settings, both off by default.** "Offer a custom ability score array" adds your own array as a method. Its text field starts as the Dungeon Dudes array (17, 15, 13, 12, 10, 8) and is read-only until the toggle is on. "4d6: reroll 1s" rerolls any die that shows a 1.
+- Rolling happens once per wizard run. There is no drag and drop yet; scores are assigned with dropdowns.
+- Still untested in Foundry.
+
 ## 0.3.0
 
 - **Proficiencies you already have are greyed out.** Choices are now checked in the wizard's step order (2024: class, background, species; 2014: species, class, background), so a later step sees what an earlier one gave. Taken skills, tools and languages show dimmed and can't be ticked.

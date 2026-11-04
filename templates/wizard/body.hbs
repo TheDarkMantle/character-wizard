@@ -25,7 +25,7 @@
                 data-action="focus" data-uuid="{{uuid}}">
                 <img src="{{img}}" alt="" width="36" height="36">
                 <span class="name">{{name}}</span>
-                <span class="meta">{{#if book}}{{book}}{{else}}{{packLabel}}{{/if}}</span>
+                <span class="meta">{{#if book}}{{book}}{{else}}{{packLabel}}{{/if}}{{#if otherRules}} · {{localize "CHARWIZ.OtherRules" rules=otherRules}}{{/if}}</span>
                 {{#if picked}}<i class="fa-solid fa-circle-check" inert></i>{{/if}}
               </button>
             </li>
@@ -39,7 +39,7 @@
             data-action="focus" data-uuid="{{entry.uuid}}">
             <img src="{{entry.img}}" alt="" width="36" height="36">
             <span class="name">{{entry.name}}</span>
-            <span class="meta">{{#if entry.book}}{{entry.book}}{{else}}{{entry.packLabel}}{{/if}}</span>
+            <span class="meta">{{#if entry.book}}{{entry.book}}{{else}}{{entry.packLabel}}{{/if}}{{#if entry.otherRules}} · {{localize "CHARWIZ.OtherRules" rules=entry.otherRules}}{{/if}}</span>
             {{#if entry.picked}}<i class="fa-solid fa-circle-check" inert></i>{{/if}}
           </button>
         </li>

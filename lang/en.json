@@ -59,7 +59,7 @@
           "Subclasses": "Subclasses",
           "Languages": "Languages"
         },
-        "SourcesHint": "Compendiums with D&D content. Unchecked compendiums are ignored. When the same option is in more than one compendium, the one higher in this list wins. This world uses {rules} rules.",
+        "SourcesHint": "Compendiums with D&D content. Unchecked compendiums are ignored. When the same option is in more than one compendium, the one higher in this list wins. This world uses {rules} rules. Content tagged for the other ruleset is hidden unless you tick Any rules version for its compendium.",
         "SpeciesHint": "Uncheck a species to hide it from players.",
         "SubclassesHint": "Uncheck a subclass to hide it from players.",
         "Unavailable": "These compendiums couldn't be read:",
@@ -73,7 +73,9 @@
         "EnableAll": "Enable all",
         "DisableAll": "Disable all",
         "OtherLanguages": "Other languages",
-        "NoLanguages": "No languages were found."
+        "NoLanguages": "No languages were found.",
+        "AnyRules": "Any rules version",
+        "AnyRulesHint": "Offer everything in this compendium whatever its 2014 or 2024 tag says. For homebrew or older content you want to use under this world's rules. Each entry is marked with its own rules version."
       },
       "Untagged": {
         "Name": "Content without a rules version",
@@ -196,6 +198,7 @@
       "Score": "Score",
       "Modifier": "Mod",
       "BonusNote": "Bonuses from your species and background are added to the base scores."
-    }
+    },
+    "OtherRules": "{rules} rules"
   }
 }

@@ -12,6 +12,10 @@
         <span class="name">{{label}}</span>
         <span class="meta">{{source}} · {{count}}</span>
       </label>
+      <label class="charwiz-pack-any" data-tooltip="CHARWIZ.Settings.Content.AnyRulesHint">
+        <input type="checkbox" data-pack-any="{{id}}" {{checked anyRules}}>
+        <span>{{localize "CHARWIZ.Settings.Content.AnyRules"}}</span>
+      </label>
       <span class="charwiz-pack-move">
         <button type="button" class="icon fa-solid fa-arrow-up" data-action="movePack" data-index="{{index}}"
           data-direction="up" aria-label="{{localize 'CHARWIZ.Settings.Content.MoveUp'}}" {{disabled first}}></button>

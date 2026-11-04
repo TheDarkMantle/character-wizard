@@ -98,12 +98,15 @@ export function matchesRules(entry, rules, untagged = UNTAGGED.SHOW) {
  * @param {string} [options.untagged]
  * @param {string[]} [options.packOrder]   Pack ids, highest priority first.
  * @param {Iterable<string>} [options.blocked]  Keys the GM has blocked.
+ * @param {Iterable<string>} [options.anyRulesPacks]  Packs whose content is offered whatever its rules tag says (homebrew
+ *   or older material the GM wants to use under the other ruleset).
  * @param {boolean} [options.includeBlocked]   Keep blocked entries (flagged) — for the GM settings view.
  * @returns {{ byType: Record<string, CatalogEntry[]>, duplicates: number, blockedCount: number }}
  */
 export function buildCatalog(entries, { rules, untagged = UNTAGGED.SHOW, packOrder = [], blocked = [],
-  includeBlocked = false } = {}) {
+  includeBlocked = false, anyRulesPacks = [] } = {}) {
   const blockedSet = new Set(blocked);
+  const anyRules = new Set(anyRulesPacks);
   const scanOrder = new Map();
   entries.forEach(e => { if ( !scanOrder.has(e.pack) ) scanOrder.set(e.pack, scanOrder.size); });
   const rank = pack => {
@@ -115,7 +118,7 @@ export function buildCatalog(entries, { rules, untagged = UNTAGGED.SHOW, packOrd
   let duplicates = 0;
   let blockedCount = 0;
   for ( const entry of entries ) {
-    if ( !matchesRules(entry, rules, untagged) ) continue;
+    if ( !anyRules.has(entry.pack) && !matchesRules(entry, rules, untagged) ) continue;
     const isBlocked = blockedSet.has(entry.key);
     if ( isBlocked && !includeBlocked ) { blockedCount++; continue; }
     const dedupeKey = `${entry.key}|${entry.rules ?? "untagged"}`;

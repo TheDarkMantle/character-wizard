@@ -142,3 +142,20 @@ describe("groupSpecies", () => {
     expect(rows.every(r => "entry" in r)).toBe(true);
   });
 });
+
+describe("anyRulesPacks", () => {
+  const entry = (name, packId, rules) => normalizeEntry({ _id: name, name, type: "class", uuid: `u.${name}`, img: "", system: { source: { rules } } }, pack(packId));
+
+  it("offers a compendium's content whatever its rules tag says", () => {
+    const entries = [entry("Apothecary", "homebrew", "2014"), entry("Fighter", "srd", "2024"), entry("Old Thing", "srd", "2014")];
+    const hidden = buildCatalog(entries, { rules: "2024" });
+    expect(hidden.byType.class.map(e => e.name)).toEqual(["Fighter"]);
+    const shown = buildCatalog(entries, { rules: "2024", anyRulesPacks: ["homebrew"] });
+    expect(shown.byType.class.map(e => e.name)).toEqual(["Apothecary", "Fighter"]);
+  });
+
+  it("still applies to the other ruleset", () => {
+    const entries = [entry("Artificer", "homebrew", "2024")];
+    expect(buildCatalog(entries, { rules: "2014", anyRulesPacks: ["homebrew"] }).byType.class).toHaveLength(1);
+  });
+});

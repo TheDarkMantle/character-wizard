@@ -83,6 +83,7 @@ export class ContentCatalog {
       untagged: getSetting("untaggedContent"),
       packOrder,
       blocked: getSetting("blockedContent"),
+      anyRulesPacks: Object.entries(sources).filter(([, source]) => source.anyRules).map(([id]) => id),
       includeBlocked
     });
   }

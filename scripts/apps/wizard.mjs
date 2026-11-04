@@ -356,7 +356,11 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
    * A group opens when searching, when the player clicks it, and when it holds a newly focused option.
    */
   #pickerRows(step, picked) {
-    const mark = e => ({ ...e, focused: e.uuid === this.focused, picked: e.uuid === picked });
+    // Content from a compendium the GM allowed under any rules can be the other edition: say so.
+    const mark = e => ({
+      ...e, focused: e.uuid === this.focused, picked: e.uuid === picked,
+      otherRules: (e.rules && (e.rules !== this.rules)) ? e.rules : ""
+    });
     const list = this.catalogData.byType[PICKER_STEPS[step]];
     if ( step !== "species" ) return searchEntries(list, this.query).map(e => ({ entry: mark(e) }));
 

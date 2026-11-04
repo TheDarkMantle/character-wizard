@@ -162,6 +162,7 @@
   .charwiz-pack-list, .charwiz-allow-list { list-style: none; margin: 0 0 0.75rem; padding: 0; }
   .charwiz-pack { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; }
   .charwiz-pack.disabled .charwiz-pack-label { opacity: 0.5; }
+  .charwiz-pack-any { display: flex; align-items: center; gap: 0.3rem; font-size: var(--font-size-12); white-space: nowrap; }
   .charwiz-pack-rank { width: 1.5rem; text-align: right; opacity: 0.6; }
   .charwiz-pack-label, .charwiz-allow-list label { display: flex; align-items: center; gap: 0.5rem; flex: 1; }
   .charwiz-pack-label .meta, .charwiz-allow-list .meta { margin-left: auto; }

@@ -158,6 +158,9 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
         for ( const group of groups ) {
           const key = keyFor(`:${group.id}`);
           const keys = group.options.map(o => o.value);
+          // Something picked in an earlier group of this advancement (a tool from a short list, then "another of your
+          // choice") can't be picked again, or two picks would become one proficiency.
+          for ( const o of group.options ) if ( picked.includes(o.value) ) o.disabled = true;
           const options = group.options.map(o => ({
             value: o.value, disabled: o.disabled, label: traitOptionLabel(o.value, Trait.keyLabel(o.value) || o.value, hostId)
           }));

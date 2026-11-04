@@ -74,6 +74,7 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
       source: game.packs.get(id)?.metadata.packageName ?? "",
       count: counts[id] ?? 0,
       enabled: sources[id]?.enabled !== false,
+      anyRules: sources[id]?.anyRules === true,
       first: index === 0,
       last: index === this.#packOrder.length - 1
     }));
@@ -138,9 +139,10 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
     // Pack ids and content keys contain "." and ":", so read the checkboxes from the DOM
     // rather than through form field names (which Foundry would expand into nested objects).
     const enabled = new Set(Array.from(form.querySelectorAll("input[data-pack-id]:checked"), i => i.dataset.packId));
+    const anyRules = new Set(Array.from(form.querySelectorAll("input[data-pack-any]:checked"), i => i.dataset.packAny));
     const sources = {};
     this.#packOrder.forEach((id, priority) => {
-      sources[id] = { enabled: enabled.has(id), priority };
+      sources[id] = { enabled: enabled.has(id), priority, anyRules: anyRules.has(id) };
     });
 
     // Unchecked "allowed" boxes become blocks; blocks for content not shown here are kept.

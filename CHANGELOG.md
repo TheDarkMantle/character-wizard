@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.9
+
+- Cantrips and spells a **class** asks for are no longer offered in the Class choices step. They belong to the spells step, which isn't built yet, so for now they are listed on Review as not handled. Species and background spell picks (the High Elf cantrip) stay where they were.
+- The Configure content window is now a fixed-height column with the active tab scrolling, so long lists such as Languages can be scrolled to the end.
+- Still untested in Foundry.
+
 ## 0.2.8
 
 - The choices page no longer jumps to the top when you click an option. This was most noticeable with the long language list.

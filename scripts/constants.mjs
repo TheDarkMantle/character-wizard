@@ -36,6 +36,6 @@ export const UNTAGGED = Object.freeze({
 
 /** Creation step order per rules version (PHB order). */
 export const STEP_ORDER = Object.freeze({
-  2024: ["class", "background", "species", "abilities", "equipment", "spells", "details", "review"],
-  2014: ["species", "class", "abilities", "background", "equipment", "spells", "details", "review"]
+  2024: ["class", "background", "species", "abilities", "equipment", "spells", "ideals", "personality", "details", "review"],
+  2014: ["species", "class", "abilities", "background", "equipment", "spells", "ideals", "personality", "details", "review"]
 });

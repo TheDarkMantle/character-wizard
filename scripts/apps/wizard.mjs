@@ -10,6 +10,9 @@ import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../
 import { pickCandidates } from "../equipment/gear.mjs";
 import { backgroundFeature } from "../content/background-feature.mjs";
 import { describedItems } from "../equipment/described.mjs";
+import {
+  BIO_KINDS, BIO_MAX, classifyTable, composeValue, entryForRoll, rollFormula as tableRollFormula, tableEntries, tableLinks, togglePick
+} from "../content/background-tables.mjs";
 import { inventoryItems, packContents, resolveInventory } from "../equipment/inventory.mjs";
 import {
   adjustPointBuy, breakdown, isComplete, METHODS, modifier, POINT_BUY, pointBuySpent, remainingValues, rollFormula,
@@ -42,8 +45,15 @@ const choiceSourceOf = step => (step === SPELLS_STEP ? SPELLS_STEP : CHOICE_STEP
 const STEP_ICONS = Object.freeze({
   class: "fa-shield-halved", species: "fa-person", background: "fa-scroll", abilities: "fa-dice-d20",
   equipment: "fa-sack", spells: "fa-wand-sparkles", details: "fa-feather", review: "fa-clipboard-check",
-  classChoices: "fa-list-check", speciesChoices: "fa-list-check", backgroundChoices: "fa-list-check"
+  classChoices: "fa-list-check", speciesChoices: "fa-list-check", backgroundChoices: "fa-list-check",
+  ideals: "fa-heart", personality: "fa-masks-theater"
 });
+
+/** Steps that fill in the character's personality and biography details. */
+const BIO_STEPS = Object.freeze({ ideals: ["ideal", "bond", "flaw"], personality: ["trait"] });
+
+/** Plain text fields of the last details step, as `system.details` keys. */
+const DETAIL_FIELDS = Object.freeze(["age", "height", "weight", "gender", "eyes", "hair", "skin", "faith"]);
 
 /**
  * The character creation wizard.
@@ -63,6 +73,15 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.descriptions = new Map();
     this.refreshToken = 0;
     this.draft = { name: actor?.name ?? "", picks: {}, choices: {}, abilities: { method: "standard", scores: {}, rolled: null } };
+    /** Personality, alignment and the details fields. Picks are entry numbers in the background's tables. */
+    this.draft.bio = {
+      picks: Object.fromEntries(BIO_KINDS.map(k => [k, []])),
+      other: Object.fromEntries(BIO_KINDS.map(k => [k, ""])),
+      alignment: "",
+      fields: Object.fromEntries([...DETAIL_FIELDS, "appearance"].map(k => [k, ""]))
+    };
+    /** The background's roll tables by background UUID. */
+    this.bioTableCache = new Map();
     /** Ability scores after the species and background bonuses, from the last simulation. */
     this.finals = {};
     /** What the player decided about starting equipment, per source (class, background). */
@@ -103,13 +122,15 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       rollGold: CharacterWizard.#onRollGold,
       abilityPoint: CharacterWizard.#onAbilityPoint,
       abilityRoll: CharacterWizard.#onAbilityRoll,
+      bioPick: CharacterWizard.#onBioPick,
+      bioRoll: CharacterWizard.#onBioRoll,
       create: CharacterWizard.#onCreate
     }
   };
 
   static PARTS = {
     steps: { template: `${TEMPLATE_PATH}/wizard/steps.hbs` },
-    body: { template: `${TEMPLATE_PATH}/wizard/body.hbs`, scrollable: [".charwiz-list", ".charwiz-slots", ".charwiz-preview", ".charwiz-abilities"] },
+    body: { template: `${TEMPLATE_PATH}/wizard/body.hbs`, scrollable: [".charwiz-list", ".charwiz-slots", ".charwiz-preview", ".charwiz-abilities", ".charwiz-bio"] },
     footer: { template: `${TEMPLATE_PATH}/wizard/footer.hbs` }
   };
 
@@ -576,6 +597,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     const step = this.step;
     const choiceSource = choiceSourceOf(step);
     const eq = await this.#equipmentPlans();
+    this.bioTables = await this.#bioTables();
     const context = {
       rules: this.rules,
       step,
@@ -592,6 +614,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       isPicker: step in PICKER_STEPS,
       isChoices: !!choiceSource,
       isDetails: step === "details",
+      isBio: step in BIO_STEPS,
       isReview: step === "review",
       isAbilities: step === "abilities",
       isEquipment: step === "equipment",
@@ -608,6 +631,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         : ((step === "equipment") && !eq.ready) ? game.i18n.localize("CHARWIZ.Equipment.Incomplete") : "";
     context.blocked = !!context.blockLabel;
 
+    if ( context.isBio ) context.bio = await this.#bioContext(step);
+    if ( context.isDetails ) context.details = this.#detailsContext();
     if ( context.isAbilities ) context.abilities = this.#abilitiesContext();
     if ( context.isEquipment ) context.equipment = await this.#equipmentContext(eq);
 
@@ -656,6 +681,11 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         const entry = context.summary.find(s => s.label === "CHARWIZ.Steps.background");
         entry?.choices.push({ title: game.i18n.localize("CHARWIZ.Review.Feature"), picked: feature.name });
       }
+      context.bioLines = [
+        ...(this.draft.bio.alignment ? [{ label: game.i18n.localize("CHARWIZ.Bio.alignment"),
+          value: game.i18n.localize(CONFIG.DND5E.alignments?.[this.draft.bio.alignment] ?? "") }] : []),
+        ...BIO_KINDS.map(kind => ({ label: game.i18n.localize(`CHARWIZ.Bio.${kind}`), value: this.#bioValue(kind, this.bioTables ?? {}) }))
+      ].filter(l => l.value).map(l => ({ ...l, value: l.value.replace(/\n/g, " / ") }));
       context.deferred = this.deferred;
       const inventory = await this.#inventory(eq);
       context.manualGear = this.#manualGear(eq, inventory);
@@ -691,6 +721,16 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     }, 200));
     this.element.querySelector("input[name=name]")?.addEventListener("change", event => {
       this.draft.name = event.target.value.trim();
+    });
+    // Personality and details: free text and the alignment.
+    for ( const field of this.element.querySelectorAll("[data-bio-other]") ) {
+      field.addEventListener("change", () => { this.draft.bio.other[field.dataset.bioOther] = field.value; });
+    }
+    for ( const field of this.element.querySelectorAll("[data-bio-field]") ) {
+      field.addEventListener("change", () => { this.draft.bio.fields[field.dataset.bioField] = field.value.trim(); });
+    }
+    this.element.querySelector("select[data-bio-alignment]")?.addEventListener("change", event => {
+      this.draft.bio.alignment = event.target.value;
     });
     // Starting equipment: a choice between options, a pick from a category, or gold instead.
     for ( const input of this.element.querySelectorAll("input[data-eq-option]") ) {
@@ -898,7 +938,116 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     }
   }
 
+  /**
+   * The background's roll tables for personality traits, ideals, bonds and flaws, found through the links in its
+   * description. Empty for a background that has none (2024 backgrounds), where the player writes their own.
+   * @returns {Promise<Record<string, { name: string, entries: object[], formula: string|null }>>}
+   */
+  async #bioTables() {
+    const pick = this.draft.picks.background;
+    if ( !pick ) return {};
+    if ( !this.bioTableCache.has(pick.uuid) ) {
+      const found = {};
+      try {
+        const item = await fromUuid(pick.uuid);
+        for ( const { uuid, label } of tableLinks(item?.system.description?.value) ) {
+          const table = await fromUuid(uuid);
+          if ( !table || (table.documentName !== "RollTable") ) continue;
+          const kind = classifyTable(table.name) ?? classifyTable(label);
+          if ( !kind || found[kind] ) continue;
+          const entries = tableEntries(Array.from(table.results));
+          if ( entries.length ) found[kind] = { name: table.name, entries, formula: tableRollFormula(table.formula, entries) };
+        }
+      } catch(err) {
+        console.warn(`${MODULE_ID} | Could not read the background's tables`, err);
+      }
+      this.bioTableCache.set(pick.uuid, found);
+    }
+    return this.bioTableCache.get(pick.uuid);
+  }
+
+  /** The text for a sheet field: the table entries picked, then the player's own words. */
+  #bioValue(kind, tables) {
+    const entries = tables[kind]?.entries ?? [];
+    const picked = this.draft.bio.picks[kind].map(i => entries[i]?.text).filter(Boolean);
+    return composeValue(picked, this.draft.bio.other[kind]);
+  }
+
+  /** What the ideals and personality steps show: a table (if the background has one), a roll button, and "other". */
+  async #bioContext(step) {
+    const tables = this.bioTables ?? {};
+    const localize = key => game.i18n.localize(key);
+    const sections = BIO_STEPS[step].map(kind => {
+      const table = tables[kind];
+      const picks = this.draft.bio.picks[kind];
+      return {
+        kind, title: localize(`CHARWIZ.Bio.${kind}`), max: BIO_MAX[kind],
+        hint: game.i18n.format(BIO_MAX[kind] > 1 ? "CHARWIZ.Bio.PickSeveral" : "CHARWIZ.Bio.PickOne", { count: BIO_MAX[kind] }),
+        hasTable: !!table, tableName: table?.name, canRoll: !!table?.formula, formula: table?.formula,
+        entries: (table?.entries ?? []).map(e => ({ index: e.index, label: e.label, text: e.text, selected: picks.includes(e.index) })),
+        other: this.draft.bio.other[kind]
+      };
+    });
+    const alignment = (step === "personality") ? {
+      value: this.draft.bio.alignment,
+      options: Object.entries(CONFIG.DND5E.alignments ?? {}).map(([id, label]) => ({
+        id, label: localize(label), selected: this.draft.bio.alignment === id
+      }))
+    } : null;
+    return { sections, alignment };
+  }
+
+  /** The text fields of the last step. */
+  #detailsContext() {
+    const fields = this.draft.bio.fields;
+    return {
+      fields: DETAIL_FIELDS.map(id => ({ id, label: `CHARWIZ.Bio.${id}`, value: fields[id] })),
+      appearance: fields.appearance
+    };
+  }
+
+  /**
+   * The personality and biography fields to write to the sheet. Only what the player filled in is set. The biography
+   * itself is left for the sheet.
+   */
+  #detailsData() {
+    const tables = this.bioTables ?? {};
+    const { fields, alignment } = this.draft.bio;
+    const data = {};
+    for ( const kind of BIO_KINDS ) {
+      const value = this.#bioValue(kind, tables);
+      if ( value ) data[kind] = value;
+    }
+    if ( alignment && CONFIG.DND5E.alignments?.[alignment] ) data.alignment = game.i18n.localize(CONFIG.DND5E.alignments[alignment]);
+    for ( const [key, value] of Object.entries(fields) ) if ( value ) data[key] = value;
+    return data;
+  }
+
+  /** Roll a table through chat and pick the entry it lands on. */
+  static async #onBioRoll(event, target) {
+    const { kind } = target.dataset;
+    const table = (this.bioTables ?? {})[kind];
+    if ( !table?.formula ) return;
+    const roll = await new Roll(table.formula).evaluate();
+    const entry = entryForRoll(table.entries, roll.total);
+    await this.#postRolls([roll], game.i18n.format("CHARWIZ.Bio.RollFlavor", { table: table.name }),
+      entry ? `<p>${roll.total}: ${foundry.utils.escapeHTML(entry.text)}</p>` : `<p>${roll.total}</p>`);
+    if ( entry ) {
+      const picks = this.draft.bio.picks[kind];
+      this.draft.bio.picks[kind] = picks.includes(entry.index) ? picks : togglePick(picks, entry.index, BIO_MAX[kind]);
+    }
+    this.render({ parts: ["body", "steps"] });
+  }
+
+  /** Pick or drop an entry of a table. */
+  static #onBioPick(event, target) {
+    const { kind, index } = target.dataset;
+    this.draft.bio.picks[kind] = togglePick(this.draft.bio.picks[kind], Number(index), BIO_MAX[kind]);
+    this.render({ parts: ["body", "steps"] });
+  }
+
   #pickFor(stepId) {
+    if ( stepId in BIO_STEPS ) return BIO_STEPS[stepId].every(k => this.#bioValue(k, this.bioTables ?? {}));
     if ( stepId === "details" ) return this.draft.name;
     if ( stepId === "abilities" ) return this.#abilitiesReady();
     return this.draft.picks[stepId];
@@ -1094,6 +1243,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }, abilities: this.#baseScores()
       });
       engine.clone.updateSource({ name });
+      engine.clone.updateSource({ "system.details": this.#detailsData() });
 
       // Cantrips, spells known or prepared, and the spellbook.
       const spells = await spellItems(slots.filter(sl => sl.source === SPELLS_STEP), this.draft.choices);
@@ -1227,6 +1377,10 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       }
     }
     if ( this.step in this.draft.equipment ) this.draft.equipment[this.step] = {};
+    // Table entries belong to the background that has the table.
+    if ( (this.step === "background") && (this.draft.picks.background?.uuid !== uuid) ) {
+      for ( const kind of BIO_KINDS ) this.draft.bio.picks[kind] = [];
+    }
     this.draft.picks[this.step] = { uuid, name: entry.name, identifier: entry.identifier };
     return true;
   }

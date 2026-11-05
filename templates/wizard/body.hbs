@@ -314,10 +314,72 @@
   </div>
   {{/if}}
 
+  {{#if isBio}}
+  <div class="charwiz-bio">
+    {{#each bio.sections}}
+    <section class="charwiz-bio-field">
+      <header>
+        <h3>{{title}}</h3>
+        <span class="meta">{{hint}}</span>
+        {{#if canRoll}}
+        <button type="button" data-action="bioRoll" data-kind="{{kind}}">
+          <i class="fa-solid fa-dice" inert></i> {{localize "CHARWIZ.Bio.Roll" formula=formula}}
+        </button>
+        {{/if}}
+      </header>
+      {{#if hasTable}}
+      <ul class="charwiz-bio-entries">
+        {{#each entries}}
+        <li>
+          <button type="button" class="charwiz-bio-entry {{#if selected}}selected{{/if}}" data-action="bioPick"
+            data-kind="{{../kind}}" data-index="{{index}}" aria-pressed="{{#if selected}}true{{else}}false{{/if}}">
+            <span class="charwiz-bio-number">{{label}}</span>
+            <span class="charwiz-bio-text">{{text}}</span>
+            <i class="fa-solid {{#if selected}}fa-square-check{{else}}fa-square{{/if}}" inert></i>
+          </button>
+        </li>
+        {{/each}}
+      </ul>
+      {{else}}
+      <p class="hint">{{localize "CHARWIZ.Bio.NoTable"}}</p>
+      {{/if}}
+      <label class="charwiz-bio-other">
+        <span>{{localize "CHARWIZ.Bio.Other"}}</span>
+        <textarea rows="2" data-bio-other="{{kind}}" placeholder="{{localize 'CHARWIZ.Bio.OtherHint'}}">{{other}}</textarea>
+      </label>
+    </section>
+    {{/each}}
+    {{#if bio.alignment}}
+    <section class="charwiz-bio-field">
+      <header><h3>{{localize "CHARWIZ.Bio.alignment"}}</h3></header>
+      <select data-bio-alignment aria-label="{{localize 'CHARWIZ.Bio.alignment'}}">
+        <option value="">—</option>
+        {{#each bio.alignment.options}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+      </select>
+    </section>
+    {{/if}}
+  </div>
+  {{/if}}
+
   {{#if isDetails}}
-  <div class="form-group">
-    <label for="charwiz-name">{{localize "CHARWIZ.Details.Name"}}</label>
-    <input type="text" id="charwiz-name" name="name" value="{{draft.name}}">
+  <div class="charwiz-bio">
+    <div class="form-group">
+      <label for="charwiz-name">{{localize "CHARWIZ.Details.Name"}}</label>
+      <input type="text" id="charwiz-name" name="name" value="{{draft.name}}">
+    </div>
+    <div class="charwiz-detail-grid">
+      {{#each details.fields}}
+      <label>
+        <span>{{localize label}}</span>
+        <input type="text" data-bio-field="{{id}}" value="{{value}}">
+      </label>
+      {{/each}}
+    </div>
+    <label class="charwiz-bio-other">
+      <span>{{localize "CHARWIZ.Bio.appearance"}}</span>
+      <textarea rows="4" data-bio-field="appearance">{{details.appearance}}</textarea>
+    </label>
+    <p class="hint"><i class="fa-solid fa-circle-info" inert></i> {{localize "CHARWIZ.Bio.BiographyNote"}}</p>
   </div>
   {{/if}}
 
@@ -327,6 +389,7 @@
     {{#if abilityLine}}<dt>{{localize "CHARWIZ.Steps.abilities"}}</dt><dd>{{abilityLine}}</dd>{{/if}}
     {{#if equipmentLine}}<dt>{{localize "CHARWIZ.Steps.equipment"}}</dt>
     <dd>{{equipmentLine}}{{#each equipmentNotes}}<br><span class="meta">{{this}}</span>{{/each}}</dd>{{/if}}
+    {{#each bioLines}}<dt>{{label}}</dt><dd>{{value}}</dd>{{/each}}
     {{#each summary}}
     <dt>{{localize label}}</dt>
     <dd>{{#if name}}{{name}}{{else}}—{{/if}}

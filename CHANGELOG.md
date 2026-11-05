@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.0
 
 - **Spells step.** Spellcasting classes now pick their spells in the wizard: cantrips, spells known (2014 Bard, Sorcerer, Warlock), spells prepared (Cleric, Druid and every 2024 caster), and a Wizard's spellbook of 6 with the spells to prepare from it. The step only appears for a caster, and Create adds the spells to the sheet with the class as their source.
 - **The right list.** Options come from the class's own spell list, kept to the world's rules and to enabled compendiums, with leveled spells limited to the slots the character has. Spells in the world's Items folder that no list claims are treated as homebrew and offered to every caster.

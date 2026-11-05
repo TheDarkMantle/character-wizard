@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Pack contents on the equipment step.** When a choice includes an equipment pack (the Fighter's dungeoneer's or explorer's pack), the list of what is inside is shown under that option, so you can compare before choosing.
+
 ## 0.6.1
 
 - **Fixed: a 2014 background's starting gold.** Some backgrounds (imports from D&D Beyond) only state the purse as a gold amount (the Sage's 10 gp, the Knight's 25 gp) and the wizard never added it. It is now added unless an item or a gold entry in the equipment already supplies it.

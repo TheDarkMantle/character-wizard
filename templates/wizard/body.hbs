@@ -250,11 +250,14 @@
       <fieldset class="charwiz-eq-decision">
         <legend>{{localize "CHARWIZ.Equipment.ChooseOne"}}</legend>
         {{#each options}}
-        <label class="charwiz-eq-option">
-          <input type="radio" name="eq-{{../source}}-{{../id}}" data-eq-option data-source="{{../source}}"
-            data-decision="{{../id}}" data-option="{{id}}" {{#if checked}}checked{{/if}}>
-          <span>{{#if letter}}<strong>{{letter}}.</strong> {{/if}}{{label}}</span>
-        </label>
+        <div class="charwiz-eq-choice">
+          <label class="charwiz-eq-option">
+            <input type="radio" name="eq-{{../source}}-{{../id}}" data-eq-option data-source="{{../source}}"
+              data-decision="{{../id}}" data-option="{{id}}" {{#if checked}}checked{{/if}}>
+            <span>{{#if letter}}<strong>{{letter}}.</strong> {{/if}}{{label}}</span>
+          </label>
+          {{#each packs}}<p class="charwiz-eq-pack"><strong>{{name}}:</strong> {{items}}</p>{{/each}}
+        </div>
         {{/each}}
       </fieldset>
       {{/each}}

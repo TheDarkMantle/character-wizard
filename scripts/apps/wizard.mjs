@@ -9,7 +9,7 @@ import { customArray, getSetting } from "../settings.mjs";
 import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../equipment/starting.mjs";
 import { pickCandidates } from "../equipment/gear.mjs";
 import { describedItems } from "../equipment/described.mjs";
-import { inventoryItems, resolveInventory } from "../equipment/inventory.mjs";
+import { inventoryItems, packContents, resolveInventory } from "../equipment/inventory.mjs";
 import {
   adjustPointBuy, breakdown, isComplete, METHODS, modifier, POINT_BUY, pointBuySpent, remainingValues, rollFormula,
   STANDARD_ARRAY
@@ -68,6 +68,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.draft.equipment = { class: {}, background: {} };
     /** Class and background equipment data by UUID, and the gear catalog, loaded when first needed. */
     this.equipmentSources = new Map();
+    /** What each pack holds, by UUID, so the choices can list it. */
+    this.packContentsCache = new Map();
     this.gear = null;
     this.query = "";
     this.focused = null;
@@ -206,6 +208,32 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     return { plans, ready };
   }
 
+  /** Packs inside an equipment option (the Explorer's Pack of "a dungeoneer's pack or an explorer's pack"), with what they hold. */
+  async #packsIn(node) {
+    const found = [];
+    const walk = n => {
+      if ( n.type === "linked" ) {
+        const doc = fromUuidSync(n.key);
+        if ( doc?.type === "container" ) found.push({ uuid: n.key, name: doc.name });
+      }
+      n.children?.forEach(walk);
+    };
+    walk(node);
+    const packs = [];
+    for ( const { uuid, name } of found ) {
+      if ( !this.packContentsCache.has(uuid) ) {
+        this.packContentsCache.set(uuid, await packContents(uuid, {
+          gear: await this.#gearList(), rules: this.rules, packOrder: this.#sourceOrder().packOrder
+        }));
+      }
+      const { children } = this.packContentsCache.get(uuid);
+      if ( children.length ) {
+        packs.push({ name, items: children.map(c => `${(c.quantity > 1) ? `${c.quantity}× ` : ""}${c.name}`).join(", ") });
+      }
+    }
+    return packs;
+  }
+
   /** "any martial melee weapon", "shield", "gaming set": what a category entry stands for. */
   #categoryPhrase(category, key) {
     const text = value => game.i18n.localize(typeof value === "string" ? value : (value?.label ?? "")).toLowerCase();
@@ -308,16 +336,17 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         ? game.i18n.format("CHARWIZ.Equipment.GoldFixed", { amount: fixedGold(source.wealth) })
         : game.i18n.format("CHARWIZ.Equipment.GoldRoll", { formula: source.wealth });
 
-      const decisions = plan.decisions.map(decision => {
-        const options = decision.options.map((option, index) => ({
+      const decisions = await Promise.all(plan.decisions.map(async decision => {
+        const options = await Promise.all(decision.options.map(async (option, index) => ({
           id: option.id, letter: modern ? "ABCDEFGH"[index] : "", checked: decision.selected === option.id,
-          label: describeNode(option, node => this.#leafLabel(node), join)
-        }));
+          label: describeNode(option, node => this.#leafLabel(node), join),
+          packs: await this.#packsIn(option)
+        })));
         if ( decision.includesGold ) {
           options.push({ id: GOLD, letter: modern ? "ABCDEFGH"[options.length] : "", checked: !!state.gold, label: goldLabel });
         }
         return { source: step, id: decision.id, options };
-      });
+      }));
 
       const picks = [];
       for ( const grant of plan.grants.filter(g => g.type === "pick") ) {

@@ -21,6 +21,7 @@ export const ITEMS = "__items";
  * @property {string} id
  * @property {string} type       OR, AND, linked, currency, weapon, armor, tool or focus.
  * @property {number} count      Defaults to 1.
+ * @property {boolean} counted    The entry states a count. Without one, an item keeps its own quantity (a stack of 20 bolts).
  * @property {string} [key]      Category key, currency, or item UUID for "linked".
  * @property {boolean} [requiresProficiency]
  * @property {EquipmentNode[]} children
@@ -34,6 +35,7 @@ export const ITEMS = "__items";
 export function buildTree(entries = []) {
   const list = Array.from(entries, e => ({
     id: e._id, group: e.group || null, sort: e.sort ?? 0, type: e.type, count: e.count ?? 1,
+    counted: (e.count !== null) && (e.count !== undefined),
     key: e.key || undefined, requiresProficiency: !!e.requiresProficiency, children: []
   }));
   const byId = new Map(list.map(n => [n.id, n]));
@@ -101,7 +103,7 @@ export function planEquipment({ entries, wealth, modern, state = {} }) {
         else result.complete = false;
         break;
       }
-      case "linked": result.grants.push({ type: "item", uuid: node.key, count: node.count }); break;
+      case "linked": result.grants.push({ type: "item", uuid: node.key, count: node.count, counted: node.counted }); break;
       case "currency": result.grants.push({ type: "currency", key: node.key, count: node.count }); break;
       default:
         if ( CATEGORY_TYPES.includes(node.type) ) {
@@ -157,4 +159,13 @@ export function describeNode(node, leafLabel, join = (items, joiner) => items.jo
     case "OR": return join(node.children.map(c => describeNode(c, leafLabel, join)).filter(Boolean), "or");
     default: return leafLabel(node);
   }
+}
+
+/**
+ * How many of an item to give. An entry that states a count means that many pieces ("20 Arrows"); one that doesn't
+ * means the item as it is stored, which may be a stack ("Bolts" is a stack of 20).
+ * @param {{ count: number, counted: boolean, native?: number }} input  `native` is the item's own quantity.
+ */
+export function quantityFor({ count, counted, native = 1 }) {
+  return counted ? count : (native || 1);
 }

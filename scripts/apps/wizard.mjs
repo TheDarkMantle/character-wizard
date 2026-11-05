@@ -223,13 +223,14 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     const picked = new Map();
     for ( const { plan } of Object.values(eq.plans) ) {
       for ( const grant of plan.grants ) {
-        if ( grant.type === "item" ) grants.push({ uuid: grant.uuid, count: grant.count });
+        if ( grant.type === "item" ) grants.push({ uuid: grant.uuid, count: grant.count, counted: grant.counted });
         else if ( grant.type === "pick" ) for ( const uuid of grant.picked ) picked.set(uuid, (picked.get(uuid) ?? 0) + 1);
         else if ( grant.type === "currency" ) currency[grant.key] = (currency[grant.key] ?? 0) + grant.count;
       }
       if ( plan.gold?.amount ) currency.gp = (currency.gp ?? 0) + plan.gold.amount;
     }
-    for ( const [uuid, count] of picked ) grants.push({ uuid, count });
+    // Two of the same pick are two pieces; one keeps the item's own quantity.
+    for ( const [uuid, count] of picked ) grants.push({ uuid, count, counted: count > 1 });
     const lines = await resolveInventory(grants, {
       gear: await this.#gearList(), rules: this.rules, packOrder: this.#sourceOrder().packOrder
     });
@@ -310,8 +311,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       sections,
       hasSections: sections.length > 0,
       lines: inventory.lines.map(l => ({
-        name: l.name, img: l.img, countLabel: (l.count > 1) ? `${l.count}× ` : "", missing: l.missing,
-        children: (l.children ?? []).map(c => ({ name: c.name, countLabel: (c.count > 1) ? `${c.count}× ` : "" })),
+        name: l.name, img: l.img, countLabel: (l.quantity > 1) ? `${l.quantity}× ` : "", missing: l.missing,
+        children: (l.children ?? []).map(c => ({ name: c.name, countLabel: (c.quantity > 1) ? `${c.quantity}× ` : "" })),
         unresolved: (l.unresolved ?? []).join(", ")
       })),
       money: Object.entries(inventory.currency).filter(([, v]) => v)

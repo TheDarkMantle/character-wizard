@@ -11,6 +11,7 @@
 /**
  * @typedef {object} PackLine
  * @property {number} qty
+ * @property {boolean} explicit   The text gave a number ("10 Torches"), as opposed to just naming the item.
  * @property {string[]} names   Names to look for, best first (the full phrase, then what follows "of").
  * @property {string} [uuid]    Set when the description links to the item.
  */
@@ -42,7 +43,8 @@ export function parsePackDescription(html = "") {
 
   const lines = [];
   // Items are separated by commas, or by "and" when it introduces another counted item ("... clothes and a crowbar").
-  const separator = /\s*[,;]\s*|\s+and\s+(?=(?:an?|one|two|three|four|five|six|seven|eight|nine|ten|\d)\s)/i;
+  // A comma inside a number ("1,000 ball bearings") doesn't separate anything.
+  const separator = /\s*(?:(?<!\d),|,(?!\d)|;)\s*|\s+and\s+(?=(?:an?|one|two|three|four|five|six|seven|eight|nine|ten|\d)\s)/i;
   for ( let phrase of list.split(separator) ) {
     phrase = phrase.replace(/^\s*(and|plus)\s+/i, "").replace(/\.$/, "").trim();
     if ( !phrase ) continue;
@@ -60,29 +62,32 @@ function parsePhrase(phrase, links) {
   let qty = 1;
   let rest = text;
   let measured = false;
+  let explicit = false;
 
   const word = rest.match(/^(a|an|one|two|three|four|five|six|seven|eight|nine|ten)\s+(.*)$/i);
   const number = rest.match(/^(\d[\d,]*)\s+(.*)$/);
   if ( number ) {
     qty = Number(number[1].replace(/,/g, ""));
     rest = number[2];
+    explicit = true;
   } else if ( word ) {
     qty = WORD_NUMBERS[word[1].toLowerCase()];
     rest = word[2];
+    explicit = qty > 1;
   }
 
   // "flasks of oil", "days of rations", "feet of rope", "set of fine clothes".
   const of = rest.match(/^([\w'-]+)\s+of\s+(.*)$/i);
   const names = [];
   if ( of ) {
-    if ( MEASURES.test(of[1]) ) { measured = true; qty = 1; }
+    if ( MEASURES.test(of[1]) ) { measured = true; qty = 1; explicit = false; }
     names.push(rest, of[2]);
   } else names.push(rest);
   if ( measured ) names.shift();
 
   const cleaned = names.map(n => n.replace(/⟦\d+⟧/g, "").trim()).filter(Boolean);
   if ( !cleaned.length && !link ) return null;
-  return { qty, names: link?.name ? [link.name, ...cleaned] : cleaned, ...(link ? { uuid: link.uuid } : {}) };
+  return { qty, explicit, names: link?.name ? [link.name, ...cleaned] : cleaned, ...(link ? { uuid: link.uuid } : {}) };
 }
 
 /** A name stripped for comparison: lowercase, no punctuation or bracketed notes, singular words. */
@@ -150,5 +155,5 @@ export const SRD_PACKS_2014 = Object.freeze({
  * @returns {PackLine[]}  Empty for an unknown pack.
  */
 export function builtInPack(identifier) {
-  return (SRD_PACKS_2014[identifier] ?? []).map(([qty, ...names]) => ({ qty, names }));
+  return (SRD_PACKS_2014[identifier] ?? []).map(([qty, ...names]) => ({ qty, explicit: qty > 1, names }));
 }

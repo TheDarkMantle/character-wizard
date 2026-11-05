@@ -92,3 +92,16 @@ describe("the built-in 2014 packs", () => {
     expect(builtInPack("apothecarys-pack")).toEqual([]);
   });
 });
+
+describe("whether a pack line stated its quantity", () => {
+  it("is explicit only when a number is given", () => {
+    const lines = parsePackDescription("A pack contains: a bedroll, 10 Torches, two candles, 1,000 ball bearings, and 50 feet of rope.");
+    expect(lines.map(l => [l.qty, l.explicit])).toEqual([[1, false], [10, true], [2, true], [1000, true], [1, false]]);
+  });
+
+  it("marks table lines explicit when they give more than one", () => {
+    const lines = builtInPack("explorers-pack");
+    expect(lines.find(l => l.names[0] === "torch")).toMatchObject({ qty: 10, explicit: true });
+    expect(lines.find(l => l.names[0] === "backpack")).toMatchObject({ qty: 1, explicit: false });
+  });
+});

@@ -1,4 +1,5 @@
 import { builtInPack, matchItemName, parsePackDescription } from "./packs.mjs";
+import { quantityFor } from "./starting.mjs";
 import { rankedGear } from "./gear.mjs";
 
 /**
@@ -9,7 +10,8 @@ import { rankedGear } from "./gear.mjs";
  * @property {string} uuid
  * @property {string} name
  * @property {string} img
- * @property {number} count
+ * @property {number} count          How many separate copies (a pack is made once each).
+ * @property {number} quantity       The item\'s quantity on the character: the stated count, or its own stack size.
  * @property {InventoryLine[]} [children]   What is inside, for a pack.
  * @property {string[]} [unresolved]        Names in a pack's description that matched no item.
  * @property {string} [source]              Where a pack's contents came from: contents, description, table or none.
@@ -34,9 +36,11 @@ function locate(uuid) {
  */
 export async function packContents(uuid, { gear, rules, packOrder = [] }) {
   const { pack, id } = locate(uuid);
-  const line = (itemUuid, count) => {
+  // `explicit` is false when the text only names the item, so it keeps its own quantity (a stack of 20 bolts).
+  const line = (itemUuid, count, explicit = true) => {
     const doc = fromUuidSync(itemUuid);
-    return { uuid: itemUuid, name: doc?.name ?? itemUuid, img: doc?.img, count, missing: !doc };
+    const quantity = quantityFor({ count, counted: explicit, native: doc?.system?.quantity });
+    return { uuid: itemUuid, name: doc?.name ?? itemUuid, img: doc?.img, count: quantity, quantity, missing: !doc };
   };
 
   // 1. Items actually stored in the container.
@@ -57,9 +61,9 @@ export async function packContents(uuid, { gear, rules, packOrder = [] }) {
   const children = [];
   const unresolved = [];
   for ( const wanted of lines ) {
-    if ( wanted.uuid && fromUuidSync(wanted.uuid) ) { children.push(line(wanted.uuid, wanted.qty)); continue; }
+    if ( wanted.uuid && fromUuidSync(wanted.uuid) ) { children.push(line(wanted.uuid, wanted.qty, wanted.explicit)); continue; }
     const match = matchItemName(wanted.names, candidates);
-    if ( match ) children.push(line(match.uuid, wanted.qty));
+    if ( match ) children.push(line(match.uuid, wanted.qty, wanted.explicit));
     else unresolved.push(wanted.names.at(-1));
   }
   return { children, unresolved, source };
@@ -76,7 +80,9 @@ export async function resolveInventory(grants, context) {
   const lines = [];
   for ( const grant of grants ) {
     const doc = fromUuidSync(grant.uuid);
-    const line = { uuid: grant.uuid, name: doc?.name ?? grant.uuid, img: doc?.img, count: grant.count ?? 1, missing: !doc };
+    const count = grant.count ?? 1;
+    const quantity = quantityFor({ count, counted: !!grant.counted, native: doc?.system?.quantity });
+    const line = { uuid: grant.uuid, name: doc?.name ?? grant.uuid, img: doc?.img, count, quantity, missing: !doc };
     if ( doc?.type === "container" ) Object.assign(line, await packContents(grant.uuid, context));
     lines.push(line);
   }
@@ -107,12 +113,12 @@ export async function inventoryItems(lines) {
     const isPack = line.children !== undefined;
     // Several of something stack, except a pack, which is made once for each.
     for ( let n = 0; n < (isPack ? line.count : 1); n++ ) {
-      const data = await itemData(line.uuid, { quantity: isPack ? 1 : line.count });
+      const data = await itemData(line.uuid, { quantity: isPack ? 1 : line.quantity });
       if ( !data ) continue;
       items.push(data);
       for ( const child of line.children ?? [] ) {
         if ( child.missing ) continue;
-        const inner = await itemData(child.uuid, { quantity: child.count, container: data._id });
+        const inner = await itemData(child.uuid, { quantity: child.quantity, container: data._id });
         if ( inner ) items.push(inner);
       }
     }

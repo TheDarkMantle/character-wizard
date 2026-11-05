@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTree, describeNode, fixedGold, GOLD, isModernStyle, ITEMS, planEquipment } from "../scripts/equipment/starting.mjs";
+import { buildTree, describeNode, fixedGold, GOLD, isModernStyle, ITEMS, planEquipment, quantityFor } from "../scripts/equipment/starting.mjs";
 
 const e = (_id, type, group = "", extra = {}) => ({ _id, type, group, sort: Object.keys(extra).length + _id.length, ...extra });
 const ordered = list => list.map((x, i) => ({ ...x, sort: (i + 1) * 100 }));
@@ -80,8 +80,8 @@ describe("planEquipment, modern", () => {
     const result = plan({ or: { root: "A" } });
     expect(result.complete).toBe(true);
     expect(result.grants).toEqual([
-      { type: "item", uuid: "Compendium.x.Item.chain", count: 1 },
-      { type: "item", uuid: "Compendium.x.Item.jav", count: 8 },
+      { type: "item", uuid: "Compendium.x.Item.chain", count: 1, counted: false },
+      { type: "item", uuid: "Compendium.x.Item.jav", count: 8, counted: true },
       { type: "currency", key: "gp", count: 4 }
     ]);
   });
@@ -135,7 +135,7 @@ describe("planEquipment, legacy", () => {
     const result = plan({});
     expect(result.decisions.map(d => d.id)).toEqual(["o1", "o2"]);
     expect(result.decisions.every(d => !d.includesGold)).toBe(true);
-    expect(result.grants).toEqual([{ type: "item", uuid: "Compendium.x.Item.pack", count: 1 }]);
+    expect(result.grants).toEqual([{ type: "item", uuid: "Compendium.x.Item.pack", count: 1, counted: false }]);
     expect(result.complete).toBe(false);
   });
 
@@ -169,5 +169,27 @@ describe("describeNode", () => {
     const label = node => ({ a1: "Chain Mail", a2: "8× Javelin", a3: "4 GP" })[node.id] ?? node.id;
     expect(describeNode(root.children[0], label)).toBe("Chain Mail, 8× Javelin, 4 GP");
     expect(describeNode(root, label)).toBe("Chain Mail, 8× Javelin, 4 GP or b1, b2");
+  });
+});
+
+describe("item quantities", () => {
+  it("only an entry that states a count overrides the item's own stack", () => {
+    const entries = ordered([
+      e("root", "AND"),
+      e("bolts", "linked", "root", { key: "Compendium.x.Item.bolts", count: null }),
+      e("arrows", "linked", "root", { key: "Compendium.x.Item.arrows", count: 20 }),
+      e("javelin", "linked", "root", { key: "Compendium.x.Item.jav", count: 8 })
+    ]);
+    const { grants } = planEquipment({ entries, wealth: "", modern: false });
+    expect(grants.map(g => [g.counted, g.count])).toEqual([[false, 1], [true, 20], [true, 8]]);
+    expect(quantityFor({ count: 1, counted: false, native: 20 })).toBe(20);
+    expect(quantityFor({ count: 20, counted: true, native: 20 })).toBe(20);
+    expect(quantityFor({ count: 8, counted: true, native: 1 })).toBe(8);
+    expect(quantityFor({ count: 1, counted: false })).toBe(1);
+  });
+
+  it("treats a count of 1 as stated", () => {
+    const entries = ordered([e("x", "linked", "", { key: "Compendium.x.Item.one", count: 1 })]);
+    expect(planEquipment({ entries, wealth: "", modern: false }).grants[0]).toMatchObject({ counted: true, count: 1 });
   });
 });

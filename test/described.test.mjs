@@ -22,4 +22,18 @@ describe("describedItems", () => {
   it("is empty with no equipment line", () => {
     expect(describedItems("<p>Nothing here</p>")).toEqual([]);
   });
+
+  it("handles real imported text: markup inside words, brackets with commas, choices", () => {
+    const urchin = '<p><strong>Equipment: </strong>A small knife, a map of the city you grew up in, a pet mouse, a token to remember your parents by, a set of common clothes, and a pouch c<span class="No-Break">ontaining 10 gp</span></p>';
+    expect(describedItems(urchin, ["Knife, Small", "Clothes, Common"]).map(i => i.name))
+      .toEqual(["Map of the city", "Pet mouse", "Token to remember your parents by"]);
+
+    const entertainer = "<p><strong>Equipment:</strong> A musical instrument (one of your choice), the favor of an admirer (love letter, lock of hair, or trinket), a costume, and a pouch containing 15 gp</p>";
+    expect(describedItems(entertainer, ["Costume"]).map(i => i.name)).toEqual(["Favor of an admirer"]);
+  });
+
+  it("treats a staff as the quarterstaff the character already has", () => {
+    const outlander = "<p><strong>Equipment:</strong> A staff, a hunting trap, a trophy from an animal you killed, and a pouch containing 10 gp</p>";
+    expect(describedItems(outlander, ["Quarterstaff", "Trap, Hunting"]).map(i => i.name)).toEqual(["Trophy from an animal"]);
+  });
 });

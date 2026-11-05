@@ -19,19 +19,42 @@ function tokens(text) {
 
 /** The text after "Equipment:" up to the end of its line or paragraph. */
 function equipmentLine(html) {
-  const text = String(html ?? "").replace(/<\/(p|dt|dd|li|div|h\d|br)>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ")
+  const text = String(html ?? "").replace(/<\/(p|dt|dd|li|div|h\d|br)>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/g, " ").replace(/\s+/g, " ").replace(/ ?\n ?/g, "\n");
   const match = text.match(/equipment:\s*([^\n]+)/i);
   return match ? match[1].trim() : "";
 }
+
+/** Split on commas and "and", but not inside brackets: "a favor (a letter, a lock of hair, or a trinket)" is one thing. */
+function splitPhrases(line) {
+  const parts = [];
+  let depth = 0;
+  let current = "";
+  for ( const ch of line ) {
+    if ( ch === "(" ) depth++;
+    if ( ch === ")" ) depth = Math.max(0, depth - 1);
+    if ( (ch === ",") && !depth ) { parts.push(current); current = ""; } else current += ch;
+  }
+  parts.push(current);
+  return parts.map(p => p.replace(/^\s*and\s+/i, "").trim()).filter(Boolean);
+}
+
+/** A pick left to the player ("one of your choice"): the equipment step already offers those. */
+const isChoice = phrase => /\b(of )?your choice\b/i.test(phrase);
+
+/** Do two words name the same thing? "staff" and "quarterstaff" do. */
+const related = (a, b) => (a === b) || ((a.length > 3) && (b.length > 3) && (a.includes(b) || b.includes(a)));
 
 /** "a pouch containing 10 gp" and the like: money, which the gold entry already covers. */
 const isMoney = phrase => /\b\d+\s*(gp|sp|cp|pp|ep)\b/i.test(phrase) || /\b(pouch|purse)\b/i.test(phrase);
 
 /** The item's name: the phrase without its article, cut before a trailing clause. */
 function nameOf(phrase) {
-  const bare = phrase.replace(/^(an?|the|one|some|two|three)\s+/i, "").split(/\s+(?:posing|that|which|containing|bearing)\s+/i)[0].trim();
-  return bare.charAt(0).toUpperCase() + bare.slice(1);
+  const bare = phrase.replace(/\([^)]*\)/g, " ").replace(/^(an?|the|one|some|two|three)\s+/i, "").replace(/\s+/g, " ").trim();
+  const cut = bare.split(/\s+(?:posing|that|which|containing|bearing|you|your|to remember)\b/i)[0].trim();
+  // A bare "Token" says nothing; keep the whole phrase when cutting leaves one word.
+  const name = cut.includes(" ") ? cut : bare;
+  return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 /**
@@ -44,13 +67,13 @@ export function describedItems(html, have = []) {
   if ( !line ) return [];
   // "Choose A or B" style text belongs to 2024 backgrounds, whose gear is structured data.
   if ( /choose\s+a\b/i.test(line) ) return [];
-  const owned = new Set(Array.from(have, name => tokens(name)).flat());
-  const phrases = line.replace(/\.$/, "").split(/,\s*(?:and\s+)?|\s+and\s+(?=an?\s)/i).map(p => p.trim()).filter(Boolean);
+  const owned = Array.from(have, name => tokens(name)).flat();
+  const phrases = splitPhrases(line.replace(/\.$/, ""));
   const result = [];
   for ( const phrase of phrases ) {
-    if ( isMoney(phrase) ) continue;
+    if ( isMoney(phrase) || isChoice(phrase) ) continue;
     const words = tokens(phrase);
-    if ( !words.length || words.some(w => owned.has(w)) ) continue;
+    if ( !words.length || words.some(w => owned.some(o => related(o, w))) ) continue;
     result.push({ name: nameOf(phrase), description: phrase.charAt(0).toUpperCase() + phrase.slice(1) });
   }
   return result;

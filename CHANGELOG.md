@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0
+
+- **Equipment step.** Your class and background give starting equipment, and now you choose it in the wizard. 2024 shows "A, B or gold" (the Fighter's two kits or 155 gp, a background's list or 50 gp). 2014 shows each "(a) or (b)" as its own choice, with starting gold as a separate switch.
+- **Picks from a category.** "Any martial melee weapon", "a gaming set" and "a holy symbol" become dropdowns of ordinary gear. Magic items are left out, and copies of the same item in several compendiums appear once, with your world's rules winning.
+- **Gold.** A flat amount is just taken. A formula such as 5d4 × 10 is rolled once, through chat, so Dice So Nice shows it.
+- **Packs.** Equipment packs (Explorer's, Dungeoneer's and so on) are empty containers in the compendiums, so their contents are worked out from items stored in the container, then from the pack's description (item links or a plain list), then from a built-in table of the 2014 SRD packs. Contents go inside the pack on the character. Anything that can't be matched is listed on Review.
+- Create adds the chosen items and gold. Armor and weapons aren't equipped automatically.
+- Option names no longer repeat the choice's title, so "Fighting Style: Archery" reads "Archery".
+- Still untested in Foundry.
+
 ## 0.4.1
 
 - **Use a compendium under any rules version.** New "Any rules version" checkbox for each compendium on the Sources tab of Configure content. When it's on, the wizard offers everything in that compendium whatever its 2014 or 2024 tag says, so a 2014-tagged homebrew class (the Drakkenheim Apothecary) can be used in a 2024 world. Entries from the other edition are marked with their rules version in the picker.

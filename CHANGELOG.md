@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: a 2014 background's starting gold.** Some backgrounds (imports from D&D Beyond) only state the purse as a gold amount (the Sage's 10 gp, the Knight's 25 gp) and the wizard never added it. It is now added unless an item or a gold entry in the equipment already supplies it.
+- **Gear a background only describes.** A 2014 background's "Equipment:" text can name things with no item to link, such as the Sage's letter from a dead colleague or the Knight's scroll of pedigree. Those now become plain loot items. Anything that shares a word with an item you already get is skipped, to avoid duplicates.
+
 ## 0.6.0
 
 - **Spells step.** Spellcasting classes now pick their spells in the wizard: cantrips, spells known (2014 Bard, Sorcerer, Warlock), spells prepared (Cleric, Druid and every 2024 caster), and a Wizard's spellbook of 6 with the spells to prepare from it. The step only appears for a caster, and Create adds the spells to the sheet with the class as their source.

@@ -41,7 +41,7 @@
       "Feature": "Feature (from the description)",
       "ManualGear": "Your background also lists these, which the wizard can't add as items. Add them on your sheet if you want them:",
       "Deferred": "Not handled by the wizard yet:",
-      "Scope": "This builds your class, species and background features, your choices, your ability scores and your starting equipment. Spells aren't part of creation yet; set them on the character sheet."
+      "Scope": "This builds your class, species and background features, your choices, your ability scores, your starting equipment and, for a spellcaster, your cantrips and spells."
     },
     "Notify": {
       "LevelUpLater": "Levelling up from the wizard is coming in a later version.",

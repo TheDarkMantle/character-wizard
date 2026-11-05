@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1
+
+- **Fixed: ammunition came out as 1 instead of a full stack.** Bolts and Arrows are stored as a stack of 20. A background that lists "Bolts" with no count means that stack, but the wizard replaced it with a quantity of 1. An equipment entry now only overrides an item's own quantity when it states a count (the Soldier's "20 Arrows", the Fighter's 8 javelins). Pack contents follow the same rule, and the equipment preview shows the real quantities.
+- Fixed a pack description parsing bug where a number such as "1,000 ball bearings" was split at its comma.
+- Characters already created keep their old quantities; fix those on the sheet.
+- Still untested in Foundry.
+
 ## 0.5.0
 
 - **Equipment step.** Your class and background give starting equipment, and now you choose it in the wizard. 2024 shows "A, B or gold" (the Fighter's two kits or 155 gp, a background's list or 50 gp). 2014 shows each "(a) or (b)" as its own choice, with starting gold as a separate switch.

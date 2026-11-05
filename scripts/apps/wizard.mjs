@@ -9,6 +9,7 @@ import { customArray, getSetting } from "../settings.mjs";
 import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../equipment/starting.mjs";
 import { pickCandidates } from "../equipment/gear.mjs";
 import { backgroundFeature } from "../content/background-feature.mjs";
+import { describedItems } from "../equipment/described.mjs";
 import { inventoryItems, packContents, resolveInventory } from "../equipment/inventory.mjs";
 import {
   adjustPointBuy, breakdown, isComplete, METHODS, modifier, POINT_BUY, pointBuySpent, remainingValues, rollFormula,
@@ -165,7 +166,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         name: item.name,
         entries: item.toObject().system.startingEquipment ?? [],
         wealth: item.system.wealth ?? "",
-        rules: item.system.source?.rules ?? ""
+        rules: item.system.source?.rules ?? "",
+        description: item.system.description?.value ?? ""
       } : null;
       if ( source && (step === "background") ) source = await this.#withPouchGold(source);
       this.equipmentSources.set(pick.uuid, source);
@@ -305,6 +307,18 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       gear: await this.#gearList(), rules: this.rules, packOrder: this.#sourceOrder().packOrder
     });
     return { lines, currency };
+  }
+
+  /**
+   * Things a 2014 background's text lists that the wizard can't add: a trinket, a letter, a token. They have no item to
+   * link, and guessing items out of prose adds junk, so the player is reminded to add them by hand.
+   * @returns {string[]}
+   */
+  #manualGear(eq, { lines }) {
+    const background = eq.plans.background;
+    if ( !background || background.modern || background.plan.gold ) return [];
+    const have = lines.flatMap(l => [l.name, ...(l.children ?? []).map(c => c.name)]);
+    return describedItems(background.source.description, have).map(i => i.name);
   }
 
   /** "12 items and 15 gp", for the Review step. */
@@ -644,6 +658,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       }
       context.deferred = this.deferred;
       const inventory = await this.#inventory(eq);
+      context.manualGear = this.#manualGear(eq, inventory);
       context.equipmentLine = this.#inventoryLine(inventory);
       context.equipmentNotes = this.#inventoryNotes(inventory);
       context.abilityLine = this.#abilitiesReady()

@@ -2,14 +2,14 @@
 
 ## Unreleased
 
-- **Removed (never released as intended): gear from a background's text.** 0.6.1 tried to turn the "Equipment:" text of a 2014 background into loot items. On the Athlete it also picked up sentences from the feature text as items, so it is gone. Only items the background actually links are added. The starting gold from 0.6.1 stays.
+- **Items a background only describes are now a reminder, not inventory.** 0.6.1 tried to turn the "Equipment:" text of a 2014 background into loot items, and on the Athlete it also made items out of feature sentences. That is gone. Review now lists the things the text mentions that no item covers (a trinket, a letter) as a note above the Create button, so you can add them by hand. The parser no longer runs past the Equipment paragraph, and skips anything long or sentence-like.
 - **Background features from the description.** A 2014 background with no feature item to grant (imports from D&D Beyond keep the feature only as text, like the Athlete's Echoes of Victory) now adds that feature to the sheet as its own feature item, with its text. Review lists it. Backgrounds whose feature the system grants are unchanged.
 - **Pack contents on the equipment step.** When a choice includes an equipment pack (the Fighter's dungeoneer's or explorer's pack), the list of what is inside is shown under that option, so you can compare before choosing.
 
 ## 0.6.1
 
 - **Fixed: a 2014 background's starting gold.** Some backgrounds (imports from D&D Beyond) only state the purse as a gold amount (the Sage's 10 gp, the Knight's 25 gp) and the wizard never added it. It is now added unless an item or a gold entry in the equipment already supplies it.
-- (Removed again in the next version.) **Gear a background only describes.** A 2014 background's "Equipment:" text can name things with no item to link, such as the Sage's letter from a dead colleague or the Knight's scroll of pedigree. Those now become plain loot items. Anything that shares a word with an item you already get is skipped, to avoid duplicates.
+- (Replaced in the next version by a Review note.) **Gear a background only describes.** A 2014 background's "Equipment:" text can name things with no item to link, such as the Sage's letter from a dead colleague or the Knight's scroll of pedigree. Those now become plain loot items. Anything that shares a word with an item you already get is skipped, to avoid duplicates.
 
 ## 0.6.0
 

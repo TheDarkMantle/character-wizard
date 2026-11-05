@@ -337,6 +337,10 @@
   {{#if deferred.length}}
   <p class="hint">{{localize "CHARWIZ.Review.Deferred"}} {{#each deferred}}{{this}}{{#unless @last}}; {{/unless}}{{/each}}</p>
   {{/if}}
+  {{#if manualGear.length}}
+  <p class="hint charwiz-manual-gear"><i class="fa-solid fa-circle-info" inert></i>
+    {{localize "CHARWIZ.Review.ManualGear"}} {{#each manualGear}}{{this}}{{#unless @last}}; {{/unless}}{{/each}}</p>
+  {{/if}}
   <p class="hint">{{localize "CHARWIZ.Review.Scope"}}</p>
   {{#if blocker}}<p class="charwiz-blocker" role="status">{{localize blocker}}</p>{{/if}}
   <button type="button" class="charwiz-create" data-action="create" {{disabled blocker}}>

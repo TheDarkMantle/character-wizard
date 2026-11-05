@@ -139,6 +139,7 @@
                 data-value="{{value}}">
                 {{#if img}}<img src="{{img}}" alt="" width="28" height="28">{{/if}}
                 <span class="name">{{label}}</span>
+                {{#if detail}}<span class="meta">{{detail}}</span>{{/if}}
               </button>
             </div>
           </li>
@@ -308,10 +309,6 @@
     </section>
     {{/if}}
   </div>
-  {{/if}}
-
-  {{#if isPending}}
-  <p class="charwiz-empty">{{localize "CHARWIZ.Pending"}}</p>
   {{/if}}
 
   {{#if isDetails}}

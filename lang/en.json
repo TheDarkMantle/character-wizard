@@ -24,7 +24,6 @@
     "Chosen": "Chosen",
     "Back": "Back",
     "Next": "Next",
-    "Pending": "This step isn't built yet. It's coming in the next version.",
     "Board": {
       "Granted": "You get",
       "Choices": "You choose",
@@ -104,6 +103,19 @@
         "Name": "4d6: reroll 1s",
         "Hint": "For old-school tables. When a player rolls 4d6 and drops the lowest, any die that shows a 1 is rolled again. Off by default."
       }
+    },
+    "Spells": {
+      "Cantrip": "Cantrip",
+      "Level": "Level {level}",
+      "Cantrips": "Cantrips",
+      "CantripsHint": "Cantrips are cast at will. One you already have from your species or a feat is greyed out.",
+      "Known": "Spells known",
+      "KnownHint": "These are the spells you know. You can swap one when you gain a level.",
+      "Prepared": "Spells prepared",
+      "PreparedHint": "You can change your prepared spells after a long rest.",
+      "Book": "Spellbook",
+      "BookHint": "Your spellbook starts with these spells. You can copy more into it later.",
+      "PreparedFromBookHint": "Prepare spells from your spellbook. You can change them after a long rest."
     },
     "Choices": {
       "Hint": "{name} asks you to decide the following. Click an option's name to read about it, and tick it to choose it.",

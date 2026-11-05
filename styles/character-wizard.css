@@ -119,6 +119,7 @@
   .charwiz-option.disabled { opacity: 0.45; }
   .charwiz-option.disabled .charwiz-check { cursor: not-allowed; }
   .charwiz-option.inspected { outline: 1px solid var(--color-border-highlight, currentColor); }
+  .charwiz-option .meta { font-size: 0.8em; opacity: 0.75; margin-left: 0.3rem; }
 
   .charwiz-create { width: auto; margin-top: 0.5rem; }
   .charwiz-blocker { color: var(--color-level-error, firebrick); }

@@ -12,8 +12,9 @@ subclasses, species, backgrounds and feats from every Item compendium in the wor
 - Opening: Actors sidebar button (keep it), character sheet header menu entry, and a small wizard hat button in the sheet header beside the lock toggle (shown when a level 0 sheet is unlocked).
   Level 0 opens creation for that actor; level > 0 shows a "level-up coming later" notice.
 - Spell picks from the **class** (cantrips known, spells) belong to the **spells step**, not the class choices step. Spell
-  picks from a species or background (High Elf cantrip) stay in that step's choices. Until the spells step exists, class
-  spell picks are listed on Review as not handled.
+  picks from a species or background (High Elf cantrip) stay in that step's choices. The spells step
+  (`scripts/spells/`) builds them from the finished clone: counts from the class scale values and `preparation.max`, options
+  from the class spell list plus unlisted world Items spells, held spells greyed.
 - Choices are checked **in wizard step order** (2024: class, background, species; 2014: species, class, background), so
   a later step greys out proficiencies an earlier one gave. A duplicate grant, or a choice whose whole pool is already
   held, becomes "pick any other of that kind" (`traitGroups` in `advancement/slots.mjs`).
@@ -86,20 +87,14 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 - Commit author: Shawn <darkmantle@gmail.com>.
 
 ## Status (2026-11-05)
-- v0.4.1 released (ability scores, Any rules version per compendium, point buy fixes, chat dice).
-- **Verified by Shawn in Foundry:** 2024 and 2014 builds, proficiency greying, the ability scores step and its settings.
-- **Built after 0.4.1, not yet released or tested:** the **equipment step**. It reads the class's and background's
-  `startingEquipment` (2024: "A, B or gold"; 2014: each OR group is a choice, gold is a separate switch), offers category
-  entries ("any martial melee weapon") from a catalog of mundane gear, rolls formula gold through chat, and adds the items
-  and money on Create. **Packs** (empty containers in every compendium) are expanded from items stored in the container,
-  then the description (item links or a plain list), then a built-in table of the 2014 SRD packs; anything unmatched is
-  listed on Review. Also: "Fighting Style:" is stripped from option names.
-- Spells step is a placeholder. Class spell picks are reported on Review as not handled.
+- v0.5.1 released (equipment step with packs, ability scores, ammunition stacks).
+- **Verified by Shawn in Foundry:** 2024 and 2014 builds, proficiency greying, ability scores, the equipment step and packs.
+- Spells step built (unreleased, untested): class cantrips, known/prepared spells, Wizard spellbook; see `scripts/spells/`.
 - dnd5e 6.0 renamed an advancement's `title` to `name`. Read `name` (see `advancement/naming.mjs`).
 
 ## Next
-1. Test the equipment step: 2014 and 2024 Fighter, a background with a holy symbol or gaming set, a pack's contents, gold.
-2. Spells step (class cantrips and spells), details.
+1. Test the spells step: 2014 and 2024 Wizard, Cleric, Bard, Warlock; High Elf cantrip greyed; a homebrew world spell.
+2. Details step.
 3. Tasha's languages and proficiency swaps (see `docs/PLAN.md`).
 4. Players without Create Actor permission build onto a GM-provided blank actor.
 5. Later: level-up from the sheet, including multiclassing. Shawn also wants the wizard to **notice a level-up and open

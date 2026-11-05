@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Spells step.** Spellcasting classes now pick their spells in the wizard: cantrips, spells known (2014 Bard, Sorcerer, Warlock), spells prepared (Cleric, Druid and every 2024 caster), and a Wizard's spellbook of 6 with the spells to prepare from it. The step only appears for a caster, and Create adds the spells to the sheet with the class as their source.
+- **The right list.** Options come from the class's own spell list, kept to the world's rules and to enabled compendiums, with leveled spells limited to the slots the character has. Spells in the world's Items folder that no list claims are treated as homebrew and offered to every caster.
+- **Spells you already have are greyed out**, like proficiencies: a cantrip from your species (the High Elf's) or a feat can't be taken again.
+- Untested in Foundry.
+
 ## 0.5.1
 
 - **Fixed: ammunition came out as 1 instead of a full stack.** Bolts and Arrows are stored as a stack of 20. A background that lists "Bolts" with no count means that stack, but the wizard replaced it with a quantity of 1. An equipment entry now only overrides an item's own quantity when it states a count (the Soldier's "20 Arrows", the Fighter's 8 javelins). Pack contents follow the same rule, and the equipment preview shows the real quantities.

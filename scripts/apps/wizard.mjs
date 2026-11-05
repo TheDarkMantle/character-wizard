@@ -14,6 +14,7 @@ import {
   STANDARD_ARRAY
 } from "../abilities/scores.mjs";
 import { discoverSlots, runPicks } from "../advancement/simulate.mjs";
+import { spellItems } from "../spells/builder.mjs";
 import {
   adjustPoints, createBlocker, picksRemaining, pruneSelections, tally, toggleSelection
 } from "../advancement/slots.mjs";
@@ -28,6 +29,12 @@ const CHOICE_STEPS = Object.freeze({
   classChoices: "class", speciesChoices: "species", backgroundChoices: "background"
 });
 const choiceStepFor = source => Object.keys(CHOICE_STEPS).find(id => CHOICE_STEPS[id] === source);
+
+/** The spells step is a choice step of its own: it is in the step order already and only shows for a spellcaster. */
+const SPELLS_STEP = "spells";
+
+/** Which slot source a choice step shows, or undefined for steps that aren't choice steps. */
+const choiceSourceOf = step => (step === SPELLS_STEP ? SPELLS_STEP : CHOICE_STEPS[step]);
 
 /** Icons for the step list. */
 const STEP_ICONS = Object.freeze({
@@ -112,6 +119,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
   get steps() {
     const withChoices = new Set(this.slots.map(s => s.source));
     return STEP_ORDER[this.rules].flatMap(id => {
+      if ( id === SPELLS_STEP ) return withChoices.has(SPELLS_STEP) ? [id] : [];
       const choiceStep = choiceStepFor(id);
       return (choiceStep && withChoices.has(id)) ? [id, choiceStep] : [id];
     });
@@ -489,7 +497,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     // If the current choice step has nothing left to ask, fall back to the picker it belongs to.
     if ( !steps.includes(this.stepId) ) this.stepId = CHOICE_STEPS[this.stepId] ?? steps[0];
     const step = this.step;
-    const choiceSource = CHOICE_STEPS[step];
+    const choiceSource = choiceSourceOf(step);
     const eq = await this.#equipmentPlans();
     const context = {
       rules: this.rules,
@@ -501,7 +509,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         icon: STEP_ICONS[id],
         active: id === step,
         sub: id in CHOICE_STEPS,
-        done: (id in CHOICE_STEPS) ? (this.#remainingFor(CHOICE_STEPS[id]) === 0)
+        done: (choiceSourceOf(id)) ? (this.#remainingFor(choiceSourceOf(id)) === 0)
           : (id === "equipment") ? (eq.ready && !!this.draft.picks.class) : !!this.#pickFor(id)
       })),
       isPicker: step in PICKER_STEPS,
@@ -510,7 +518,6 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       isReview: step === "review",
       isAbilities: step === "abilities",
       isEquipment: step === "equipment",
-      isPending: step === "spells",
       first: this.stepIndex === 0,
       last: this.stepIndex === steps.length - 1,
       draft: this.draft,
@@ -535,7 +542,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     }
 
     if ( context.isChoices ) {
-      context.itemName = this.draft.picks[choiceSource]?.name;
+      context.itemName = this.draft.picks[(choiceSource === SPELLS_STEP) ? "class" : choiceSource]?.name;
       context.slots = this.#slotsFor(choiceSource).map(slot => this.#prepareSlot(slot));
       context.info = null;
       if ( this.inspected ) {
@@ -560,6 +567,13 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
           picked: this.#summarize(slot)
         })).filter(c => c.picked)
       }));
+      const spellSlots = this.#slotsFor(SPELLS_STEP);
+      if ( spellSlots.length ) {
+        context.summary.push({
+          label: `CHARWIZ.Steps.${SPELLS_STEP}`, name: this.draft.picks.class?.name,
+          choices: spellSlots.map(slot => ({ title: slot.title, picked: this.#summarize(slot) })).filter(c => c.picked)
+        });
+      }
       context.deferred = this.deferred;
       const inventory = await this.#inventory(eq);
       context.equipmentLine = this.#inventoryLine(inventory);
@@ -946,7 +960,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( (this.step in PICKER_STEPS) && this.focused && (this.focused !== this.draft.picks[this.step]?.uuid) ) {
       if ( this.#pick(this.focused) ) await this.#refreshSlots();
     }
-    if ( CHOICE_STEPS[this.step] && this.#remainingFor(CHOICE_STEPS[this.step]) ) return;
+    if ( choiceSourceOf(this.step) && this.#remainingFor(choiceSourceOf(this.step)) ) return;
     if ( (this.step === "abilities") && !this.#abilitiesReady() ) return;
     if ( (this.step === "equipment") && !(await this.#equipmentPlans()).ready ) return;
     this.#setStep(this.stepIndex + 1);
@@ -991,12 +1005,16 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       let actor = this.actor;
       const name = this.draft.name || actor?.name || game.i18n.localize("CHARWIZ.Create.DefaultName");
       if ( !actor ) actor = created = await Actor.implementation.create({ name, type: "character" });
-      const { engine } = await runPicks({
+      const { engine, slots } = await runPicks({
         actor, picks: this.draft.picks, selections: this.draft.choices, catalog: this.catalogData,
         blocked: blockedLanguageKeys(getSetting("blockedLanguages")), tashas: getSetting("tashasAbilityScores"), order: this.#pickOrder(),
         ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }, abilities: this.#baseScores()
       });
       engine.clone.updateSource({ name });
+
+      // Cantrips, spells known or prepared, and the spellbook.
+      const spells = await spellItems(slots.filter(sl => sl.source === SPELLS_STEP), this.draft.choices);
+      if ( spells.length ) engine.clone.updateSource({ items: spells });
 
       // Starting equipment: the chosen items (packs opened up) and any gold.
       const inventory = await this.#inventory(eq);

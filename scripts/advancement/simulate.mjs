@@ -4,6 +4,7 @@ import {
 } from "./slots.mjs";
 import { isDraconicAncestry, stripTitlePrefix, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
+import { isCaster, spellSlots } from "../spells/builder.mjs";
 
 /**
  * Discover the choices a set of picks asks for, by running the system's own advancements on a clone.
@@ -98,8 +99,12 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
         const title = ownTitle || item.name;
         let options;
         if ( config.type === "spell" ) {
-          // A class' cantrips and spells belong to the spells step, not the class choices.
-          if ( owner === "class" ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
+          // A class' cantrips and spells belong to the spells step, not the class choices. A class that doesn't cast
+          // has no spells step to take them, so those are reported.
+          if ( owner === "class" ) {
+            if ( !isCaster(item) ) deferred.add(`${item.name}: ${ownTitle || advancement.name}`);
+            return false;
+          }
           options = pool.length ? pool.map(u => optionFor(u, title)) : spellOptions(config.restriction);
           if ( !options ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
         } else {
@@ -279,6 +284,8 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
     source = step;
     await engine.addItem(document, { levels: 1 });
   }
+  // The spells step: what the class picks, worked out from the finished clone (slots, ability scores, what's held).
+  for ( const slot of spellSlots({ clone: engine.clone, selections, ruleset }) ) addSlot(slot);
   // Anything the engine had to skip for lack of input would otherwise vanish without a trace.
   for ( const u of engine.unresolved ) deferred.add(`${u.item}: ${u.title}`);
   const finals = Object.fromEntries(Object.keys(CONFIG.DND5E.abilities)

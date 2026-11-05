@@ -6,6 +6,9 @@ import { traitOptionLabel } from "../advancement/naming.mjs";
 import { blockedLanguageKeys } from "../content/languages.mjs";
 import { bodyLines } from "../content/species-info.mjs";
 import { customArray, getSetting } from "../settings.mjs";
+import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../equipment/starting.mjs";
+import { pickCandidates } from "../equipment/gear.mjs";
+import { inventoryItems, resolveInventory } from "../equipment/inventory.mjs";
 import {
   adjustPointBuy, breakdown, isComplete, METHODS, modifier, POINT_BUY, pointBuySpent, remainingValues, rollFormula,
   STANDARD_ARRAY
@@ -53,6 +56,11 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.draft = { name: actor?.name ?? "", picks: {}, choices: {}, abilities: { method: "standard", scores: {}, rolled: null } };
     /** Ability scores after the species and background bonuses, from the last simulation. */
     this.finals = {};
+    /** What the player decided about starting equipment, per source (class, background). */
+    this.draft.equipment = { class: {}, background: {} };
+    /** Class and background equipment data by UUID, and the gear catalog, loaded when first needed. */
+    this.equipmentSources = new Map();
+    this.gear = null;
     this.query = "";
     this.focused = null;
     /** Species groups the player has opened, and the pick last revealed in its group. */
@@ -81,6 +89,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       adjust: CharacterWizard.#onAdjust,
       resetPoints: CharacterWizard.#onResetPoints,
       abilityMethod: CharacterWizard.#onAbilityMethod,
+      rollGold: CharacterWizard.#onRollGold,
       abilityPoint: CharacterWizard.#onAbilityPoint,
       abilityRoll: CharacterWizard.#onAbilityRoll,
       create: CharacterWizard.#onCreate
@@ -114,6 +123,257 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
 
   get step() {
     return this.stepId;
+  }
+
+  /* -------------------------------------------- */
+  /*  Starting equipment                          */
+  /* -------------------------------------------- */
+
+  /** Gear from every enabled compendium, loaded the first time the equipment step needs it. */
+  async #gearList() {
+    this.gear ??= await this.catalog.gear();
+    return this.gear;
+  }
+
+  /** The GM's compendium order and which compendiums are offered under any rules version. */
+  #sourceOrder() {
+    const sources = getSetting("contentSources");
+    return {
+      packOrder: Object.entries(sources).sort(([, a], [, b]) => (a.priority ?? 0) - (b.priority ?? 0)).map(([id]) => id),
+      anyRulesPacks: Object.entries(sources).filter(([, source]) => source.anyRules).map(([id]) => id)
+    };
+  }
+
+  /** A class' or background's starting equipment data, cached by UUID. */
+  async #equipmentSource(step) {
+    const pick = this.draft.picks[step];
+    if ( !pick ) return null;
+    if ( !this.equipmentSources.has(pick.uuid) ) {
+      const item = await fromUuid(pick.uuid);
+      this.equipmentSources.set(pick.uuid, item ? {
+        name: item.name,
+        entries: item.toObject().system.startingEquipment ?? [],
+        wealth: item.system.wealth ?? "",
+        rules: item.system.source?.rules ?? ""
+      } : null);
+    }
+    return this.equipmentSources.get(pick.uuid);
+  }
+
+  /** What the class and background ask about equipment, given what the player has decided so far. */
+  async #equipmentPlans() {
+    const plans = {};
+    let ready = true;
+    for ( const step of ["class", "background"] ) {
+      const source = await this.#equipmentSource(step);
+      if ( !source ) continue;
+      const modern = isModernStyle({ rules: source.rules, worldRules: this.rules });
+      const state = this.draft.equipment[step];
+      const plan = planEquipment({ entries: source.entries, wealth: source.wealth, modern, state });
+      plans[step] = { source, plan, state, modern };
+      if ( !plan.complete ) ready = false;
+    }
+    return { plans, ready };
+  }
+
+  /** "any martial melee weapon", "shield", "gaming set": what a category entry stands for. */
+  #categoryPhrase(category, key) {
+    const text = value => game.i18n.localize(typeof value === "string" ? value : (value?.label ?? "")).toLowerCase();
+    const has = (label, word) => label.includes(word);
+    switch ( category ) {
+      case "weapon": {
+        const label = text(CONFIG.DND5E.weaponTypes[key] ?? CONFIG.DND5E.weaponProficiencies[key]);
+        return !label ? game.i18n.localize("CHARWIZ.Equipment.Weapon") : (has(label, "weapon") ? label : `${label} ${game.i18n.localize("CHARWIZ.Equipment.Weapon")}`);
+      }
+      case "armor": {
+        const label = text(CONFIG.DND5E.armorTypes[key]);
+        return !label ? game.i18n.localize("CHARWIZ.Equipment.Armor") : ((key === "shield" || has(label, "armor")) ? label : `${label} ${game.i18n.localize("CHARWIZ.Equipment.Armor")}`);
+      }
+      case "tool": return text(CONFIG.DND5E.toolTypes[key]) || game.i18n.localize("CHARWIZ.Equipment.Tool");
+      default: return text(CONFIG.DND5E.focusTypes[key]?.label) || game.i18n.localize("CHARWIZ.Equipment.Focus");
+    }
+  }
+
+  /** A short description of one entry: a named item with its count, a currency amount, or a category. */
+  #leafLabel(node) {
+    const times = (node.count > 1) ? `${node.count}× ` : "";
+    if ( node.type === "linked" ) return `${times}${fromUuidSync(node.key)?.name ?? game.i18n.localize("CHARWIZ.Equipment.UnknownItem")}`;
+    if ( node.type === "currency" ) return `${node.count} ${(CONFIG.DND5E.currencies[node.key]?.abbreviation ?? node.key).toUpperCase()}`;
+    const phrase = this.#categoryPhrase(node.type, node.key);
+    return (node.count > 1) ? `${times}${phrase}` : game.i18n.format("CHARWIZ.Equipment.AnyOf", { kind: phrase });
+  }
+
+  /** Items a category entry can be filled with. Foci come from the system's list; everything else from the catalog. */
+  async #pickOptions(category, key) {
+    if ( category === "focus" ) {
+      const types = key ? [CONFIG.DND5E.focusTypes[key]] : Object.values(CONFIG.DND5E.focusTypes);
+      return types.flatMap(t => Object.values(t?.itemIds ?? {})).map(uuid => ({ uuid, name: fromUuidSync(uuid)?.name ?? uuid }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+    const { packOrder, anyRulesPacks } = this.#sourceOrder();
+    return pickCandidates(await this.#gearList(), {
+      category, key, rules: this.rules, untagged: getSetting("untaggedContent"), packOrder, anyRulesPacks
+    }).map(g => ({ uuid: g.uuid, name: g.name }));
+  }
+
+  /** Everything the chosen equipment adds to the character: item lines (packs opened up) and money. */
+  async #inventory(eq) {
+    const grants = [];
+    const currency = {};
+    const picked = new Map();
+    for ( const { plan } of Object.values(eq.plans) ) {
+      for ( const grant of plan.grants ) {
+        if ( grant.type === "item" ) grants.push({ uuid: grant.uuid, count: grant.count });
+        else if ( grant.type === "pick" ) for ( const uuid of grant.picked ) picked.set(uuid, (picked.get(uuid) ?? 0) + 1);
+        else if ( grant.type === "currency" ) currency[grant.key] = (currency[grant.key] ?? 0) + grant.count;
+      }
+      if ( plan.gold?.amount ) currency.gp = (currency.gp ?? 0) + plan.gold.amount;
+    }
+    for ( const [uuid, count] of picked ) grants.push({ uuid, count });
+    const lines = await resolveInventory(grants, {
+      gear: await this.#gearList(), rules: this.rules, packOrder: this.#sourceOrder().packOrder
+    });
+    return { lines, currency };
+  }
+
+  /** "12 items and 15 gp", for the Review step. */
+  #inventoryLine({ lines, currency }) {
+    const items = lines.reduce((n, l) => n + 1 + (l.children?.length ?? 0), 0);
+    const money = Object.entries(currency).filter(([, v]) => v)
+      .map(([k, v]) => `${v} ${(CONFIG.DND5E.currencies[k]?.abbreviation ?? k).toUpperCase()}`).join(", ");
+    return items || money ? game.i18n.format("CHARWIZ.Equipment.Summary", { items, money: money || "—" }) : "";
+  }
+
+  /** Packs whose contents couldn't be worked out, so the player knows to check the sheet. */
+  #inventoryNotes({ lines }) {
+    return lines.flatMap(line => {
+      if ( line.missing ) return [game.i18n.format("CHARWIZ.Equipment.NoteMissing", { name: line.name })];
+      if ( line.source === "none" ) return [game.i18n.format("CHARWIZ.Equipment.NoteEmpty", { name: line.name })];
+      if ( line.unresolved?.length ) {
+        return [game.i18n.format("CHARWIZ.Equipment.NoteUnmatched", { name: line.name, items: line.unresolved.join(", ") })];
+      }
+      return [];
+    });
+  }
+
+  /** Everything the equipment step shows: each source's choices, what's in the inventory, and gold. */
+  async #equipmentContext(eq) {
+    const list = game.i18n.getListFormatter({ type: "conjunction" });
+    const either = game.i18n.getListFormatter({ type: "disjunction" });
+    const join = (items, joiner) => (joiner === "or" ? either : list).format(items);
+    const sections = [];
+
+    for ( const [step, { source, plan, state, modern }] of Object.entries(eq.plans) ) {
+      const fixed = fixedGold(source.wealth) !== null;
+      const goldLabel = fixed
+        ? game.i18n.format("CHARWIZ.Equipment.GoldFixed", { amount: fixedGold(source.wealth) })
+        : game.i18n.format("CHARWIZ.Equipment.GoldRoll", { formula: source.wealth });
+
+      const decisions = plan.decisions.map(decision => {
+        const options = decision.options.map((option, index) => ({
+          id: option.id, letter: modern ? "ABCDEFGH"[index] : "", checked: decision.selected === option.id,
+          label: describeNode(option, node => this.#leafLabel(node), join)
+        }));
+        if ( decision.includesGold ) {
+          options.push({ id: GOLD, letter: modern ? "ABCDEFGH"[options.length] : "", checked: !!state.gold, label: goldLabel });
+        }
+        return { source: step, id: decision.id, options };
+      });
+
+      const picks = [];
+      for ( const grant of plan.grants.filter(g => g.type === "pick") ) {
+        const choices = await this.#pickOptions(grant.category, grant.key);
+        picks.push({
+          source: step, leafId: grant.leafId, label: this.#categoryPhrase(grant.category, grant.key),
+          selects: Array.from({ length: grant.need }, (_, index) => ({
+            index,
+            options: choices.map(c => ({ ...c, selected: c.uuid === state.picks?.[grant.leafId]?.[index] }))
+          }))
+        });
+      }
+
+      sections.push({
+        step,
+        title: game.i18n.format("CHARWIZ.Equipment.From", { source: game.i18n.localize(`CHARWIZ.Steps.${step}`), name: source.name }),
+        empty: !source.entries.length && !source.wealth,
+        decisions,
+        picks,
+        // 2014 equipment is a list with its own choices, so gold is a separate switch rather than an option.
+        goldToggle: (!modern && plan.goldFormula) ? { checked: !!state.gold, label: game.i18n.format("CHARWIZ.Equipment.GoldInstead", { formula: source.wealth }) } : null,
+        goldRoll: (state.gold && plan.gold && !plan.gold.fixed)
+          ? { amount: state.goldAmount ?? null, formula: source.wealth, canRoll: state.goldAmount === undefined } : null
+      });
+    }
+
+    const inventory = await this.#inventory(eq);
+    return {
+      sections,
+      hasSections: sections.length > 0,
+      lines: inventory.lines.map(l => ({
+        name: l.name, img: l.img, countLabel: (l.count > 1) ? `${l.count}× ` : "", missing: l.missing,
+        children: (l.children ?? []).map(c => ({ name: c.name, countLabel: (c.count > 1) ? `${c.count}× ` : "" })),
+        unresolved: (l.unresolved ?? []).join(", ")
+      })),
+      money: Object.entries(inventory.currency).filter(([, v]) => v)
+        .map(([k, v]) => `${v} ${(CONFIG.DND5E.currencies[k]?.abbreviation ?? k).toUpperCase()}`).join(", "),
+      notes: this.#inventoryNotes(inventory)
+    };
+  }
+
+  /** An option picked in an OR choice, or "gold" instead. */
+  async #chooseEquipment({ source, decision, option }) {
+    const state = this.draft.equipment[source];
+    if ( option === GOLD ) state.gold = true;
+    else {
+      state.gold = false;
+      state.or = { ...(state.or ?? {}), [decision]: option };
+    }
+    this.render();
+  }
+
+  /** The 2014-style switch for starting gold instead of equipment. */
+  async #takeGold(source, checked) {
+    this.draft.equipment[source].gold = checked;
+    this.render();
+  }
+
+  /** An item chosen from a category's dropdown. */
+  async #pickEquipment({ source, leaf, index, need }, uuid) {
+    const state = this.draft.equipment[source];
+    const list = Array.from({ length: Number(need) }, (_, i) => state.picks?.[leaf]?.[i] ?? "");
+    list[Number(index)] = uuid;
+    state.picks = { ...(state.picks ?? {}), [leaf]: list };
+    this.render();
+  }
+
+  /** Roll the gold formula once, through chat so everyone sees it and 3D dice animate. */
+  static async #onRollGold(event, target) {
+    const { source } = target.dataset;
+    const state = this.draft.equipment[source];
+    const data = await this.#equipmentSource(source);
+    if ( !data?.wealth || (state.goldAmount !== undefined) ) return;
+    target.disabled = true;
+    const roll = await new Roll(data.wealth).evaluate();
+    await this.#postRolls([roll], game.i18n.format("CHARWIZ.Equipment.GoldFlavor", { formula: data.wealth }), `<p>${roll.total} gp</p>`);
+    state.goldAmount = roll.total;
+    this.render();
+  }
+
+  /**
+   * Post rolls to chat as one message, so everyone sees them and a 3D dice module animates them, then wait for the
+   * dice to land. If the message can't be posted the rolls still count.
+   */
+  async #postRolls(rolls, flavor, content) {
+    try {
+      const data = {
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }), flavor, content, rolls, sound: CONFIG.sounds.dice
+      };
+      ChatMessage.implementation.applyRollMode?.(data, game.settings.get("core", "rollMode"));
+      const message = await ChatMessage.implementation.create(data);
+      await game.dice3d?.waitFor3DAnimationByMessageID?.(message.id);
+    } catch(err) {
+      console.warn(`${MODULE_ID} | Could not post a roll to chat`, err);
+    }
   }
 
   /** Everything the ability scores step shows: methods, the table of scores, and what each method needs. */
@@ -229,6 +489,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( !steps.includes(this.stepId) ) this.stepId = CHOICE_STEPS[this.stepId] ?? steps[0];
     const step = this.step;
     const choiceSource = CHOICE_STEPS[step];
+    const eq = await this.#equipmentPlans();
     const context = {
       rules: this.rules,
       step,
@@ -239,14 +500,16 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         icon: STEP_ICONS[id],
         active: id === step,
         sub: id in CHOICE_STEPS,
-        done: (id in CHOICE_STEPS) ? (this.#remainingFor(CHOICE_STEPS[id]) === 0) : !!this.#pickFor(id)
+        done: (id in CHOICE_STEPS) ? (this.#remainingFor(CHOICE_STEPS[id]) === 0)
+          : (id === "equipment") ? (eq.ready && !!this.draft.picks.class) : !!this.#pickFor(id)
       })),
       isPicker: step in PICKER_STEPS,
       isChoices: !!choiceSource,
       isDetails: step === "details",
       isReview: step === "review",
       isAbilities: step === "abilities",
-      isPending: ["equipment", "spells"].includes(step),
+      isEquipment: step === "equipment",
+      isPending: step === "spells",
       first: this.stepIndex === 0,
       last: this.stepIndex === steps.length - 1,
       draft: this.draft,
@@ -256,10 +519,12 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     // What stops Next on this step, if anything.
     const remaining = choiceSource ? this.#remainingFor(choiceSource) : 0;
     context.blockLabel = remaining ? game.i18n.format("CHARWIZ.Choices.Left", { count: remaining })
-      : ((step === "abilities") && !this.#abilitiesReady()) ? game.i18n.localize("CHARWIZ.Abilities.Incomplete") : "";
+      : ((step === "abilities") && !this.#abilitiesReady()) ? game.i18n.localize("CHARWIZ.Abilities.Incomplete")
+        : ((step === "equipment") && !eq.ready) ? game.i18n.localize("CHARWIZ.Equipment.Incomplete") : "";
     context.blocked = !!context.blockLabel;
 
     if ( context.isAbilities ) context.abilities = this.#abilitiesContext();
+    if ( context.isEquipment ) context.equipment = await this.#equipmentContext(eq);
 
     if ( context.isPicker ) {
       const picked = this.draft.picks[step]?.uuid;
@@ -295,6 +560,9 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         })).filter(c => c.picked)
       }));
       context.deferred = this.deferred;
+      const inventory = await this.#inventory(eq);
+      context.equipmentLine = this.#inventoryLine(inventory);
+      context.equipmentNotes = this.#inventoryNotes(inventory);
       context.abilityLine = this.#abilitiesReady()
         ? this.#abilityIds.map(id => {
           const final = this.finals[id] ?? this.draft.abilities.scores[id];
@@ -303,7 +571,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         }).join(" · ") : "";
       const blocker = createBlocker({
         picks: this.draft.picks, slots: this.slots, selections: this.draft.choices, canCreate: this.#canCreate(),
-        abilitiesReady: this.#abilitiesReady()
+        abilitiesReady: this.#abilitiesReady(), equipmentReady: eq.ready
       });
       context.blocker = blocker ? `CHARWIZ.Create.Blocked.${blocker}` : null;
       context.createLabel = this.actor ? "CHARWIZ.Create.Build" : "CHARWIZ.Create.Button";
@@ -326,6 +594,16 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     this.element.querySelector("input[name=name]")?.addEventListener("change", event => {
       this.draft.name = event.target.value.trim();
     });
+    // Starting equipment: a choice between options, a pick from a category, or gold instead.
+    for ( const input of this.element.querySelectorAll("input[data-eq-option]") ) {
+      input.addEventListener("change", () => this.#chooseEquipment(input.dataset));
+    }
+    for ( const input of this.element.querySelectorAll("input[data-eq-gold]") ) {
+      input.addEventListener("change", () => this.#takeGold(input.dataset.source, input.checked));
+    }
+    for ( const select of this.element.querySelectorAll("select[data-eq-pick]") ) {
+      select.addEventListener("change", () => this.#pickEquipment(select.dataset, select.value));
+    }
     // Ability scores typed in or picked from a dropdown.
     for ( const input of this.element.querySelectorAll("[data-ability-input]") ) {
       input.addEventListener("change", event => this.#setScore(input.dataset.ability, event.target.value));
@@ -669,6 +947,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     }
     if ( CHOICE_STEPS[this.step] && this.#remainingFor(CHOICE_STEPS[this.step]) ) return;
     if ( (this.step === "abilities") && !this.#abilitiesReady() ) return;
+    if ( (this.step === "equipment") && !(await this.#equipmentPlans()).ready ) return;
     this.#setStep(this.stepIndex + 1);
   }
 
@@ -699,9 +978,10 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
    * and write the result in one update. A new actor is made first and removed again if the build fails.
    */
   static async #onCreate(event, target) {
+    const eq = await this.#equipmentPlans();
     const blocker = createBlocker({
       picks: this.draft.picks, slots: this.slots, selections: this.draft.choices, canCreate: this.#canCreate(),
-      abilitiesReady: this.#abilitiesReady()
+      abilitiesReady: this.#abilitiesReady(), equipmentReady: eq.ready
     });
     if ( blocker ) return;
     target.disabled = true;
@@ -716,6 +996,14 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         ruleset: { rules: this.rules, untagged: getSetting("untaggedContent") }, abilities: this.#baseScores()
       });
       engine.clone.updateSource({ name });
+
+      // Starting equipment: the chosen items (packs opened up) and any gold.
+      const inventory = await this.#inventory(eq);
+      const items = await inventoryItems(inventory.lines);
+      if ( items.length ) engine.clone.updateSource({ items });
+      for ( const [coin, amount] of Object.entries(inventory.currency) ) {
+        if ( amount ) engine.clone.updateSource({ [`system.currency.${coin}`]: (engine.clone.system.currency?.[coin] ?? 0) + amount });
+      }
       await engine.commit();
       ui.notifications.info(game.i18n.format("CHARWIZ.Create.Done", { name }));
       await this.close();
@@ -772,22 +1060,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     for ( let i = 0; i < this.#abilityIds.length; i++ ) rolls.push(await new Roll(formula).evaluate());
     const totals = rolls.map(roll => roll.total).sort((a, b) => b - a);
 
-    try {
-      const data = {
-        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-        flavor: game.i18n.format("CHARWIZ.Abilities.RollFlavor", { formula }),
-        content: `<p>${totals.join(", ")}</p>`,
-        rolls,
-        sound: CONFIG.sounds.dice
-      };
-      ChatMessage.implementation.applyRollMode?.(data, game.settings.get("core", "rollMode"));
-      const message = await ChatMessage.implementation.create(data);
-      // Keep the numbers back until the 3D dice have landed.
-      await game.dice3d?.waitFor3DAnimationByMessageID?.(message.id);
-    } catch(err) {
-      // The roll still counts if it couldn't be posted.
-      console.warn(`${MODULE_ID} | Could not post the ability score roll to chat`, err);
-    }
+    await this.#postRolls(rolls, game.i18n.format("CHARWIZ.Abilities.RollFlavor", { formula }), `<p>${totals.join(", ")}</p>`);
 
     abilities.rolled = totals;
     abilities.scores = {};
@@ -841,6 +1114,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         if ( key.startsWith(`${this.step}:`) ) delete this.draft.choices[key];
       }
     }
+    if ( this.step in this.draft.equipment ) this.draft.equipment[this.step] = {};
     this.draft.picks[this.step] = { uuid, name: entry.name, identifier: entry.identifier };
     return true;
   }

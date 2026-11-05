@@ -237,6 +237,79 @@
   </div>
   {{/if}}
 
+  {{#if isEquipment}}
+  <div class="charwiz-equipment">
+    {{#unless equipment.hasSections}}<p class="charwiz-empty">{{localize "CHARWIZ.Equipment.PickFirst"}}</p>{{/unless}}
+    {{#each equipment.sections}}
+    <section class="charwiz-eq-section">
+      <h3>{{title}}</h3>
+      {{#if empty}}<p class="charwiz-empty">{{localize "CHARWIZ.Equipment.None"}}</p>{{/if}}
+
+      {{#each decisions}}
+      <fieldset class="charwiz-eq-decision">
+        <legend>{{localize "CHARWIZ.Equipment.ChooseOne"}}</legend>
+        {{#each options}}
+        <label class="charwiz-eq-option">
+          <input type="radio" name="eq-{{../source}}-{{../id}}" data-eq-option data-source="{{../source}}"
+            data-decision="{{../id}}" data-option="{{id}}" {{#if checked}}checked{{/if}}>
+          <span>{{#if letter}}<strong>{{letter}}.</strong> {{/if}}{{label}}</span>
+        </label>
+        {{/each}}
+      </fieldset>
+      {{/each}}
+
+      {{#if goldToggle}}
+      <label class="charwiz-eq-option">
+        <input type="checkbox" data-eq-gold data-source="{{step}}" {{#if goldToggle.checked}}checked{{/if}}>
+        <span>{{goldToggle.label}}</span>
+      </label>
+      {{/if}}
+      {{#if goldRoll}}
+      <div class="charwiz-eq-gold">
+        <button type="button" data-action="rollGold" data-source="{{step}}" {{#unless goldRoll.canRoll}}disabled{{/unless}}>
+          <i class="fa-solid fa-dice" inert></i> {{localize "CHARWIZ.Equipment.RollGold" formula=goldRoll.formula}}
+        </button>
+        {{#if goldRoll.amount}}<strong>{{goldRoll.amount}} gp</strong>{{/if}}
+      </div>
+      {{/if}}
+
+      {{#each picks}}
+      <div class="charwiz-eq-pick">
+        <span>{{localize "CHARWIZ.Equipment.Choose" kind=label}}</span>
+        {{#each selects}}
+        <select data-eq-pick data-source="{{../source}}" data-leaf="{{../leafId}}" data-index="{{index}}"
+          data-need="{{../selects.length}}" aria-label="{{../label}}">
+          <option value="">—</option>
+          {{#each options}}<option value="{{uuid}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
+        </select>
+        {{/each}}
+      </div>
+      {{/each}}
+    </section>
+    {{/each}}
+
+    {{#if equipment.hasSections}}
+    <section class="charwiz-eq-inventory">
+      <h3>{{localize "CHARWIZ.Equipment.Inventory"}}</h3>
+      <ul class="charwiz-eq-lines">
+        {{#each equipment.lines}}
+        <li>
+          {{countLabel}}{{name}}{{#if missing}} <span class="meta">({{localize "CHARWIZ.Equipment.NotFound"}})</span>{{/if}}
+          {{#if children.length}}
+          <ul>{{#each children}}<li>{{countLabel}}{{name}}</li>{{/each}}</ul>
+          {{/if}}
+        </li>
+        {{else}}
+        <li class="charwiz-empty">{{localize "CHARWIZ.Equipment.NothingYet"}}</li>
+        {{/each}}
+      </ul>
+      {{#if equipment.money}}<p><strong>{{localize "CHARWIZ.Equipment.Money"}}:</strong> {{equipment.money}}</p>{{/if}}
+      {{#each equipment.notes}}<p class="hint">{{this}}</p>{{/each}}
+    </section>
+    {{/if}}
+  </div>
+  {{/if}}
+
   {{#if isPending}}
   <p class="charwiz-empty">{{localize "CHARWIZ.Pending"}}</p>
   {{/if}}
@@ -252,6 +325,8 @@
   <dl class="charwiz-summary">
     <dt>{{localize "CHARWIZ.Details.Name"}}</dt><dd>{{#if draft.name}}{{draft.name}}{{else}}—{{/if}}</dd>
     {{#if abilityLine}}<dt>{{localize "CHARWIZ.Steps.abilities"}}</dt><dd>{{abilityLine}}</dd>{{/if}}
+    {{#if equipmentLine}}<dt>{{localize "CHARWIZ.Steps.equipment"}}</dt>
+    <dd>{{equipmentLine}}{{#each equipmentNotes}}<br><span class="meta">{{this}}</span>{{/each}}</dd>{{/if}}
     {{#each summary}}
     <dt>{{localize label}}</dt>
     <dd>{{#if name}}{{name}}{{else}}—{{/if}}

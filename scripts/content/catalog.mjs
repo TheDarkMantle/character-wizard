@@ -1,6 +1,7 @@
 import { INDEX_FIELDS, MODULE_ID, RULES } from "../constants.mjs";
 import { getSetting } from "../settings.mjs";
 import { buildCatalog, normalizeEntry } from "./catalog-logic.mjs";
+import { normalizeGear } from "../equipment/gear.mjs";
 
 /**
  * The world's rules version as a source.rules value ("2014" or "2024").
@@ -30,12 +31,16 @@ export class ContentCatalog {
   /** @type {import("./catalog-logic.mjs").CatalogEntry[]|null} */
   #entries = null;
 
+  /** Ordinary and magic gear from the same scan, for the equipment step. @type {import("../equipment/gear.mjs").GearEntry[]|null} */
+  #gear = null;
+
   /** Packs that failed to index during the last scan. */
   unavailable = [];
 
   /** Clear the cache so the next request rescans. */
   invalidate() {
     this.#entries = null;
+    this.#gear = null;
   }
 
   /**
@@ -52,6 +57,7 @@ export class ContentCatalog {
 
   async #scan() {
     const entries = [];
+    const gear = [];
     this.unavailable = [];
     for ( const pack of candidatePacks() ) {
       try {
@@ -59,6 +65,8 @@ export class ContentCatalog {
         for ( const raw of index ) {
           const entry = normalizeEntry(raw, { collection: pack.collection, label: pack.metadata.label });
           if ( entry ) entries.push(entry);
+          const piece = normalizeGear(raw, { collection: pack.collection, label: pack.metadata.label });
+          if ( piece ) gear.push(piece);
         }
       } catch(err) {
         this.unavailable.push(pack.collection);
@@ -66,6 +74,14 @@ export class ContentCatalog {
       }
     }
     this.#entries = entries;
+    this.#gear = gear;
+  }
+
+  /** Gear from every enabled compendium (cached). */
+  async gear() {
+    if ( !this.#gear ) await this.#scan();
+    const sources = getSetting("contentSources");
+    return this.#gear.filter(g => sources[g.pack]?.enabled !== false);
   }
 
   /**

@@ -38,6 +38,10 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 - `scripts/content/catalog.mjs`: Foundry side: scans pack indexes, caches, applies settings.
 - `scripts/advancement/read.mjs`: **pure** advancement data → board entries (granted / choice / info / native). Unit tested.
 - `scripts/advancement/apply.mjs`: `HeadlessAdvancer` prototype + `spikeFighter()` console test.
+- `scripts/equipment/`: starting equipment. `starting.mjs` (**pure**: the class/background `startingEquipment` tree → choices,
+  gold alternative), `packs.mjs` (**pure**: pack contents from a description, SRD 2014 pack table, name matching),
+  `gear.mjs` (**pure**: ordinary-gear catalog entries, category pickers), `inventory.mjs` (Foundry side: expands packs,
+  builds item data). dnd5e 6.0.6 defines starting equipment data but never grants it; this module does.
 - `scripts/apps/wizard.mjs`: ApplicationV2 wizard (steps, pickers, preview). `apps/content-settings.mjs`: GM window.
 - `scripts/integration/entry-points.mjs`: sidebar button, sheet header menu entry, level-0 header button beside the lock toggle.
 - `templates/`, `styles/character-wizard.css` (inside `@layer modules`), `lang/en.json` (all UI text, prefix `CHARWIZ`).
@@ -81,23 +85,21 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
    `https://github.com/TheDarkMantle/character-wizard/releases/latest/download/module.json`.
 - Commit author: Shawn <darkmantle@gmail.com>.
 
-## Status (2026-11-04)
-- v0.3.0 released. Catalog, GM content settings (sources, species, subclasses, languages), entry points, pickers with
-  previews, choices steps (item/trait/spell/subclass/size/ability choices, ability score points, greyed-out
-  proficiencies, replacements) and Review → Create are in.
-- **Verified by Shawn in Foundry:** 2024 builds (new actor and level 0 actor), 2014 species and class choices, the
-  proficiency greying and replacements in 0.3.0.
-- **Built after 0.3.0, not yet released or tested:** the **ability scores step** (standard array, point buy, roll 4d6,
-  manual, and the GM's custom array). Base scores are applied to the clone first so species/background increases add to
-  them; the step shows base, bonus, final and modifier. GM settings (all off by default): custom array toggle with a
-  text field (starts as the Dungeon Dudes array 17, 15, 13, 12, 10, 8; read-only until the toggle is on) and "4d6:
-  reroll 1s". Create is blocked until scores are set.
-- Equipment and spells steps are placeholders. Class spell picks are reported on Review as not handled.
+## Status (2026-11-05)
+- v0.4.1 released (ability scores, Any rules version per compendium, point buy fixes, chat dice).
+- **Verified by Shawn in Foundry:** 2024 and 2014 builds, proficiency greying, the ability scores step and its settings.
+- **Built after 0.4.1, not yet released or tested:** the **equipment step**. It reads the class's and background's
+  `startingEquipment` (2024: "A, B or gold"; 2014: each OR group is a choice, gold is a separate switch), offers category
+  entries ("any martial melee weapon") from a catalog of mundane gear, rolls formula gold through chat, and adds the items
+  and money on Create. **Packs** (empty containers in every compendium) are expanded from items stored in the container,
+  then the description (item links or a plain list), then a built-in table of the 2014 SRD packs; anything unmatched is
+  listed on Review. Also: "Fighting Style:" is stripped from option names.
+- Spells step is a placeholder. Class spell picks are reported on Review as not handled.
 - dnd5e 6.0 renamed an advancement's `title` to `name`. Read `name` (see `advancement/naming.mjs`).
 
 ## Next
-1. Test the ability scores step in 2024 and 2014 worlds (and the settings toggle).
-2. Spells step (class cantrips and spells), equipment, details.
+1. Test the equipment step: 2014 and 2024 Fighter, a background with a holy symbol or gaming set, a pack's contents, gold.
+2. Spells step (class cantrips and spells), details.
 3. Tasha's languages and proficiency swaps (see `docs/PLAN.md`).
 4. Players without Create Actor permission build onto a GM-provided blank actor.
 5. Later: level-up from the sheet, including multiclassing.

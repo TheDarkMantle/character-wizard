@@ -23,7 +23,9 @@ export const CONTENT_TYPES = Object.freeze(["class", "subclass", "race", "backgr
  * Foundry's projection cannot combine a parent and its child.
  */
 export const INDEX_FIELDS = Object.freeze([
-  "system.classIdentifier", "system.type", "flags.ddbimporter.groupName", "system.level", "system.school"
+  "system.classIdentifier", "system.type", "flags.ddbimporter.groupName", "system.level", "system.school",
+  // For telling ordinary gear from magic items, and for the contents of a pack.
+  "system.rarities", "system.properties", "system.quantity"
 ]);
 
 /** What to do with content that has no 2014/2024 rules tag. */

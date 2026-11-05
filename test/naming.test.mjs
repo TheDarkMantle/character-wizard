@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  advancementName, fallbackTitleKey, isDraconicAncestry, traitOptionLabel, traitTitleKey
+  advancementName, stripTitlePrefix, fallbackTitleKey, isDraconicAncestry, traitOptionLabel, traitTitleKey
 } from "../scripts/advancement/naming.mjs";
 
 describe("advancementName", () => {
@@ -39,5 +39,18 @@ describe("dragon ancestry", () => {
     expect(isDraconicAncestry("dragonborn", ["dr:acid", "dr:cold"])).toBe(true);
     expect(isDraconicAncestry("dragonborn", ["skills:acr"])).toBe(false);
     expect(isDraconicAncestry("elf", ["dr:acid"])).toBe(false);
+  });
+});
+
+describe("stripTitlePrefix", () => {
+  it("drops a repeated title from the start of an option", () => {
+    expect(stripTitlePrefix("Fighting Style: Archery", "Fighting Style")).toBe("Archery");
+    expect(stripTitlePrefix("fighting style : Dueling", "Fighting Style")).toBe("Dueling");
+  });
+
+  it("leaves other names alone", () => {
+    expect(stripTitlePrefix("Archery", "Fighting Style")).toBe("Archery");
+    expect(stripTitlePrefix("Magic Initiate: Cleric", "Fighting Style")).toBe("Magic Initiate: Cleric");
+    expect(stripTitlePrefix("Draconic Ancestry: Gold", "Draconic Ancestry")).toBe("Gold");
   });
 });

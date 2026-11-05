@@ -73,6 +73,8 @@ describe("createBlocker", () => {
     expect(createBlocker({ ...state, picks: {} })).toBe("NeedClass");
     expect(createBlocker({ ...state, selections: {} })).toBe("NeedChoices");
     expect(createBlocker({ ...state, abilitiesReady: false })).toBe("NeedAbilities");
+    expect(createBlocker({ ...state, equipmentReady: false })).toBe("NeedEquipment");
+    expect(createBlocker({ ...state, abilitiesReady: false, equipmentReady: false })).toBe("NeedAbilities");
   });
 });
 

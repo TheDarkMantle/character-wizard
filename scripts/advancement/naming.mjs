@@ -6,6 +6,18 @@
  * descriptive fallback (as a lang key) from what the advancement actually does.
  */
 
+/**
+ * Drop a redundant "Title: " from an option's name. Every fighting style is called "Fighting Style: Archery" and so on,
+ * which reads badly in a list already headed "Fighting Style".
+ * @param {string} label  The option's name.
+ * @param {string} title  The choice's title.
+ */
+export function stripTitlePrefix(label, title) {
+  const clean = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const match = String(label).match(/^([^:]+):\s*(.+)$/);
+  return (match && clean(match[1]) === clean(title)) ? match[2].trim() : label;
+}
+
 /** The advancement's own name from raw source data. Accepts the pre-6.0 `title` too. */
 export function advancementName(adv) {
   return String(adv?.name || adv?.title || "").trim();

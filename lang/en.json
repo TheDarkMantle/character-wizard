@@ -40,7 +40,7 @@
     },
     "Review": {
       "Deferred": "Not handled by the wizard yet:",
-      "Scope": "This builds your class, species and background features, your choices and your ability scores. Equipment and spells aren't part of creation yet; set them on the character sheet."
+      "Scope": "This builds your class, species and background features, your choices, your ability scores and your starting equipment. Spells aren't part of creation yet; set them on the character sheet."
     },
     "Notify": {
       "LevelUpLater": "Levelling up from the wizard is coming in a later version.",
@@ -132,7 +132,8 @@
         "NoPermission": "You don't have permission to create actors. Ask your GM for a blank character to build onto.",
         "NeedClass": "Pick a class first.",
         "NeedChoices": "Finish your choices first.",
-        "NeedAbilities": "Set your ability scores first."
+        "NeedAbilities": "Set your ability scores first.",
+        "NeedEquipment": "Choose your starting equipment first."
       }
     },
     "Naming": {
@@ -200,6 +201,33 @@
       "BonusNote": "Bonuses from your species and background are added to the base scores.",
       "RollFlavor": "Ability scores ({formula})"
     },
-    "OtherRules": "{rules} rules"
+    "OtherRules": "{rules} rules",
+    "Equipment": {
+      "Incomplete": "Finish your starting equipment choices.",
+      "PickFirst": "Pick a class first. Your starting equipment comes from your class and your background.",
+      "From": "From your {source}: {name}",
+      "None": "This gives no starting equipment.",
+      "ChooseOne": "Choose one",
+      "Choose": "Choose {kind}:",
+      "AnyOf": "any {kind}",
+      "Weapon": "weapon",
+      "Armor": "armor",
+      "Tool": "tool",
+      "Focus": "spellcasting focus",
+      "UnknownItem": "an item that couldn't be found",
+      "GoldFixed": "{amount} gp instead of equipment",
+      "GoldRoll": "Roll {formula} for starting gold instead of equipment",
+      "GoldInstead": "Take starting gold instead of this equipment (roll {formula})",
+      "RollGold": "Roll {formula}",
+      "GoldFlavor": "Starting gold ({formula})",
+      "Inventory": "Your starting inventory",
+      "NothingYet": "Nothing yet.",
+      "Money": "Money",
+      "NotFound": "not found",
+      "Summary": "{items} items, {money}",
+      "NoteMissing": "{name} couldn't be found in your compendiums, so it won't be added.",
+      "NoteEmpty": "{name} lists no contents, so only the empty pack will be added. Add its items on the sheet.",
+      "NoteUnmatched": "{name}: couldn't find {items}, so they won't be added."
+    }
   }
 }

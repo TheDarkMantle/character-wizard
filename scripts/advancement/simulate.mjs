@@ -2,7 +2,7 @@ import { HeadlessAdvancer } from "./apply.mjs";
 import {
   featsMatching, groupTraitSlots, spellsMatching, standardPoints, tally, traitGroups, uniqueByName, withoutBlocked
 } from "./slots.mjs";
-import { isDraconicAncestry, traitOptionLabel, traitTitleKey } from "./naming.mjs";
+import { isDraconicAncestry, stripTitlePrefix, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
 
 /**
@@ -55,9 +55,9 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
     if ( !slot.options.length ) deferred.add(`${slot.itemName}: ${slot.title}`);
     else if ( !slots.has(slot.key) ) slots.set(slot.key, slot);
   };
-  const optionFor = uuid => {
+  const optionFor = (uuid, title = "") => {
     const doc = fromUuidSync(uuid);
-    return { value: uuid, uuid, label: doc?.name ?? uuid, img: doc?.img };
+    return { value: uuid, uuid, label: stripTitlePrefix(doc?.name ?? uuid, title), img: doc?.img };
   };
 
   /**
@@ -95,16 +95,17 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
         const count = config.choices[level]?.count ?? 0;
         if ( !count ) return false;
         const pool = config.pool.map(p => p.uuid);
+        const title = ownTitle || item.name;
         let options;
         if ( config.type === "spell" ) {
           // A class' cantrips and spells belong to the spells step, not the class choices.
           if ( owner === "class" ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
-          options = pool.length ? pool.map(optionFor) : spellOptions(config.restriction);
+          options = pool.length ? pool.map(u => optionFor(u, title)) : spellOptions(config.restriction);
           if ( !options ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
         } else {
           options = pool.length
-            ? pool.map(optionFor)
-            : featsMatching(catalog.byType.feat, config.restriction).map(f => optionFor(f.uuid));
+            ? pool.map(u => optionFor(u, title))
+            : featsMatching(catalog.byType.feat, config.restriction).map(f => optionFor(f.uuid, title));
         }
         const key = keyFor("");
         addSlot({ ...base, key, kind: "item", count, options });

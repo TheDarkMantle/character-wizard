@@ -210,13 +210,15 @@ export function toggleSelection(slot, selections, value) {
  * @param {Record<string, string[]>} state.selections
  * @param {boolean} state.canCreate  Whether this user may create an actor (or has one to build onto).
  * @param {boolean} [state.abilitiesReady=true]  Whether the ability scores are set.
- * @returns {"NoPermission"|"NeedClass"|"NeedChoices"|"NeedAbilities"|null}
+ * @param {boolean} [state.equipmentReady=true]  Whether the starting equipment choices are made.
+ * @returns {"NoPermission"|"NeedClass"|"NeedChoices"|"NeedAbilities"|"NeedEquipment"|null}
  */
-export function createBlocker({ picks, slots, selections, canCreate, abilitiesReady = true }) {
+export function createBlocker({ picks, slots, selections, canCreate, abilitiesReady = true, equipmentReady = true }) {
   if ( !canCreate ) return "NoPermission";
   if ( !picks.class ) return "NeedClass";
   if ( picksRemaining(slots, selections) > 0 ) return "NeedChoices";
   if ( !abilitiesReady ) return "NeedAbilities";
+  if ( !equipmentReady ) return "NeedEquipment";
   return null;
 }
 

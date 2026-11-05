@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.2
 
 - **Items a background only describes are now a reminder, not inventory.** 0.6.1 tried to turn the "Equipment:" text of a 2014 background into loot items, and on the Athlete it also made items out of feature sentences. That is gone. Review now lists the things the text mentions that no item covers (a trinket, a letter) as a note above the Create button, so you can add them by hand. The parser no longer runs past the Equipment paragraph, and skips anything long or sentence-like.
 - **Background features from the description.** A 2014 background with no feature item to grant (imports from D&D Beyond keep the feature only as text, like the Athlete's Echoes of Victory) now adds that feature to the sheet as its own feature item, with its text. Review lists it. Backgrounds whose feature the system grants are unchanged.

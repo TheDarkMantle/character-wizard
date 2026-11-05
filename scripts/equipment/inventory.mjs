@@ -101,15 +101,6 @@ async function itemData(uuid, { quantity = 1, container = null } = {}) {
   return data;
 }
 
-/** Plain loot for gear a background only describes in words. */
-function customItem({ name, description }) {
-  return {
-    _id: foundry.utils.randomID(), name, type: "loot", img: "icons/sundries/scrolls/scroll-bound-brown-tan.webp",
-    system: { description: { value: `<p>${foundry.utils.escapeHTML?.(description) ?? description}</p>` }, quantity: 1 },
-    flags: { "character-wizard": { fromDescription: true } }
-  };
-}
-
 /**
  * Item data for every line, with a pack's contents stored inside it.
  * @param {InventoryLine[]} lines
@@ -119,7 +110,6 @@ export async function inventoryItems(lines) {
   const items = [];
   for ( const line of lines ) {
     if ( line.missing ) continue;
-    if ( line.custom ) { items.push(customItem(line.custom)); continue; }
     const isPack = line.children !== undefined;
     // Several of something stack, except a pack, which is made once for each.
     for ( let n = 0; n < (isPack ? line.count : 1); n++ ) {

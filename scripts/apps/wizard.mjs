@@ -8,7 +8,6 @@ import { bodyLines } from "../content/species-info.mjs";
 import { customArray, getSetting } from "../settings.mjs";
 import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../equipment/starting.mjs";
 import { pickCandidates } from "../equipment/gear.mjs";
-import { describedItems } from "../equipment/described.mjs";
 import { backgroundFeature } from "../content/background-feature.mjs";
 import { inventoryItems, packContents, resolveInventory } from "../equipment/inventory.mjs";
 import {
@@ -166,8 +165,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         name: item.name,
         entries: item.toObject().system.startingEquipment ?? [],
         wealth: item.system.wealth ?? "",
-        rules: item.system.source?.rules ?? "",
-        description: item.system.description?.value ?? ""
+        rules: item.system.source?.rules ?? ""
       } : null;
       if ( source && (step === "background") ) source = await this.#withPouchGold(source);
       this.equipmentSources.set(pick.uuid, source);
@@ -306,14 +304,6 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     const lines = await resolveInventory(grants, {
       gear: await this.#gearList(), rules: this.rules, packOrder: this.#sourceOrder().packOrder
     });
-    // A 2014 background's text can name gear that has no item to link (a letter, a scroll of pedigree).
-    const background = eq.plans.background;
-    if ( background && !background.modern && !background.plan.gold ) {
-      const have = lines.flatMap(l => [l.name, ...(l.children ?? []).map(c => c.name)]);
-      for ( const { name, description } of describedItems(background.source.description, have) ) {
-        lines.push({ custom: { name, description }, name, count: 1, quantity: 1, missing: false });
-      }
-    }
     return { lines, currency };
   }
 

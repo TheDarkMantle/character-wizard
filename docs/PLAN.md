@@ -90,6 +90,16 @@ GM setting, all off by default:
   or tool; martial weapon → simple/martial weapon or tool; tool → tool or simple weapon.
 - Custom Lineage (a sidebar in the same chapter) is a separate species, not part of this.
 
+## Level-up prompt (idea, not built)
+Shawn's wish: **watch for a character levelling up and open the wizard automatically** (or offer to), so a player never has to
+find the button. Notes for when level-up is built:
+- Detect it with a hook on the actor update that raises `system.details.level` or an XP threshold crossing (dnd5e shows
+  its own level-up advancement dialog when the level is raised; decide whether the wizard replaces that dialog or
+  follows it). Only for characters the user owns.
+- Respect the existing rules: level-up only after the first-release creation flow is solid, and the sheet's hat button stays.
+- Make it a setting (GM can turn the automatic prompt off) and never open it twice for the same level.
+- Multiclassing and Tasha's choices belong in the same flow.
+
 ## Similar modules (reference only)
 - "Character Builder" (dnd5e-character-builder). Shawn tried it and didn't like it.
 - plaksiy/foundry-charecter-creator; Simple DnD5e Character Creator (IainFielding).

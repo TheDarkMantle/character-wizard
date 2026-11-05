@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Background features from the description.** A 2014 background with no feature item to grant (imports from D&D Beyond keep the feature only as text, like the Athlete's Echoes of Victory) now adds that feature to the sheet as its own feature item, with its text. Review lists it. Backgrounds whose feature the system grants are unchanged.
 - **Pack contents on the equipment step.** When a choice includes an equipment pack (the Fighter's dungeoneer's or explorer's pack), the list of what is inside is shown under that option, so you can compare before choosing.
 
 ## 0.6.1

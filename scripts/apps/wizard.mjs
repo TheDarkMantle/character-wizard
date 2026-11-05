@@ -9,6 +9,7 @@ import { customArray, getSetting } from "../settings.mjs";
 import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../equipment/starting.mjs";
 import { pickCandidates } from "../equipment/gear.mjs";
 import { describedItems } from "../equipment/described.mjs";
+import { backgroundFeature } from "../content/background-feature.mjs";
 import { inventoryItems, packContents, resolveInventory } from "../equipment/inventory.mjs";
 import {
   adjustPointBuy, breakdown, isComplete, METHODS, modifier, POINT_BUY, pointBuySpent, remainingValues, rollFormula,
@@ -190,6 +191,19 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     }
     const pouch = { _id: "charwiz-pouch", type: "currency", key: "gp", count: amount, group: "", sort: 1e9, requiresProficiency: false };
     return { ...source, wealth: "", entries: [...source.entries, pouch] };
+  }
+
+  /**
+   * The background's feature when it only exists as text in the description: a 2014 background with no feature item to
+   * grant (imports from D&D Beyond). Null when the system grants it, or the description has none.
+   */
+  async #descriptionFeature() {
+    const pick = this.draft.picks.background;
+    const item = pick && await fromUuid(pick.uuid);
+    if ( !item || isModernStyle({ rules: item.system.source?.rules, worldRules: this.rules }) ) return null;
+    if ( item.advancement?.byType?.ItemGrant?.length ) return null;
+    const feature = backgroundFeature(item.system.description?.value);
+    return feature && { ...feature, img: item.img, uuid: item.uuid };
   }
 
   /** What the class and background ask about equipment, given what the player has decided so far. */
@@ -633,6 +647,11 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
           choices: spellSlots.map(slot => ({ title: slot.title, picked: this.#summarize(slot) })).filter(c => c.picked)
         });
       }
+      const feature = await this.#descriptionFeature();
+      if ( feature ) {
+        const entry = context.summary.find(s => s.label === "CHARWIZ.Steps.background");
+        entry?.choices.push({ title: game.i18n.localize("CHARWIZ.Review.Feature"), picked: feature.name });
+      }
       context.deferred = this.deferred;
       const inventory = await this.#inventory(eq);
       context.equipmentLine = this.#inventoryLine(inventory);
@@ -1074,6 +1093,16 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       // Cantrips, spells known or prepared, and the spellbook.
       const spells = await spellItems(slots.filter(sl => sl.source === SPELLS_STEP), this.draft.choices);
       if ( spells.length ) engine.clone.updateSource({ items: spells });
+
+      // A background feature the system doesn't grant, taken from the description.
+      const feature = await this.#descriptionFeature();
+      if ( feature ) {
+        engine.clone.updateSource({ items: [{
+          _id: foundry.utils.randomID(), name: feature.name, type: "feat", img: feature.img,
+          system: { description: { value: feature.html }, type: { value: "background" } },
+          flags: { [MODULE_ID]: { fromDescription: true }, dnd5e: { sourceId: feature.uuid } }
+        }] });
+      }
 
       // Starting equipment: the chosen items (packs opened up) and any gold.
       const inventory = await this.#inventory(eq);

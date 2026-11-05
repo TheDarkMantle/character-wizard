@@ -158,14 +158,34 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( !pick ) return null;
     if ( !this.equipmentSources.has(pick.uuid) ) {
       const item = await fromUuid(pick.uuid);
-      this.equipmentSources.set(pick.uuid, item ? {
+      let source = item ? {
         name: item.name,
         entries: item.toObject().system.startingEquipment ?? [],
         wealth: item.system.wealth ?? "",
         rules: item.system.source?.rules ?? ""
-      } : null);
+      } : null;
+      if ( source && (step === "background") ) source = await this.#withPouchGold(source);
+      this.equipmentSources.set(pick.uuid, source);
     }
     return this.equipmentSources.get(pick.uuid);
+  }
+
+  /**
+   * A 2014 background's gold is the pouch it starts with ("a pouch containing 10 gp"), never an alternative to the
+   * equipment. The system's own backgrounds carry it as a coin pouch item, but others (D&D Beyond imports) only set
+   * the amount as `wealth`. If nothing else gives the money, the amount becomes a gold entry.
+   */
+  async #withPouchGold(source) {
+    if ( isModernStyle({ rules: source.rules, worldRules: this.rules }) ) return source;
+    const amount = fixedGold(source.wealth);
+    if ( !amount ) return source;
+    if ( source.entries.some(e => e.type === "currency") ) return { ...source, wealth: "" };
+    for ( const entry of source.entries.filter(e => e.type === "linked") ) {
+      const linked = await fromUuid(entry.key);
+      if ( Object.values(linked?.system?.currency ?? {}).some(v => v > 0) ) return { ...source, wealth: "" };
+    }
+    const pouch = { _id: "charwiz-pouch", type: "currency", key: "gp", count: amount, group: "", sort: 1e9, requiresProficiency: false };
+    return { ...source, wealth: "", entries: [...source.entries, pouch] };
   }
 
   /** What the class and background ask about equipment, given what the player has decided so far. */

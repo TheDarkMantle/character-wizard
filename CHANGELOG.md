@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+
+- **Arrows and bolts go in the quiver.** A quiver is an empty container in the data, so the ammunition that came with the kit sat loose beside it and the wizard warned that the quiver lists no contents. If the character is getting an empty quiver and arrows or bolts, the ammunition now goes inside it (a bolt case takes only bolts). A quiver with contents of its own is left alone.
 ## 0.6.2
 
 - **Items a background only describes are now a reminder, not inventory.** 0.6.1 tried to turn the "Equipment:" text of a 2014 background into loot items, and on the Athlete it also made items out of feature sentences. That is gone. Review now lists the things the text mentions that no item covers (a trinket, a letter) as a note above the Create button, so you can add them by hand. The parser no longer runs past the Equipment paragraph, and skips anything long or sentence-like.

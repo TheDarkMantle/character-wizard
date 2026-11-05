@@ -157,3 +157,29 @@ export const SRD_PACKS_2014 = Object.freeze({
 export function builtInPack(identifier) {
   return (SRD_PACKS_2014[identifier] ?? []).map(([qty, ...names]) => ({ qty, explicit: qty > 1, names }));
 }
+
+/** Containers that hold ammunition, and the ammunition each one takes. */
+const AMMO_HOLDERS = Object.freeze([
+  { holder: /\bquiver\b/i, ammo: /\b(arrow|bolt)s?\b/i },
+  { holder: /\bcase\b.*\bbolt|\bbolt\b.*\bcase\b/i, ammo: /\bbolts?\b/i }
+]);
+
+/**
+ * Put ammunition into an empty quiver (or bolt case) the character is getting. A quiver is an empty container in the
+ * data, so the arrows or bolts that come with the kit would otherwise sit loose beside it.
+ * Containers that already have contents are left alone.
+ * @param {{ name: string, children?: object[], source?: string }[]} lines  Inventory lines.
+ * @returns {object[]}  The lines, with ammunition moved inside the holder.
+ */
+export function fillQuivers(lines) {
+  let result = [...lines];
+  for ( const { holder, ammo } of AMMO_HOLDERS ) {
+    const index = result.findIndex(l => l.children && !l.children.length && holder.test(l.name));
+    if ( index === -1 ) continue;
+    const moving = result.filter(l => !l.children && ammo.test(l.name));
+    if ( !moving.length ) continue;
+    result = result.filter(l => !moving.includes(l)).map(l => (l === result[index]
+      ? { ...l, children: moving, source: "gear" } : l));
+  }
+  return result;
+}

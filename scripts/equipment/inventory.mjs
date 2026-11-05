@@ -1,4 +1,4 @@
-import { builtInPack, matchItemName, parsePackDescription } from "./packs.mjs";
+import { builtInPack, fillQuivers, matchItemName, parsePackDescription } from "./packs.mjs";
 import { quantityFor } from "./starting.mjs";
 import { rankedGear } from "./gear.mjs";
 
@@ -86,7 +86,7 @@ export async function resolveInventory(grants, context) {
     if ( doc?.type === "container" ) Object.assign(line, await packContents(grant.uuid, context));
     lines.push(line);
   }
-  return lines;
+  return fillQuivers(lines);
 }
 
 /** Item data from a compendium item, ready to add to an actor. */

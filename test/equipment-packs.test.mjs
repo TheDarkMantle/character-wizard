@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { builtInPack, matchItemName, normalizeName, parsePackDescription, SRD_PACKS_2014 } from "../scripts/equipment/packs.mjs";
+import { builtInPack, fillQuivers, matchItemName, normalizeName, parsePackDescription, SRD_PACKS_2014 } from "../scripts/equipment/packs.mjs";
 
 const q = lines => lines.map(l => `${l.qty}× ${l.names[0]}`);
 
@@ -103,5 +103,34 @@ describe("whether a pack line stated its quantity", () => {
     const lines = builtInPack("explorers-pack");
     expect(lines.find(l => l.names[0] === "torch")).toMatchObject({ qty: 10, explicit: true });
     expect(lines.find(l => l.names[0] === "backpack")).toMatchObject({ qty: 1, explicit: false });
+  });
+});
+
+describe("fillQuivers", () => {
+  const quiver = { name: "Quiver", children: [], source: "none" };
+  const arrows = { name: "Arrows", quantity: 20 };
+
+  it("puts arrows and bolts into an empty quiver", () => {
+    const lines = fillQuivers([{ name: "Longbow" }, quiver, arrows, { name: "Crossbow Bolts", quantity: 20 }]);
+    expect(lines.map(l => l.name)).toEqual(["Longbow", "Quiver"]);
+    expect(lines[1].children.map(c => c.name)).toEqual(["Arrows", "Crossbow Bolts"]);
+    expect(lines[1].source).toBe("gear");
+  });
+
+  it("leaves a quiver that already has contents alone", () => {
+    const full = { name: "Quiver", children: [{ name: "Arrows" }], source: "contents" };
+    expect(fillQuivers([full, arrows])).toEqual([full, arrows]);
+  });
+
+  it("does nothing without ammunition or without a quiver", () => {
+    expect(fillQuivers([quiver, { name: "Longbow" }])).toEqual([quiver, { name: "Longbow" }]);
+    expect(fillQuivers([arrows])).toEqual([arrows]);
+  });
+
+  it("keeps arrows out of a bolt case", () => {
+    const bolts = { name: "Case, Crossbow Bolt", children: [], source: "none" };
+    const lines = fillQuivers([bolts, arrows, { name: "Crossbow Bolts" }]);
+    expect(lines.find(l => l.name.startsWith("Case")).children.map(c => c.name)).toEqual(["Crossbow Bolts"]);
+    expect(lines.some(l => l.name === "Arrows")).toBe(true);
   });
 });

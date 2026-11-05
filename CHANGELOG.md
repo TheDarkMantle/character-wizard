@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.0
 
 - **Personality and details.** The last step is now three: *Ideals, bonds and flaws*, *Personality and alignment* (traits, up to two), and *Details* (name, age, height, weight, gender, eyes, hair, skin, faith, appearance). Each trait, ideal, bond and flaw shows the background's own table when it has one (found through the roll tables its description links), with a Roll button when the table is an ordinary die, and an "Other" box for your own words, added after whatever you picked. A background with no tables (2024) just has the box. Alignment is a list. The biography is left blank, with a note that it can be written on the sheet. Review lists what was filled in.
 - **Arrows and bolts go in the quiver.** A quiver is an empty container in the data, so the ammunition that came with the kit sat loose beside it and the wizard warned that the quiver lists no contents. If the character is getting an empty quiver and arrows or bolts, the ammunition now goes inside it (a bolt case takes only bolts). A quiver with contents of its own is left alone.

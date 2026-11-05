@@ -87,16 +87,15 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 - Commit author: Shawn <darkmantle@gmail.com>.
 
 ## Status (2026-11-05)
-- v0.5.1 released (equipment step with packs, ability scores, ammunition stacks).
-- **Verified by Shawn in Foundry:** 2024 and 2014 builds, proficiency greying, ability scores, the equipment step and packs.
-- Personality/details steps built (unreleased, untested): `scripts/content/background-tables.mjs` reads the roll tables a background links.
-- Spells step built (released 0.6.0, untested): class cantrips, known/prepared spells, Wizard spellbook; see `scripts/spells/`.
+- v0.7.0 released (spells step, personality and details steps, equipment fixes, quiver filling).
+- **Verified by Shawn in Foundry:** 2024 and 2014 builds, proficiency greying, ability scores, the equipment step and packs,
+  the spells step.
+- Personality/details steps (0.7.0, untested): `scripts/content/background-tables.mjs` reads the roll tables a background links.
 - dnd5e 6.0 renamed an advancement's `title` to `name`. Read `name` (see `advancement/naming.mjs`).
 
 ## Next
-1. Test the spells step: 2014 and 2024 Wizard, Cleric, Bard, Warlock; High Elf cantrip greyed; a homebrew world spell.
-2. Test the personality and details steps (tables from the background, rolling, Other, alignment).
-3. Tasha's languages and proficiency swaps (see `docs/PLAN.md`).
-4. Players without Create Actor permission build onto a GM-provided blank actor.
-5. Later: level-up from the sheet, including multiclassing. Shawn also wants the wizard to **notice a level-up and open
+1. Test the personality and details steps (tables from the background, rolling, Other, alignment).
+2. Tasha's languages and proficiency swaps (see `docs/PLAN.md`).
+3. Players without Create Actor permission build onto a GM-provided blank actor.
+4. Later: level-up from the sheet, including multiclassing. Shawn also wants the wizard to **notice a level-up and open
    (or offer) itself automatically**; see "Level-up prompt" in `docs/PLAN.md`.

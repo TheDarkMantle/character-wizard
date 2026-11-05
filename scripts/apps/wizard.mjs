@@ -180,7 +180,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     const amount = fixedGold(source.wealth);
     if ( !amount ) return source;
     if ( source.entries.some(e => e.type === "currency") ) return { ...source, wealth: "" };
-    for ( const entry of source.entries.filter(e => e.type === "linked") ) {
+    for ( const entry of source.entries.filter(e => (e.type === "linked") && e.key) ) {
       const linked = await fromUuid(entry.key);
       if ( Object.values(linked?.system?.currency ?? {}).some(v => v > 0) ) return { ...source, wealth: "" };
     }

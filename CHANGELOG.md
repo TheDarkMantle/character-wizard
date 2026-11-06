@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: Eldritch Invocations ignored their prerequisites.** A 1st-level Warlock was offered every invocation, including ones that need level 2, level 5 or a Pact Boon. Feat choices now leave out feats whose level or required item the character doesn't meet. This reads the system's prerequisite data, and for imported feats that only have a requirements line ("5th Level Warlock, Pact of the Blade") it reads that text.
+
 ## 0.7.3
 
 - **Fixed: a new character started below full hit points.** Hit points are set when the class is applied, which happens before the background's Constitution bonus and feats such as Tough raise the maximum. A halfling cleric ended up at 9 of 12. The character now starts at full health after everything is applied.

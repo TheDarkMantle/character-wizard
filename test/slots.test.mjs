@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  adjustPoints, createBlocker, featsMatching, groupTraitSlots, picksRemaining, pruneSelections, spellsMatching, standardPoints, tally, toggleSelection, traitGroups, uniqueByName
+  adjustPoints, createBlocker, featsMatching, groupTraitSlots, meetsPrerequisites, picksRemaining, pruneSelections, spellsMatching, standardPoints, tally, toggleSelection, traitGroups, uniqueByName
 } from "../scripts/advancement/slots.mjs";
 
 const slot = (key, count, values, extra = {}) => ({ key, count, options: values.map(value => ({ value, label: value })), ...extra });
@@ -210,5 +210,31 @@ describe("traitGroups", () => {
     const slot = { key: "k", kind: "trait", count: 1, options: [{ value: "a", disabled: true }, { value: "b" }] };
     expect(pruneSelections([slot], { k: ["a"] })).toEqual({});
     expect(pruneSelections([slot], { k: ["b"] })).toEqual({ k: ["b"] });
+  });
+});
+
+describe("feat prerequisites", () => {
+  const invocation = (name, prerequisites) => ({ name, featType: "feat", featSubtype: "eldritchInvocation", prerequisites });
+  const character = { level: 1, held: new Set(["warlock", "class:warlock"]) };
+
+  it("hides invocations that need a higher level", () => {
+    const feats = [invocation("Armor of Shadows", { level: 0, items: [] }), invocation("Devil's Sight", { level: 5, items: [] })];
+    expect(featsMatching(feats, { subtype: "eldritchInvocation" }, character).map(f => f.name)).toEqual(["Armor of Shadows"]);
+  });
+
+  it("hides invocations that need an item the character lacks", () => {
+    const needsBlade = invocation("Lifedrinker", { level: 0, items: ["pact-of-the-blade"] });
+    expect(meetsPrerequisites(needsBlade, character)).toBe(false);
+    expect(meetsPrerequisites(needsBlade, { level: 1, held: new Set(["pact-of-the-blade"]) })).toBe(true);
+  });
+
+  it("accepts any one of several listed items", () => {
+    const either = invocation("Either", { items: ["pact-of-the-blade", "pact-of-the-chain"] });
+    expect(meetsPrerequisites(either, { level: 3, held: new Set(["pact-of-the-chain"]) })).toBe(true);
+  });
+
+  it("offers everything when no character is given, and feats with no prerequisites", () => {
+    expect(featsMatching([invocation("A", { level: 9, items: [] })], {})).toHaveLength(1);
+    expect(meetsPrerequisites({ name: "Plain" }, character)).toBe(true);
   });
 });

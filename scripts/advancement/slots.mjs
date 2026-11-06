@@ -142,10 +142,27 @@ export function uniqueByName(entries) {
  * and `restriction.subtype` the feat subtype (`system.type.subtype`), as in dnd5e's `_validateItemType`.
  * @param {object[]} feats        Catalog feat entries ({ featType, featSubtype }).
  * @param {{type?: string, subtype?: string}} [restriction]
+ * @param {{level: number, held: Set<string>}} [character]  When given, feats whose prerequisites aren't met are left out.
  */
-export function featsMatching(feats, restriction = {}) {
+export function featsMatching(feats, restriction = {}, character = null) {
   return feats.filter(f => (!restriction.type || (f.featType === restriction.type))
-    && (!restriction.subtype || (f.featSubtype === restriction.subtype)));
+    && (!restriction.subtype || (f.featSubtype === restriction.subtype))
+    && (!character || meetsPrerequisites(f, character)));
+}
+
+/**
+ * Does the character meet a feat's prerequisites? Eldritch Invocations are the case that matters at 1st level: most
+ * need a higher level or a Pact Boon, and none of those should be offered yet.
+ * @param {{ prerequisites?: { level?: number, items?: string[] } }} feat  Catalog feat entry.
+ * @param {{ level: number, held: Set<string> }} character  The character's level and the identifiers of what they have
+ *   (both "pact-of-the-blade" and "feat:pact-of-the-blade" forms).
+ * @returns {boolean}
+ */
+export function meetsPrerequisites(feat, { level, held }) {
+  const { level: needed = 0, items = [] } = feat.prerequisites ?? {};
+  if ( needed > level ) return false;
+  // The listed items are alternatives: having any one is enough.
+  return !items.length || items.some(i => held.has(i));
 }
 
 /** Keep only selections that still point at an option of a current slot, and no more than the slot allows. */

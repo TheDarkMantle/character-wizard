@@ -75,6 +75,16 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
       .map(i => ({ value: i.uuid, uuid: i.uuid, label: i.name, img: i.img }));
   };
 
+  /** The character so far, for a feat's prerequisites: their level and what they already have. */
+  const characterNow = () => {
+    const clone = engine.clone;
+    const held = new Set(clone.items.flatMap(i => {
+      const id = i.system.identifier || i.identifier;
+      return [id, `${i.type}:${id}`];
+    }));
+    return { level: Math.max(1, clone.system.details?.level ?? 0), held };
+  };
+
   /** @type {import("./apply.mjs").Resolver} */
   const resolve = async (advancement, level) => {
     const type = advancement.constructor.typeName;
@@ -110,7 +120,7 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
         } else {
           options = pool.length
             ? pool.map(u => optionFor(u, title))
-            : featsMatching(catalog.byType.feat, config.restriction).map(f => optionFor(f.uuid, title));
+            : featsMatching(catalog.byType.feat, config.restriction, characterNow()).map(f => optionFor(f.uuid, title));
         }
         const key = keyFor("");
         addSlot({ ...base, key, kind: "item", count, options });

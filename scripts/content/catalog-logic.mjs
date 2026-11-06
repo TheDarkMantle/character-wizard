@@ -15,6 +15,7 @@ import { CONTENT_TYPES, UNTAGGED } from "../constants.mjs";
  * @property {string} [featType]      For feats, system.type.value (e.g. "feat", "class").
  * @property {string} [groupName]     For species, the base race an importer says this belongs to (D&D Beyond: "Elf").
  * @property {string} [featSubtype]   For feats, system.type.subtype (e.g. "origin", "fightingStyle").
+ * @property {{level: number, items: string[]}} [prerequisites]  For feats: the level and (any-of) items required.
  * @property {string|null} rules      "2014", "2024" or null when untagged.
  * @property {string} book            Source book label, if any.
  * @property {string} pack            Pack collection id.
@@ -48,6 +49,19 @@ export function contentKey({ type, identifier, classIdentifier }) {
 }
 
 /**
+ * A feat's prerequisites. Official content fills in `system.prerequisites`; imports often only have the text
+ * ("5th Level Warlock, Pact of the Blade"), so the level and a named Pact are read from that when the data is empty.
+ */
+export function featPrerequisites(system = {}) {
+  const data = system.prerequisites ?? {};
+  const text = String(system.requirements ?? "");
+  const level = Number(data.level) || Number(text.match(/(\d+)(?:st|nd|rd|th)[- ]level/i)?.[1]) || 0;
+  let items = Array.from(data.items ?? []);
+  if ( !items.length ) items = Array.from(text.matchAll(/pact of the (\w+)/gi), m => `pact-of-the-${m[1].toLowerCase()}`);
+  return { level, items };
+}
+
+/**
  * Turn a raw compendium index entry into a CatalogEntry.
  * @param {object} raw     Index entry (with system.* fields requested).
  * @param {object} pack    { collection, label }
@@ -66,6 +80,7 @@ export function normalizeEntry(raw, pack) {
     classIdentifier: raw.type === "subclass" ? (system.classIdentifier || "") : undefined,
     featType: raw.type === "feat" ? (system.type?.value ?? "") : undefined,
     featSubtype: raw.type === "feat" ? (system.type?.subtype ?? "") : undefined,
+    prerequisites: raw.type === "feat" ? featPrerequisites(system) : undefined,
     groupName: raw.type === "race" ? (raw.flags?.ddbimporter?.groupName || undefined) : undefined,
     rules: rulesFor(raw),
     book: system.source?.book ?? "",

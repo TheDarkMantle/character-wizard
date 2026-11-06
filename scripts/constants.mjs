@@ -23,7 +23,7 @@ export const CONTENT_TYPES = Object.freeze(["class", "subclass", "race", "backgr
  * Foundry's projection cannot combine a parent and its child.
  */
 export const INDEX_FIELDS = Object.freeze([
-  "system.classIdentifier", "system.type", "flags.ddbimporter.groupName", "system.level", "system.school",
+  "system.classIdentifier", "system.type", "system.prerequisites", "system.requirements", "flags.ddbimporter.groupName", "system.level", "system.school",
   // For telling ordinary gear from magic items, and for the contents of a pack.
   "system.rarities", "system.properties", "system.quantity"
 ]);

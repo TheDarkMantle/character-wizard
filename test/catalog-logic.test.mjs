@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalog, contentKey, groupSpecies, matchesRules, normalizeEntry, searchEntries, slugify, subclassesFor }
+import { buildCatalog, contentKey, featPrerequisites, groupSpecies, matchesRules, normalizeEntry, searchEntries, slugify, subclassesFor }
   from "../scripts/content/catalog-logic.mjs";
 
 const pack = (collection, label = collection) => ({ collection, label });
@@ -157,5 +157,22 @@ describe("anyRulesPacks", () => {
   it("still applies to the other ruleset", () => {
     const entries = [entry("Artificer", "homebrew", "2024")];
     expect(buildCatalog(entries, { rules: "2014", anyRulesPacks: ["homebrew"] }).byType.class).toHaveLength(1);
+  });
+});
+
+describe("featPrerequisites", () => {
+  it("uses the system's prerequisite data", () => {
+    expect(featPrerequisites({ prerequisites: { level: 5, items: ["pact-of-the-blade"] } }))
+      .toEqual({ level: 5, items: ["pact-of-the-blade"] });
+  });
+
+  it("reads an imported feat's requirements text when the data is empty", () => {
+    expect(featPrerequisites({ requirements: "5th Level Warlock, Pact of the Blade" }))
+      .toEqual({ level: 5, items: ["pact-of-the-blade"] });
+    expect(featPrerequisites({ requirements: "Warlock Level 1+" })).toEqual({ level: 0, items: [] });
+  });
+
+  it("is empty for a feat with no requirements", () => {
+    expect(featPrerequisites({})).toEqual({ level: 0, items: [] });
   });
 });

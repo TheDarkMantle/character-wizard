@@ -1266,6 +1266,11 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       for ( const [coin, amount] of Object.entries(inventory.currency) ) {
         if ( amount ) engine.clone.updateSource({ [`system.currency.${coin}`]: (engine.clone.system.currency?.[coin] ?? 0) + amount });
       }
+      // Hit points were set when the class was applied, before the background's Constitution bonus and feats such as
+      // Tough raised the maximum. A new character starts at full health.
+      engine.clone.reset();
+      const maxHP = engine.clone.system.attributes?.hp?.max;
+      if ( maxHP > 0 ) engine.clone.updateSource({ "system.attributes.hp.value": maxHP });
       await engine.commit();
       ui.notifications.info(game.i18n.format("CHARWIZ.Create.Done", { name }));
       await this.close();

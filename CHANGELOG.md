@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: a new character started below full hit points.** Hit points are set when the class is applied, which happens before the background's Constitution bonus and feats such as Tough raise the maximum. A halfling cleric ended up at 9 of 12. The character now starts at full health after everything is applied.
+
 ## 0.7.2
 
 - **No shield with a two-handed weapon.** If a character starts with a two-handed weapon (a greatsword, a longbow), the shield is left unequipped, since a hand can't hold both. It stays in the inventory to equip by hand.

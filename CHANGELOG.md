@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.2
 
 - **No shield with a two-handed weapon.** If a character starts with a two-handed weapon (a greatsword, a longbow), the shield is left unequipped, since a hand can't hold both. It stays in the inventory to equip by hand.
 

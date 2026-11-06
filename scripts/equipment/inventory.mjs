@@ -1,6 +1,7 @@
 import { builtInPack, fillQuivers, matchItemName, parsePackDescription } from "./packs.mjs";
 import { quantityFor } from "./starting.mjs";
 import { rankedGear } from "./gear.mjs";
+import { itemsToEquip } from "./equip.mjs";
 
 /**
  * Foundry-side equipment: expand packs, resolve what a character is granted into inventory lines, and turn those
@@ -123,5 +124,8 @@ export async function inventoryItems(lines) {
       }
     }
   }
+  // Armor and weapons start equipped, so the sheet's AC and actions are right from the first open.
+  const equip = itemsToEquip(items);
+  for ( const item of items ) if ( equip.has(item._id) ) item.system.equipped = true;
   return items;
 }

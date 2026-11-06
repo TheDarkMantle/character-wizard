@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+- **Starting armor and weapons are equipped.** On the sheet, armor class only counts equipped armor and shields, and the actions list only shows equipped weapons, so a new character started with the wrong AC and no attacks until the gear was equipped by hand. Every starting weapon is now equipped, plus one suit of body armor and one shield. Items that need attunement and anything inside a pack are left alone.
+
 ## 0.7.0
 
 - **Personality and details.** The last step is now three: *Ideals, bonds and flaws*, *Personality and alignment* (traits, up to two), and *Details* (name, age, height, weight, gender, eyes, hair, skin, faith, appearance). Each trait, ideal, bond and flaw shows the background's own table when it has one (found through the roll tables its description links), with a Roll button when the table is an ordinary die, and an "Other" box for your own words, added after whatever you picked. A background with no tables (2024) just has the box. Alignment is a list. The biography is left blank, with a note that it can be written on the sheet. Review lists what was filled in.

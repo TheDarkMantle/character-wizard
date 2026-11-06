@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.3
 
 - **Fixed: a new character started below full hit points.** Hit points are set when the class is applied, which happens before the background's Constitution bonus and feats such as Tough raise the maximum. A halfling cleric ended up at 9 of 12. The character now starts at full health after everything is applied.
 

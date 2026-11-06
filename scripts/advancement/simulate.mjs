@@ -1,10 +1,29 @@
 import { HeadlessAdvancer } from "./apply.mjs";
 import {
-  featsMatching, groupTraitSlots, spellsMatching, standardPoints, tally, traitGroups, uniqueByName, withoutBlocked
+  featsMatching, groupTraitSlots, meetsPrerequisites, spellsMatching, standardPoints, tally, traitGroups, uniqueByName,
+  withoutBlocked
 } from "./slots.mjs";
 import { isDraconicAncestry, stripTitlePrefix, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
 import { isCaster, spellSlots } from "../spells/builder.mjs";
+import { mergePrerequisites, textPrerequisites } from "../content/feat-prerequisites.mjs";
+
+/** Prerequisites read from feat descriptions, by UUID, so each description is only read once. */
+const descriptionPrerequisites = new Map();
+
+/**
+ * Feats with the prerequisites in their description folded in. Only for a short list (the Eldritch Invocations), since
+ * it reads each feat's document.
+ */
+async function withDescriptionPrerequisites(feats) {
+  return Promise.all(feats.map(async feat => {
+    if ( !descriptionPrerequisites.has(feat.uuid) ) {
+      const doc = await fromUuid(feat.uuid);
+      descriptionPrerequisites.set(feat.uuid, textPrerequisites(doc?.system?.description?.value));
+    }
+    return { ...feat, prerequisites: mergePrerequisites(feat.prerequisites, descriptionPrerequisites.get(feat.uuid)) };
+  }));
+}
 
 /**
  * Discover the choices a set of picks asks for, by running the system's own advancements on a clone.
@@ -118,9 +137,13 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
           options = pool.length ? pool.map(u => optionFor(u, title)) : spellOptions(config.restriction);
           if ( !options ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
         } else {
-          options = pool.length
-            ? pool.map(u => optionFor(u, title))
-            : featsMatching(catalog.byType.feat, config.restriction, characterNow()).map(f => optionFor(f.uuid, title));
+          if ( pool.length ) options = pool.map(u => optionFor(u, title));
+          else {
+            let feats = featsMatching(catalog.byType.feat, config.restriction);
+            if ( config.restriction.subtype && (feats.length <= 150) ) feats = await withDescriptionPrerequisites(feats);
+            const character = characterNow();
+            options = feats.filter(f => meetsPrerequisites(f, character)).map(f => optionFor(f.uuid, title));
+          }
         }
         const key = keyFor("");
         addSlot({ ...base, key, kind: "item", count, options });

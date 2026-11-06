@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **No shield with a two-handed weapon.** If a character starts with a two-handed weapon (a greatsword, a longbow), the shield is left unequipped, since a hand can't hold both. It stays in the inventory to equip by hand.
+
 ## 0.7.1
 
 - **Starting armor and weapons are equipped.** On the sheet, armor class only counts equipped armor and shields, and the actions list only shows equipped weapons, so a new character started with the wrong AC and no attacks until the gear was equipped by hand. Every starting weapon is now equipped, plus one suit of body armor and one shield. Items that need attunement and anything inside a pack are left alone.

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: the Class choices step failed for Cleric, Warlock and others in 0.7.5 and 0.7.6** ("clone.items.flatMap is not a function"). The prerequisite check read the character's items as an array, but Foundry's item collection isn't one. It now reads them correctly, and a failure while reading the character can no longer stop the choice.
+
 ## 0.7.6
 
 - **Hardening: a feat that can't be read no longer breaks a whole choice.** After 0.7.5, picking a Warlock stopped the Class choices step from appearing (and every later step, since the Warlock stayed picked). The prerequisite check now catches any failure on a single feat, or on the check as a whole, logs a warning to the browser console and offers the option instead.

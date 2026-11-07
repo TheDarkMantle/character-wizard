@@ -151,6 +151,21 @@ export function featsMatching(feats, restriction = {}, character = null) {
 }
 
 /**
+ * The identifiers of what a character has, in the forms a feat's prerequisites use: "pact-of-the-blade" and
+ * "feat:pact-of-the-blade". Takes any iterable of items, including Foundry's embedded collections, which are not arrays.
+ * @param {Iterable<{ type: string, identifier?: string, system?: { identifier?: string } }>} items
+ * @returns {Set<string>}
+ */
+export function heldIdentifiers(items) {
+  const held = new Set();
+  for ( const item of items ) {
+    const id = item.system?.identifier || item.identifier;
+    if ( id ) { held.add(id); held.add(`${item.type}:${id}`); }
+  }
+  return held;
+}
+
+/**
  * Does the character meet a feat's prerequisites? Eldritch Invocations are the case that matters at 1st level: most
  * need a higher level or a Pact Boon, and none of those should be offered yet.
  * @param {{ prerequisites?: { level?: number, items?: string[] } }} feat  Catalog feat entry.

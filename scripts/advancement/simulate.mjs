@@ -1,6 +1,6 @@
 import { HeadlessAdvancer } from "./apply.mjs";
 import {
-  featsMatching, groupTraitSlots, meetsPrerequisites, spellsMatching, standardPoints, tally, traitGroups, uniqueByName,
+  featsMatching, groupTraitSlots, heldIdentifiers, meetsPrerequisites, spellsMatching, standardPoints, tally, traitGroups, uniqueByName,
   withoutBlocked
 } from "./slots.mjs";
 import { isDraconicAncestry, stripTitlePrefix, traitOptionLabel, traitTitleKey } from "./naming.mjs";
@@ -120,10 +120,7 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
   /** The character so far, for a feat's prerequisites: their level and what they already have. */
   const characterNow = () => {
     const clone = engine.clone;
-    const held = new Set(clone.items.flatMap(i => {
-      const id = i.system.identifier || i.identifier;
-      return [id, `${i.type}:${id}`];
-    }));
+    const held = heldIdentifiers(clone.items.values());
     return { level: Math.max(1, clone.system.details?.level ?? 0), held };
   };
 
@@ -162,16 +159,17 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
         } else {
           // The pool is the class' own list (the Warlock's invocations are all in it) or, when empty, a search by
           // restriction. Either way, feats the character doesn't qualify for yet are left out.
-          const character = characterNow();
           let uuids = pool;
+          let character = null;
+          try { character = characterNow(); } catch(err) { console.warn("character-wizard | Could not read the character for prerequisites", err); }
           if ( !uuids.length ) {
             // The index already knows level and item requirements, which also covers lists too long to read one by one.
             const all = featsMatching(catalog.byType.feat, config.restriction);
-            const fit = featsMatching(catalog.byType.feat, config.restriction, character);
+            const fit = character ? featsMatching(catalog.byType.feat, config.restriction, character) : all;
             uuids = (fit.length ? fit : all).map(f => f.uuid);
           }
           try {
-            uuids = await qualifying(uuids, character);
+            if ( character ) uuids = await qualifying(uuids, character);
           } catch(err) {
             console.warn("character-wizard | Could not check feat prerequisites; offering every option", err);
           }

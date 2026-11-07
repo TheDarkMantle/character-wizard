@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  adjustPoints, createBlocker, featsMatching, groupTraitSlots, meetsPrerequisites, picksRemaining, pruneSelections, spellsMatching, standardPoints, tally, toggleSelection, traitGroups, uniqueByName
+  adjustPoints, createBlocker, featsMatching, groupTraitSlots, heldIdentifiers, meetsPrerequisites, picksRemaining, pruneSelections, spellsMatching, standardPoints, tally, toggleSelection, traitGroups, uniqueByName
 } from "../scripts/advancement/slots.mjs";
 
 const slot = (key, count, values, extra = {}) => ({ key, count, options: values.map(value => ({ value, label: value })), ...extra });
@@ -236,5 +236,14 @@ describe("feat prerequisites", () => {
   it("offers everything when no character is given, and feats with no prerequisites", () => {
     expect(featsMatching([invocation("A", { level: 9, items: [] })], {})).toHaveLength(1);
     expect(meetsPrerequisites({ name: "Plain" }, character)).toBe(true);
+  });
+});
+
+describe("heldIdentifiers", () => {
+  it("reads items from a Map-like collection, as Foundry's embedded collections are", () => {
+    const collection = new Map([["a", { type: "feat", system: { identifier: "pact-of-the-blade" } }], ["b", { type: "class", identifier: "warlock" }]]);
+    const held = heldIdentifiers(collection.values());
+    expect([...held].sort()).toEqual(["class:warlock", "feat:pact-of-the-blade", "pact-of-the-blade", "warlock"]);
+    expect(() => heldIdentifiers(collection.values())).not.toThrow();
   });
 });

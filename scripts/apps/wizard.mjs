@@ -898,7 +898,27 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
 
   async #enrich(html, relativeTo) {
     const TextEditor = foundry.applications.ux.TextEditor.implementation;
-    return TextEditor.enrichHTML(html ?? "", { relativeTo });
+    return TextEditor.enrichHTML(await this.#withoutHiddenEmbeds(html ?? ""), { relativeTo });
+  }
+
+  /**
+   * Take out `@Embed[...]` references to journal pages this user can't open. The system's SRD 5.2 backgrounds and
+   * classes embed their rules text from a journal in a rules compendium; for a player who can't see that compendium
+   * Foundry draws a large lock in its place.
+   */
+  async #withoutHiddenEmbeds(html) {
+    let result = html;
+    for ( const match of html.matchAll(/@Embed\[([^\]\s]+)[^\]]*\]/g) ) {
+      let visible = false;
+      try {
+        const document = await fromUuid(match[1]);
+        visible = !!document && (document.testUserPermission?.(game.user, "OBSERVER") ?? true);
+      } catch(err) {
+        console.warn(`${MODULE_ID} | Could not check an embedded page`, err);
+      }
+      if ( !visible ) result = result.replace(match[0], "");
+    }
+    return result;
   }
 
   /**

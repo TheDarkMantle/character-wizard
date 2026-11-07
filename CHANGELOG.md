@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **No more large lock icon in descriptions.** The system's SRD 5.2 backgrounds and classes embed their rules text from a journal page in a rules compendium. A player who can't open that compendium got a big lock where the text should be. The wizard now leaves out embedded pages the user can't see. (If a player should see the rules text, give them Observer access to the "Rules" compendium.)
 - **Fixed: the Class choices step failed for Cleric, Warlock and others in 0.7.5 and 0.7.6** ("clone.items.flatMap is not a function"). The prerequisite check read the character's items as an array, but Foundry's item collection isn't one. It now reads them correctly, and a failure while reading the character can no longer stop the choice.
 
 ## 0.7.6

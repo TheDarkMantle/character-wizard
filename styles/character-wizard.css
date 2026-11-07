@@ -204,4 +204,10 @@
     list-style: none; margin: 0; padding: 0; columns: 3 12rem; column-gap: 1rem;
   }
   .charwiz-language-list label { display: flex; align-items: center; gap: 0.4rem; break-inside: avoid; }
+
+  /* The system marks parts of its embedded rules text `hide-in-embed`, such as the license lock, and hides them with
+     its own rules in the places it embeds them. The wizard shows descriptions elsewhere, so it hides them too. */
+  .charwiz .hide-in-embed { display: none !important; }
+  /* Anything like an icon that slips through stays icon-sized. */
+  .charwiz .charwiz-description svg, .charwiz .charwiz-description .fa-lock { max-width: 2rem; max-height: 2rem; font-size: 1.25rem; }
 }

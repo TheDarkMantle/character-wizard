@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: the large lock in SRD 5.2 descriptions.** The system marks that lock (and its license message) `hide-in-embed` and hides it in its own windows; the wizard's panels didn't, so it showed full size. The wizard now hides anything marked that way, and keeps any stray icon in a description small.
+
 ## 0.7.7
 
 - **No more large lock in descriptions.** The system's SRD 5.2 backgrounds and classes embed their full rules text, and where the system may not show it, it draws a big lock and "This is free rules content that isn't covered under the Creative Commons license...". The wizard now removes that placeholder, and also leaves out embedded pages the user can't open.

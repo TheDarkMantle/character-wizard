@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.6
 
 - **Hardening: a feat that can't be read no longer breaks a whole choice.** After 0.7.5, picking a Warlock stopped the Class choices step from appearing (and every later step, since the Warlock stayed picked). The prerequisite check now catches any failure on a single feat, or on the check as a whole, logs a warning to the browser console and offers the option instead.
 

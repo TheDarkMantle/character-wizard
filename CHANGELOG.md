@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.7
 
 - **No more large lock in descriptions.** The system's SRD 5.2 backgrounds and classes embed their full rules text, and where the system may not show it, it draws a big lock and "This is free rules content that isn't covered under the Creative Commons license...". The wizard now removes that placeholder, and also leaves out embedded pages the user can't open.
 - **Fixed: the Class choices step failed for Cleric, Warlock and others in 0.7.5 and 0.7.6** ("clone.items.flatMap is not a function"). The prerequisite check read the character's items as an array, but Foundry's item collection isn't one. It now reads them correctly, and a failure while reading the character can no longer stop the choice.

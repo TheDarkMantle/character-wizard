@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.5
 
 - **Fixed: 0.7.4's invocation filter missed the official 2024 Warlock.** That class lists its invocations as a fixed pool, and the filter only ran on choices that search by type, so Ascendant Step (level 5) was still offered at level 1. Both kinds of choice are now filtered. If filtering would leave nothing to pick, the full list is shown so a choice can never be unfinishable.
 

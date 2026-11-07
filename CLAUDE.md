@@ -87,7 +87,7 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 - Commit author: Shawn <darkmantle@gmail.com>.
 
 ## Status (2026-11-05)
-- v0.7.7 released (feat prerequisites such as Eldritch Invocations, full hit points on Create, auto-equipped starting gear, no shield with a two-handed weapon; 0.7.0 added the personality and details steps).
+- v0.7.8 released (feat prerequisites such as Eldritch Invocations, full hit points on Create, auto-equipped starting gear, no shield with a two-handed weapon; 0.7.0 added the personality and details steps).
 - **Verified by Shawn in Foundry:** 2024 and 2014 builds, proficiency greying, ability scores, the equipment step and packs,
   the spells step.
 - Personality/details steps (0.7.0, untested): `scripts/content/background-tables.mjs` reads the roll tables a background links.

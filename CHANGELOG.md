@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.8
 
 - **Fixed: the large lock in SRD 5.2 descriptions.** The system marks that lock (and its license message) `hide-in-embed` and hides it in its own windows; the wizard's panels didn't, so it showed full size. The wizard now hides anything marked that way, and keeps any stray icon in a description small.
 

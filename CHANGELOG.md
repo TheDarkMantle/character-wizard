@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: 0.7.4's invocation filter missed the official 2024 Warlock.** That class lists its invocations as a fixed pool, and the filter only ran on choices that search by type, so Ascendant Step (level 5) was still offered at level 1. Both kinds of choice are now filtered. If filtering would leave nothing to pick, the full list is shown so a choice can never be unfinishable.
+
 ## 0.7.4
 
 - **Fixed: Eldritch Invocations ignored their prerequisites.** A 1st-level Warlock was offered every invocation, including ones that need level 2, level 5 or a Pact Boon. Feat choices now leave out feats whose level or required item the character doesn't meet. This reads the system's prerequisite data, and also the "Prerequisite:" line in the description, because imported 2024 invocations carry the wrong level in their data (Devil's Sight says level 1 but its text says Level 2+). The higher of the two wins.

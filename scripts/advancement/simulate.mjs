@@ -4,25 +4,40 @@ import {
   withoutBlocked
 } from "./slots.mjs";
 import { isDraconicAncestry, stripTitlePrefix, traitOptionLabel, traitTitleKey } from "./naming.mjs";
-import { matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
+import { featPrerequisites, matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
 import { isCaster, spellSlots } from "../spells/builder.mjs";
 import { mergePrerequisites, textPrerequisites } from "../content/feat-prerequisites.mjs";
 
-/** Prerequisites read from feat descriptions, by UUID, so each description is only read once. */
-const descriptionPrerequisites = new Map();
+/** Prerequisites of a feat by UUID: the system's data merged with the line in its description. Read once per feat. */
+const prerequisiteCache = new Map();
 
 /**
- * Feats with the prerequisites in their description folded in. Only for a short list (the Eldritch Invocations), since
- * it reads each feat's document.
+ * @param {string} uuid
+ * @returns {Promise<{level: number, items: string[]}|null>}  Null for anything that isn't a feat.
  */
-async function withDescriptionPrerequisites(feats) {
-  return Promise.all(feats.map(async feat => {
-    if ( !descriptionPrerequisites.has(feat.uuid) ) {
-      const doc = await fromUuid(feat.uuid);
-      descriptionPrerequisites.set(feat.uuid, textPrerequisites(doc?.system?.description?.value));
-    }
-    return { ...feat, prerequisites: mergePrerequisites(feat.prerequisites, descriptionPrerequisites.get(feat.uuid)) };
-  }));
+async function prerequisitesFor(uuid) {
+  if ( !prerequisiteCache.has(uuid) ) {
+    const doc = await fromUuid(uuid);
+    prerequisiteCache.set(uuid, (doc?.type === "feat")
+      ? mergePrerequisites(featPrerequisites(doc.system), textPrerequisites(doc.system.description?.value)) : null);
+  }
+  return prerequisiteCache.get(uuid);
+}
+
+/**
+ * Keep the feats the character qualifies for. Reads each feat's document, so it is only done for a short list (the Eldritch
+ * Invocations). If nothing would be left, the list is returned unchanged: a choice nobody can finish is worse.
+ * @param {string[]} uuids
+ * @param {{level: number, held: Set<string>}} character
+ */
+async function qualifying(uuids, character) {
+  if ( uuids.length > 150 ) return uuids;
+  const kept = [];
+  for ( const uuid of uuids ) {
+    const prerequisites = await prerequisitesFor(uuid);
+    if ( !prerequisites || meetsPrerequisites({ prerequisites }, character) ) kept.push(uuid);
+  }
+  return kept.length ? kept : uuids;
 }
 
 /**
@@ -137,13 +152,17 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
           options = pool.length ? pool.map(u => optionFor(u, title)) : spellOptions(config.restriction);
           if ( !options ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
         } else {
-          if ( pool.length ) options = pool.map(u => optionFor(u, title));
-          else {
-            let feats = featsMatching(catalog.byType.feat, config.restriction);
-            if ( config.restriction.subtype && (feats.length <= 150) ) feats = await withDescriptionPrerequisites(feats);
-            const character = characterNow();
-            options = feats.filter(f => meetsPrerequisites(f, character)).map(f => optionFor(f.uuid, title));
+          // The pool is the class' own list (the Warlock's invocations are all in it) or, when empty, a search by
+          // restriction. Either way, feats the character doesn't qualify for yet are left out.
+          const character = characterNow();
+          let uuids = pool;
+          if ( !uuids.length ) {
+            // The index already knows level and item requirements, which also covers lists too long to read one by one.
+            const all = featsMatching(catalog.byType.feat, config.restriction);
+            const fit = featsMatching(catalog.byType.feat, config.restriction, character);
+            uuids = (fit.length ? fit : all).map(f => f.uuid);
           }
+          options = (await qualifying(uuids, character)).map(u => optionFor(u, title));
         }
         const key = keyFor("");
         addSlot({ ...base, key, kind: "item", count, options });

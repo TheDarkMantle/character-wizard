@@ -86,11 +86,13 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
    `https://github.com/TheDarkMantle/character-wizard/releases/latest/download/module.json`.
 - Commit author: Shawn <darkmantle@gmail.com>.
 
-## Status (2026-11-05)
-- v0.7.8 released (feat prerequisites such as Eldritch Invocations, full hit points on Create, auto-equipped starting gear, no shield with a two-handed weapon; 0.7.0 added the personality and details steps).
-- **Verified by Shawn in Foundry:** 2024 and 2014 builds, proficiency greying, ability scores, the equipment step and packs,
-  the spells step.
-- Personality/details steps (0.7.0, untested): `scripts/content/background-tables.mjs` reads the roll tables a background links.
+## Status (2026-11-06)
+- v0.7.8 released. Creation is complete for 2014 and 2024: class, species, background, choices, ability scores, equipment
+  (auto-equipped armor and weapons), spells, personality and details.
+- **Verified by Shawn in Foundry:** 2014 and 2024 builds, proficiency greying, ability scores, the equipment step and packs,
+  the spells step, full HP on Create, Warlock invocations filtered by prerequisites, auto-equip, the Class choices step.
+- The SRD 5.2 license lock (`hide-in-embed`) is hidden by CSS in the wizard; Shawn is fine with that since nothing is redistributed.
+- Not yet confirmed: the personality and details steps (0.7.0), tested as a player on blank sheets.
 - dnd5e 6.0 renamed an advancement's `title` to `name`. Read `name` (see `advancement/naming.mjs`).
 
 ## Next

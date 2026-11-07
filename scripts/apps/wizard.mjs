@@ -898,7 +898,34 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
 
   async #enrich(html, relativeTo) {
     const TextEditor = foundry.applications.ux.TextEditor.implementation;
-    return TextEditor.enrichHTML(await this.#withoutHiddenEmbeds(html ?? ""), { relativeTo });
+    const enriched = await TextEditor.enrichHTML(await this.#withoutHiddenEmbeds(html ?? ""), { relativeTo });
+    return CharacterWizard.#withoutLicenseLocks(enriched);
+  }
+
+  /**
+   * Remove the placeholder the system draws for rules text it may not show: a large lock and "This is free rules
+   * content that isn't covered under the Creative Commons license...". It sits where the SRD 5.2 backgrounds and
+   * classes embed their full text, and tells a player nothing.
+   * @param {string} html  Enriched HTML.
+   * @returns {string}
+   */
+  static #withoutLicenseLocks(html) {
+    if ( !/creative commons|free-rules-embed|fa-lock/i.test(html) ) return html;
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    const locked = el => /creative commons/i.test(el.textContent) || !!el.querySelector(".fa-lock, [class*='lock']");
+    for ( const embed of template.content.querySelectorAll(".free-rules-embed") ) if ( locked(embed) ) embed.remove();
+    // Anything of the same kind that isn't marked: the smallest block that holds the license sentence.
+    const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_TEXT);
+    const hits = [];
+    for ( let node = walker.nextNode(); node; node = walker.nextNode() ) {
+      if ( /isn.t covered under the Creative Commons/i.test(node.textContent) ) hits.push(node);
+    }
+    for ( const node of hits ) {
+      const block = node.parentElement?.closest("figure, section, aside, div, p");
+      if ( block && (block.textContent.length < 500) ) block.remove();
+    }
+    return template.innerHTML;
   }
 
   /**

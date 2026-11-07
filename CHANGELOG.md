@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Hardening: a feat that can't be read no longer breaks a whole choice.** After 0.7.5, picking a Warlock stopped the Class choices step from appearing (and every later step, since the Warlock stayed picked). The prerequisite check now catches any failure on a single feat, or on the check as a whole, logs a warning to the browser console and offers the option instead.
+
 ## 0.7.5
 
 - **Fixed: 0.7.4's invocation filter missed the official 2024 Warlock.** That class lists its invocations as a fixed pool, and the filter only ran on choices that search by type, so Ascendant Step (level 5) was still offered at level 1. Both kinds of choice are now filtered. If filtering would leave nothing to pick, the full list is shown so a choice can never be unfinishable.

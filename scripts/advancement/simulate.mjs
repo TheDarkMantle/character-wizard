@@ -17,9 +17,17 @@ const prerequisiteCache = new Map();
  */
 async function prerequisitesFor(uuid) {
   if ( !prerequisiteCache.has(uuid) ) {
-    const doc = await fromUuid(uuid);
-    prerequisiteCache.set(uuid, (doc?.type === "feat")
-      ? mergePrerequisites(featPrerequisites(doc.system), textPrerequisites(doc.system.description?.value)) : null);
+    let found = null;
+    try {
+      const doc = await fromUuid(uuid);
+      if ( doc?.type === "feat" ) {
+        found = mergePrerequisites(featPrerequisites(doc.system), textPrerequisites(doc.system.description?.value));
+      }
+    } catch(err) {
+      // A feat that can't be read is offered rather than breaking the whole choice.
+      console.warn(`character-wizard | Could not read the prerequisites of ${uuid}`, err);
+    }
+    prerequisiteCache.set(uuid, found);
   }
   return prerequisiteCache.get(uuid);
 }
@@ -162,7 +170,12 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
             const fit = featsMatching(catalog.byType.feat, config.restriction, character);
             uuids = (fit.length ? fit : all).map(f => f.uuid);
           }
-          options = (await qualifying(uuids, character)).map(u => optionFor(u, title));
+          try {
+            uuids = await qualifying(uuids, character);
+          } catch(err) {
+            console.warn("character-wizard | Could not check feat prerequisites; offering every option", err);
+          }
+          options = uuids.map(u => optionFor(u, title));
         }
         const key = keyFor("");
         addSlot({ ...base, key, kind: "item", count, options });

@@ -245,6 +245,7 @@
     <section class="charwiz-eq-section">
       <h3>{{title}}</h3>
       {{#if empty}}<p class="charwiz-empty">{{localize "CHARWIZ.Equipment.None"}}</p>{{/if}}
+      {{#if noChoices}}<p class="hint charwiz-no-choices">{{localize "CHARWIZ.Equipment.NoChoices" kind=kind}}</p>{{/if}}
 
       {{#each decisions}}
       <fieldset class="charwiz-eq-decision">

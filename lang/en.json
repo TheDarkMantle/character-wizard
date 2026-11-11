@@ -247,6 +247,7 @@
       "PickFirst": "Pick a class first. Your starting equipment comes from your class and your background.",
       "From": "From your {source}: {name}",
       "None": "This gives no starting equipment.",
+      "NoChoices": "No choices from this {kind}. The equipment it provides is in the list below.",
       "ChooseOne": "Choose one",
       "Choose": "Choose {kind}:",
       "AnyOf": "any {kind}",

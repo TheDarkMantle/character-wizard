@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Equipment step: a note when a source has nothing to choose.** A background that simply gives its equipment (the Criminal/Spy, for example) showed a heading with nothing under it. It now says "No choices from this background. The equipment it provides is in the list below."
+
 ## 0.7.8
 
 - **Fixed: the large lock in SRD 5.2 descriptions.** The system marks that lock (and its license message) `hide-in-embed` and hides it in its own windows; the wizard's panels didn't, so it showed full size. The wizard now hides anything marked that way, and keeps any stray icon in a description small.

@@ -399,14 +399,20 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         });
       }
 
+      const goldToggle = (!modern && plan.goldFormula)
+        ? { checked: !!state.gold, label: game.i18n.format("CHARWIZ.Equipment.GoldInstead", { formula: source.wealth }) } : null;
+      const empty = !source.entries.length && !source.wealth;
       sections.push({
         step,
+        // Nothing to decide: the equipment is simply given, and the list below shows it.
+        noChoices: !empty && !decisions.length && !picks.length && !goldToggle,
+        kind: game.i18n.localize(`CHARWIZ.Steps.${step}`).toLowerCase(),
         title: game.i18n.format("CHARWIZ.Equipment.From", { source: game.i18n.localize(`CHARWIZ.Steps.${step}`), name: source.name }),
-        empty: !source.entries.length && !source.wealth,
+        empty,
         decisions,
         picks,
         // 2014 equipment is a list with its own choices, so gold is a separate switch rather than an option.
-        goldToggle: (!modern && plan.goldFormula) ? { checked: !!state.gold, label: game.i18n.format("CHARWIZ.Equipment.GoldInstead", { formula: source.wealth }) } : null,
+        goldToggle,
         goldRoll: (state.gold && plan.gold && !plan.gold.fixed)
           ? { amount: state.goldAmount ?? null, formula: source.wealth, canRoll: state.goldAmount === undefined } : null
       });

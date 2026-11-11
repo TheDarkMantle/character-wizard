@@ -401,12 +401,13 @@
   {{#if deferred.length}}
   <p class="hint">{{localize "CHARWIZ.Review.Deferred"}} {{#each deferred}}{{this}}{{#unless @last}}; {{/unless}}{{/each}}</p>
   {{/if}}
-  {{#if manualGear.length}}
-  <p class="hint charwiz-manual-gear"><i class="fa-solid fa-circle-info" inert></i>
-    {{localize "CHARWIZ.Review.ManualGear"}} {{#each manualGear}}{{this}}{{#unless @last}}; {{/unless}}{{/each}}</p>
-  {{/if}}
   <p class="hint">{{localize "CHARWIZ.Review.Scope"}}</p>
   {{#if blocker}}<p class="charwiz-blocker" role="status">{{localize blocker}}</p>{{/if}}
+  {{#if manualGear.length}}
+  <hr class="charwiz-divider">
+  <p class="charwiz-manual-gear"><i class="fa-solid fa-circle-info" inert></i>
+    <span>{{localize "CHARWIZ.Review.ManualGear"}} {{#each manualGear}}{{this}}{{#unless @last}}; {{/unless}}{{/each}}</span></p>
+  {{/if}}
   <button type="button" class="charwiz-create" data-action="create" {{disabled blocker}}>
     <i class="fa-solid fa-hat-wizard" inert></i> {{localize createLabel}}
   </button>

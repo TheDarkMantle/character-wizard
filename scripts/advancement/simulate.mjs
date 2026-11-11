@@ -151,7 +151,9 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
           // A class' cantrips and spells belong to the spells step, not the class choices. A class that doesn't cast
           // has no spells step to take them, so those are reported.
           if ( owner === "class" ) {
-            if ( !isCaster(item) ) deferred.add(`${item.name}: ${ownTitle || advancement.name}`);
+            // The advancement can sit on a feature the class grants (the Bard's Spellcasting), so ask about the class itself.
+            const klass = engine.clone.items.find(i => i.type === "class");
+            if ( !(klass && isCaster(klass)) ) deferred.add(`${item.name}: ${ownTitle || advancement.name}`);
             return false;
           }
           options = pool.length ? pool.map(u => optionFor(u, title)) : spellOptions(config.restriction);

@@ -122,6 +122,9 @@
   .charwiz-option .meta { font-size: 0.8em; opacity: 0.75; margin-left: 0.3rem; }
 
   .charwiz-create { width: auto; margin-top: 0.5rem; }
+  .charwiz-divider { margin: 0.75rem 0; border: 0; border-top: 1px solid var(--color-border-light-tertiary, currentColor); opacity: 0.5; }
+  .charwiz-manual-gear { display: flex; align-items: flex-start; gap: 0.6rem; font-size: var(--font-size-16, 1rem); margin: 0 0 0.75rem; }
+  .charwiz-manual-gear i { font-size: 1.5rem; line-height: 1.2; flex: 0 0 auto; }
   .charwiz-blocker { color: var(--color-level-error, firebrick); }
 
   .charwiz-reset { width: auto; margin-top: 0.4rem; }

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Fixed: the gear reminder cut an item short.** "Scroll case stuffed full of notes from" lost "your studies or prayers" because the wizard trimmed phrases at the word "your". The reminder now shows each item exactly as the background words it.
 - **Fixed: Review said "Not handled by the wizard yet" for spellcasting.** The Bard's Spellcasting feature carries a spell choice of its own, and the wizard asked whether that feature (not the class) casts spells, so it reported the choice as unhandled even though the spells step covers it. It now checks the class.
 - **Review: the "add these yourself" note is easier to see.** It moved to the bottom, just above the Create button, with a dividing line above it and larger text and icon.
 - **Equipment step: a note when a source has nothing to choose.** A background that simply gives its equipment (the Criminal/Spy, for example) showed a heading with nothing under it. It now says "No choices from this background. The equipment it provides is in the list below."

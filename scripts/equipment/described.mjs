@@ -48,13 +48,10 @@ const related = (a, b) => (a === b) || ((a.length > 3) && (b.length > 3) && (a.i
 /** "a pouch containing 10 gp" and the like: money, which the gold entry already covers. */
 const isMoney = phrase => /\b\d+\s*(gp|sp|cp|pp|ep)\b/i.test(phrase) || /\b(pouch|purse)\b/i.test(phrase);
 
-/** The item's name: the phrase without its article, cut before a trailing clause. */
+/** The item as written, without its article: "scroll case stuffed full of notes from your studies or prayers". */
 function nameOf(phrase) {
-  const bare = phrase.replace(/\([^)]*\)/g, " ").replace(/^(an?|the|one|some|two|three)\s+/i, "").replace(/\s+/g, " ").trim();
-  const cut = bare.split(/\s+(?:posing|that|which|containing|bearing|you|your|to remember)\b/i)[0].trim();
-  // A bare "Token" says nothing; keep the whole phrase when cutting leaves one word.
-  const name = cut.includes(" ") ? cut : bare;
-  return name.charAt(0).toUpperCase() + name.slice(1);
+  const bare = phrase.replace(/^(an?|the|one|some|two|three)\s+/i, "").replace(/\s+/g, " ").trim();
+  return bare.charAt(0).toUpperCase() + bare.slice(1);
 }
 
 /**
@@ -72,7 +69,7 @@ export function describedItems(html, have = []) {
   const result = [];
   for ( const phrase of phrases ) {
     // Gear is a short noun phrase. Anything long or with a full stop is prose that wandered in.
-    if ( isMoney(phrase) || isChoice(phrase) || (phrase.length > 90) || /[.;:]/.test(phrase) ) continue;
+    if ( isMoney(phrase) || isChoice(phrase) || (phrase.length > 120) || /[.;:]/.test(phrase) ) continue;
     const words = tokens(phrase);
     if ( !words.length || words.some(w => owned.some(o => related(o, w))) ) continue;
     if ( result.length >= 12 ) break;

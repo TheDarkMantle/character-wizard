@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  greyHeld, heldNames, highestSpellLevel, offerUnlisted, planSpells, spellsBetween
+  expandedSpellNames, greyHeld, heldNames, highestSpellLevel, offerUnlisted, planSpells, spellKey, spellsBetween, spellsNamed
 } from "../scripts/spells/plan.mjs";
 
 describe("planSpells", () => {
@@ -74,5 +74,30 @@ describe("offerUnlisted", () => {
     expect(offerUnlisted(true, 0)).toBe(true);
     expect(offerUnlisted(true, 2)).toBe(false);
     expect(offerUnlisted(false, 0)).toBe(false);
+  });
+});
+
+describe("expandedSpellNames", () => {
+  const goo = '<table><thead><tr><th>Spell Level</th><th>Spells</th></tr></thead><tbody>'
+    + '<tr><td><p>1st</p></td><td><p><span>dissonant whispers</span>, <span>Tasha\u2019s hideous laughter</span></p></td></tr>'
+    + '<tr><td><p>2nd</p></td><td><p>detect thoughts, phantasmal force</p></td></tr>'
+    + '<tr><td>5th</td><td>dominate person, telekinesis</td></tr></tbody></table>';
+
+  it("reads the spells from a patron's table", () => {
+    expect(expandedSpellNames(goo)).toEqual([
+      "dissonant whispers", "tasha's hideous laughter", "detect thoughts", "phantasmal force", "dominate person", "telekinesis"
+    ]);
+  });
+
+  it("ignores header rows and tables that aren't spell lists", () => {
+    expect(expandedSpellNames("<table><tr><th>Level</th><th>Spells</th></tr><tr><td>Warlock</td><td>Hex</td></tr></table>")).toEqual([]);
+    expect(expandedSpellNames("<p>No table</p>")).toEqual([]);
+  });
+
+  it("finds spells by name regardless of case and apostrophes", () => {
+    const spells = [{ name: "Tasha\u2019s Hideous Laughter" }, { name: "Dissonant Whispers" }, { name: "Fireball" }];
+    expect(spellsNamed(spells, ["dissonant whispers", "tasha's hideous laughter"]).map(s => s.name))
+      .toEqual(["Tasha\u2019s Hideous Laughter", "Dissonant Whispers"]);
+    expect(spellKey("  Evard\u2019s   Black Tentacles ")).toBe("evard's black tentacles");
   });
 });

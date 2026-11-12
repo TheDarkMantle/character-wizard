@@ -80,3 +80,36 @@ export function greyHeld(options, held) {
 export function offerUnlisted(inWorld, listCount) {
   return inWorld && (listCount === 0);
 }
+
+/** A spell name as a lookup key: lowercase, curly apostrophes straightened, spaces collapsed. */
+export function spellKey(name = "") {
+  return String(name).toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Spell names from a patron's "Expanded Spell List" description. Imports lay it out as a table of spell level and
+ * spells ("1st | dissonant whispers, Tasha's hideous laughter"); the rows with a level in the first cell are read.
+ * @param {string} html  The feature's (or subclass') description.
+ * @returns {string[]}   Spell names as keys (see `spellKey`).
+ */
+export function expandedSpellNames(html) {
+  const plain = fragment => String(fragment).replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+  const names = [];
+  for ( const row of String(html ?? "").matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) ) {
+    const cells = Array.from(row[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi), m => plain(m[1]));
+    if ( (cells.length < 2) || !/^\d+(st|nd|rd|th)?([- ]level)?$/i.test(cells[0]) ) continue;
+    for ( const name of cells[1].split(",") ) if ( name.trim() ) names.push(spellKey(name));
+  }
+  return [...new Set(names)];
+}
+
+/** The spells whose names are in a list of keys, one per name. */
+export function spellsNamed(spells, keys) {
+  const wanted = new Set(keys);
+  const found = new Map();
+  for ( const spell of spells ) {
+    const key = spellKey(spell.name);
+    if ( wanted.has(key) && !found.has(key) ) found.set(key, spell);
+  }
+  return [...found.values()];
+}

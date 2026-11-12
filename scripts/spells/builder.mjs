@@ -2,7 +2,7 @@ import { getSetting } from "../settings.mjs";
 import { matchesRules, rulesFor } from "../content/catalog-logic.mjs";
 import { spellsMatching, uniqueByName } from "../advancement/slots.mjs";
 import {
-  greyHeld, heldNames, highestSpellLevel, offerUnlisted, planSpells, spellsBetween
+  expandedSpellNames, greyHeld, heldNames, highestSpellLevel, offerUnlisted, planSpells, spellsBetween, spellsNamed
 } from "./plan.mjs";
 
 /**
@@ -32,6 +32,36 @@ export function classSpells(identifier, ruleset) {
   const unlisted = game.items.filter(i => (i.type === "spell") && offerUnlisted(true, registry.forSpell(i.uuid).size));
   const fits = i => matchesRules({ rules: rulesFor(i) }, ruleset.rules, ruleset.untagged) && inEnabledPack(i.uuid);
   return uniqueByName([...listed, ...unlisted].filter(fits));
+}
+
+/**
+ * Spells a patron or similar feature adds to the class' list ("The Great Old One lets you choose from an expanded list
+ * of spells when you learn a warlock spell"). The system's own lists cover its SRD subclasses; imports only describe the
+ * list in a table, so the names are read from the feature's description and looked up among every class' spells.
+ * @param {Actor5e} clone
+ * @param {{rules: string, untagged: string}} ruleset
+ */
+export function expandedSpells(clone, ruleset) {
+  const registry = dnd5e.registry.spellLists;
+  const found = [];
+  // The system's subclass spell lists, for a subclass that has one.
+  for ( const subclass of clone.items.filter(i => i.type === "subclass") ) {
+    const id = subclass.system.identifier || subclass.identifier;
+    for ( const key of new Set([id, id?.replace(/^the-/, "")]) ) {
+      if ( key ) found.push(...(registry.forType("subclass", key)?.indexes ?? []));
+    }
+  }
+  // Lists described in text.
+  const describesExpansion = i => /expanded spell/i.test(i.name)
+    || ((i.type === "subclass") && /expanded (list|spell)/i.test(i.system.description?.value ?? ""));
+  const names = clone.items.filter(describesExpansion).flatMap(i => expandedSpellNames(i.system.description?.value));
+  if ( names.length ) {
+    const everything = registry.options.filter(o => o.type === "class").flatMap(o => registry.forType(o.value)?.indexes ?? []);
+    const world = game.items.filter(i => i.type === "spell");
+    found.push(...spellsNamed([...everything, ...world], names));
+  }
+  const fits = i => matchesRules({ rules: rulesFor(i) }, ruleset.rules, ruleset.untagged) && inEnabledPack(i.uuid);
+  return uniqueByName(found.filter(fits));
 }
 
 /** "Cantrip · Evocation" or "Level 1 · Evocation". */
@@ -92,7 +122,8 @@ export function spellSlots({ clone, selections, ruleset }) {
     const info = readClass(cls, clone);
     const plan = planSpells(info);
     if ( plan.mode === "none" && !plan.cantrips ) continue;
-    const pool = classSpells(info.identifier, ruleset);
+    // A patron's expanded list adds to the class' own.
+    const pool = uniqueByName([...classSpells(info.identifier, ruleset), ...expandedSpells(clone, ruleset)]);
     const base = { source: "spells", itemName: cls.name, hostId: info.identifier, kind: "item" };
     const add = (role, title, hint, count, options) => {
       const key = `${KEY}:${info.identifier}:${role}`;

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **A patron's expanded spell list is offered in the spells step.** A 2014 Warlock patron (Great Old One, Fiend, Archfey...) "lets you choose from an expanded list of spells when you learn a warlock spell". Those spells were missing from the options. They are now added to the Warlock's list (still your choice, and only spells you can cast yet). The system's own subclass lists are used when there is one; for imports, the spell names are read from the Expanded Spell List feature's table.
 - **Fixed: the gear reminder cut an item short.** "Scroll case stuffed full of notes from" lost "your studies or prayers" because the wizard trimmed phrases at the word "your". The reminder now shows each item exactly as the background words it.
 - **Fixed: Review said "Not handled by the wizard yet" for spellcasting.** The Bard's Spellcasting feature carries a spell choice of its own, and the wizard asked whether that feature (not the class) casts spells, so it reported the choice as unhandled even though the spells step covers it. It now checks the class.
 - **Review: the "add these yourself" note is easier to see.** It moved to the bottom, just above the Create button, with a dividing line above it and larger text and icon.

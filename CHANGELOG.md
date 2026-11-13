@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: monster attacks listed as simple weapons.** Monster modules store attacks and traits as weapon items ("Wind Blast", "Bell", "Big Meaty Feast"). A Warlock's "any simple weapon" pick listed them. Weapons that don't name a kind of weapon (the base item every real weapon has) are no longer treated as gear, in the pick lists or when matching a pack's contents.
 ## 0.7.9
 
 - **A patron's expanded spell list is offered in the spells step.** A 2014 Warlock patron (Great Old One, Fiend, Archfey...) "lets you choose from an expanded list of spells when you learn a warlock spell". Those spells were missing from the options. They are now added to the Warlock's list (still your choice, and only spells you can cast yet). The system's own subclass lists are used when there is one; for imports, the spell names are read from the Expanded Spell List feature's table.

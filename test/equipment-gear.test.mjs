@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inCategory, isMundane, normalizeGear, pickCandidates, rankedGear } from "../scripts/equipment/gear.mjs";
+import { inCategory, isMonsterAttack, isMundane, normalizeGear, pickCandidates, rankedGear } from "../scripts/equipment/gear.mjs";
 
 const pack = (collection, label = collection) => ({ collection, label });
 const raw = (name, type, extra = {}) => ({ _id: name.replace(/\W/g, ""), name, type, img: "", system: { ...extra } });
@@ -83,5 +83,22 @@ describe("rankedGear", () => {
     expect(ranked.find(g => g.pack === "a").rank).toBeLessThan(ranked.find(g => g.pack === "b").rank);
     const world = rankedGear(gear, { rules: "2024", packOrder: ["a", "b"], preferPack: null });
     expect(world.find(g => g.pack === "b").rank).toBeLessThan(world.find(g => g.pack === "a").rank);
+  });
+});
+
+describe("monster attacks stored as weapons", () => {
+  const club = raw("Club", "weapon", { type: { value: "simpleM", baseItem: "club" } });
+  const windBlast = raw("Wind Blast", "weapon", { type: { value: "simpleR", baseItem: "" } });
+
+  it("tells a real weapon from a monster attack by its base item", () => {
+    expect(isMonsterAttack(club)).toBe(false);
+    expect(isMonsterAttack(windBlast)).toBe(true);
+    expect(isMonsterAttack(raw("Rope", "equipment"))).toBe(false);
+  });
+
+  it("keeps monster attacks out of the pickable gear", () => {
+    const gear = [club, windBlast].map(r => normalizeGear(r, pack("x")));
+    expect(pickCandidates(gear, { category: "weapon", key: "sim", rules: "2014" }).map(g => g.name)).toEqual(["Club"]);
+    expect(rankedGear(gear, { rules: "2014" }).map(g => g.name)).toEqual(["Club"]);
   });
 });

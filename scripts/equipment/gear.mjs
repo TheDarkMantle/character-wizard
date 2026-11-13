@@ -36,6 +36,15 @@ export function isMundane(raw) {
 }
 
 /**
+ * Is this a weapon item that isn't a real weapon? Monster modules store attacks, spells and traits as weapon items
+ * ("Wind Blast", "Bell", "Big Meaty Feast"). Real weapons, including the SRD's and the imports' standard ones, name
+ * the kind of weapon they are (`baseItem`: longsword, club); these don't.
+ */
+export function isMonsterAttack(raw) {
+  return (raw?.type === "weapon") && !raw?.system?.type?.baseItem;
+}
+
+/**
  * Turn a raw compendium index entry into a gear entry.
  * @param {object} raw
  * @param {{ collection: string, label: string }} pack
@@ -56,7 +65,8 @@ export function normalizeGear(raw, pack) {
     rules: (rules === "2014" || rules === "2024") ? rules : null,
     container: system.container || null,
     quantity: Number(system.quantity) || 1,
-    mundane: isMundane(raw),
+    // Monster attacks stored as weapons are not gear a character can start with.
+    mundane: isMundane(raw) && !isMonsterAttack(raw),
     pack: pack.collection,
     packLabel: pack.label
   };

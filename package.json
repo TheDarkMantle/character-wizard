@@ -1,6 +1,6 @@
 {
   "name": "character-wizard",
-  "version": "0.7.9",
+  "version": "0.7.10",
   "private": true,
   "type": "module",
   "description": "Foundry VTT module: guided D&D 5e character builder.",

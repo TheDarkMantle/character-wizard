@@ -87,7 +87,7 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 - Commit author: Shawn <darkmantle@gmail.com>.
 
 ## Status (2026-11-06)
-- v0.7.9 released. Creation is complete for 2014 and 2024: class, species, background, choices, ability scores, equipment
+- v0.7.10 released. Creation is complete for 2014 and 2024: class, species, background, choices, ability scores, equipment
   (auto-equipped armor and weapons), spells, personality and details.
 - **Verified by Shawn in Foundry:** 2014 and 2024 builds, proficiency greying, ability scores, the equipment step and packs,
   the spells step, full HP on Create, Warlock invocations filtered by prerequisites, auto-equip, the Class choices step.

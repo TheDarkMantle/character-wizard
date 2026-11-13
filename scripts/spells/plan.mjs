@@ -93,7 +93,9 @@ export function spellKey(name = "") {
  * @returns {string[]}   Spell names as keys (see `spellKey`).
  */
 export function expandedSpellNames(html) {
-  const plain = fragment => String(fragment).replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+  // The system's own lists link each spell (@UUID[...]{Burning Hands}); only the link's label is the name.
+  const plain = fragment => String(fragment).replace(/@UUID\[[^\]]*\](?:\{([^}]*)\})?/g, "$1")
+    .replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
   const names = [];
   for ( const row of String(html ?? "").matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) ) {
     const cells = Array.from(row[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi), m => plain(m[1]));

@@ -100,4 +100,12 @@ describe("expandedSpellNames", () => {
       .toEqual(["Tasha\u2019s Hideous Laughter", "Dissonant Whispers"]);
     expect(spellKey("  Evard\u2019s   Black Tentacles ")).toBe("evard's black tentacles");
   });
+
+  it("reads spells linked with @UUID, as the system's own patrons do", () => {
+    const fiend = "<table><thead><tr><td><strong>Spell Level</strong></td><td><strong>Spells</strong></td></tr></thead><tbody>"
+      + "<tr><td>1st</td><td>@UUID[Compendium.dnd5e.spells.Item.5SuJewoa1CRWaj1F]{Burning Hands}, @UUID[Compendium.dnd5e.spells.Item.arzCrMRgcNiQuh43]{Command}</td></tr>"
+      + "<tr><td>2nd</td><td>@UUID[Compendium.dnd5e.spells.Item.zwGsAv6kmwzYGhh3]{Blindness/Deafness}, @UUID[Compendium.dnd5e.spells.Item.7u2obDvuvtZBkTfq]{Scorching Ray}</td></tr>"
+      + "</tbody></table>";
+    expect(expandedSpellNames(fiend)).toEqual(["burning hands", "command", "blindness/deafness", "scorching ray"]);
+  });
 });

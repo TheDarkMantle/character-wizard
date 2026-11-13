@@ -99,5 +99,5 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 1. Test the personality and details steps (tables from the background, rolling, Other, alignment).
 2. Tasha's languages and proficiency swaps (see `docs/PLAN.md`).
 3. Players without Create Actor permission build onto a GM-provided blank actor.
-4. Later: level-up from the sheet, including multiclassing. Shawn also wants the wizard to **notice a level-up and open
+4. Later: level-up from the sheet (see "Level-up: things to watch" in `docs/PLAN.md`: patron spells in both editions), including multiclassing. Shawn also wants the wizard to **notice a level-up and open
    (or offer) itself automatically**; see "Level-up prompt" in `docs/PLAN.md`.

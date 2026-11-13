@@ -100,6 +100,20 @@ find the button. Notes for when level-up is built:
 - Make it a setting (GM can turn the automatic prompt off) and never open it twice for the same level.
 - Multiclassing and Tasha's choices belong in the same flow.
 
+## Level-up: things to watch (found while testing creation)
+
+- **Patron and subclass spells differ between the editions.** In 2014 a patron's "Expanded Spell List" only adds spells to
+  the class' pick list (the wizard reads it from the feature's table, or from the system's subclass list when there is one).
+  At level 1 only the 1st-level ones can be cast; the higher ones become pickable as the character gains slot levels, so
+  the level-up spells step must rebuild the same list at each level.
+- **2024 patrons grant their spells.** The 2024 Great Old One (and the other 2024 subclasses) add always-prepared spells
+  through ItemGrant advancements with `spell.prepared: 2` at level 3, 5, 7 and 9. Those arrive through the system's own
+  advancement, not the spells step, so check on level-up that they land as prepared and are not offered again as picks.
+- **Name lookups must choose among copies that fit the world's rules.** A spell name exists in several editions and packs;
+  take the copy that fits (rules and enabled pack) before de-duplicating by name. Creation had this bug once.
+- **Feat prerequisites need the character's level** when a feat choice appears at level 4, 8 and so on; the check in
+  `advancement/simulate.mjs` reads the clone's level, so it should follow automatically, but test it.
+
 ## Similar modules (reference only)
 - "Character Builder" (dnd5e-character-builder). Shawn tried it and didn't like it.
 - plaksiy/foundry-charecter-creator; Simple DnD5e Character Creator (IainFielding).

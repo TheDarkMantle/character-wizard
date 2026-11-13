@@ -108,4 +108,9 @@ describe("expandedSpellNames", () => {
       + "</tbody></table>";
     expect(expandedSpellNames(fiend)).toEqual(["burning hands", "command", "blindness/deafness", "scorching ray"]);
   });
+
+  it("picks the copy that fits, not the first one with that name", () => {
+    const spells = [{ name: "Dissonant Whispers", rules: "2024" }, { name: "Dissonant Whispers", rules: "2014" }];
+    expect(spellsNamed(spells, ["dissonant whispers"], s => s.rules === "2014")).toEqual([spells[1]]);
+  });
 });

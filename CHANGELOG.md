@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Fixed: the Great Old One's expanded spells were still missing.** A spell name usually exists in both a 2014 and a 2024 version. The wizard looked up each name, took the first copy it met, and then dropped it if it was the other edition's, so the 2014 Dissonant Whispers never made it in. It now chooses among the copies that fit the world's rules.
 - **Fixed: the SRD Fiend patron's expanded spells still weren't offered.** The system's own patron lists link each spell (`@UUID[...]{Burning Hands}`), and the wizard read the whole link as the name. It now uses the link's label, so the Fiend's Burning Hands and Command (and the others as you gain levels) are offered, as the Great Old One's already were.
 - **Fixed: monster attacks listed as simple weapons.** Monster modules store attacks and traits as weapon items ("Wind Blast", "Bell", "Big Meaty Feast"). A Warlock's "any simple weapon" pick listed them. Weapons that don't name a kind of weapon (the base item every real weapon has) are no longer treated as gear, in the pick lists or when matching a pack's contents.
 ## 0.7.9

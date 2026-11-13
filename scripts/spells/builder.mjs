@@ -44,6 +44,7 @@ export function classSpells(identifier, ruleset) {
 export function expandedSpells(clone, ruleset) {
   const registry = dnd5e.registry.spellLists;
   const found = [];
+  const fits = i => matchesRules({ rules: rulesFor(i) }, ruleset.rules, ruleset.untagged) && inEnabledPack(i.uuid);
   // The system's subclass spell lists, for a subclass that has one.
   for ( const subclass of clone.items.filter(i => i.type === "subclass") ) {
     const id = subclass.system.identifier || subclass.identifier;
@@ -58,9 +59,9 @@ export function expandedSpells(clone, ruleset) {
   if ( names.length ) {
     const everything = registry.options.filter(o => o.type === "class").flatMap(o => registry.forType(o.value)?.indexes ?? []);
     const world = game.items.filter(i => i.type === "spell");
-    found.push(...spellsNamed([...everything, ...world], names));
+    // Among the copies that fit the world's rules: the 2024 Dissonant Whispers must not hide the 2014 one.
+    found.push(...spellsNamed([...everything, ...world], names, fits));
   }
-  const fits = i => matchesRules({ rules: rulesFor(i) }, ruleset.rules, ruleset.untagged) && inEnabledPack(i.uuid);
   return uniqueByName(found.filter(fits));
 }
 

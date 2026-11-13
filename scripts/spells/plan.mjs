@@ -105,13 +105,19 @@ export function expandedSpellNames(html) {
   return [...new Set(names)];
 }
 
-/** The spells whose names are in a list of keys, one per name. */
-export function spellsNamed(spells, keys) {
+/**
+ * The spells whose names are in a list of keys, one per name.
+ * @param {{ name: string }[]} spells
+ * @param {string[]} keys
+ * @param {(spell: object) => boolean} [accept]  Which copies are allowed. A name often exists in both the 2014 and 2024
+ *   versions, so the choice has to be made among the copies that fit, not after taking the first one.
+ */
+export function spellsNamed(spells, keys, accept = () => true) {
   const wanted = new Set(keys);
   const found = new Map();
   for ( const spell of spells ) {
     const key = spellKey(spell.name);
-    if ( wanted.has(key) && !found.has(key) ) found.set(key, spell);
+    if ( wanted.has(key) && !found.has(key) && accept(spell) ) found.set(key, spell);
   }
   return [...found.values()];
 }

@@ -120,9 +120,11 @@ function rankOf(entry, { rules, packOrder }) {
  * @param {string} [options.untagged]
  * @param {string[]} [options.packOrder]       Compendium ids, highest priority first.
  * @param {string[]} [options.anyRulesPacks]   Compendiums offered whatever their rules tag says.
+ * @param {Record<string, string>} [options.canonical]  Each base item's standard name ("spear" → "Spear"), from the
+ *   system. Items sharing a base item ("Jade Dagger", "Wooden Staff") are variants; the one with the standard name wins.
  * @returns {GearEntry[]}  Sorted by name.
  */
-export function pickCandidates(gear, { category, key = "", rules, untagged = "show", packOrder = [], anyRulesPacks = [] }) {
+export function pickCandidates(gear, { category, key = "", rules, untagged = "show", packOrder = [], anyRulesPacks = [], canonical = {} }) {
   const any = new Set(anyRulesPacks);
   // Copies of one base item (the Spear in the SRD, the 2024 book and the imports), and its variants.
   const groups = new Map();
@@ -133,13 +135,15 @@ export function pickCandidates(gear, { category, key = "", rules, untagged = "sh
     if ( !groups.has(id) ) groups.set(id, []);
     groups.get(id).push(entry);
   }
+  const flat = name => slugify(name ?? "").replace(/-/g, "");
   const best = [];
   for ( const entries of groups.values() ) {
-    // Variants share the base item ("Silvered Spear", a monster's "Shadowsteel Spear"). The item itself has the shortest
-    // name, so only those compete, and a variant can't take the place of the real one.
-    const length = Math.min(...entries.map(e => slugify(e.name).replace(/-/g, "").length));
-    const plain = entries.filter(e => slugify(e.name).replace(/-/g, "").length === length);
-    best.push(plain.reduce((a, b) => (rankOf(b, { rules, packOrder }) < rankOf(a, { rules, packOrder }) ? b : a)));
+    // Variants share the base item ("Jade Dagger" and "Wooden Staff" are daggers and quarterstaffs too). The item with
+    // the standard name competes first, so a variant can't take its place just because its pack ranks higher.
+    const standard = flat(canonical[entries[0].baseItem]);
+    const named = standard ? entries.filter(e => flat(e.name) === standard) : [];
+    const pool = named.length ? named : entries;
+    best.push(pool.reduce((a, b) => (rankOf(b, { rules, packOrder }) < rankOf(a, { rules, packOrder }) ? b : a)));
   }
   return best.sort((a, b) => a.name.localeCompare(b.name));
 }

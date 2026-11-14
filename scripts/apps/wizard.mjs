@@ -304,8 +304,12 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         .sort((a, b) => a.name.localeCompare(b.name));
     }
     const { packOrder, anyRulesPacks } = this.#sourceOrder();
+    // The system's standard name for each base item ("spear" → "Spear"), to tell the item from its variants.
+    const ids = { ...CONFIG.DND5E.toolIds, ...CONFIG.DND5E.armorIds, ...CONFIG.DND5E.weaponIds };
+    const canonical = Object.fromEntries(Object.entries(ids)
+      .map(([id, uuid]) => [id, fromUuidSync(uuid)?.name]).filter(([, name]) => name));
     return pickCandidates(await this.#gearList(), {
-      category, key, rules: this.rules, untagged: getSetting("untaggedContent"), packOrder, anyRulesPacks
+      category, key, rules: this.rules, untagged: getSetting("untaggedContent"), packOrder, anyRulesPacks, canonical
     }).map(g => ({ uuid: g.uuid, name: g.name }));
   }
 

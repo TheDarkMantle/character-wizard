@@ -104,24 +104,34 @@ describe("monster attacks stored as weapons", () => {
 });
 
 describe("variants of one base item", () => {
-  const spear = (name, rules, extra = {}) => ({
-    ...raw(name, "weapon", { type: { value: "simpleM", baseItem: "spear" }, source: { rules }, ...extra })
+  const weapon = (name, baseItem, rules = "2014") => raw(name, "weapon", { type: { value: "simpleM", baseItem }, source: { rules } });
+  const list = (items, options = {}) => pickCandidates(items.map(([r, p]) => normalizeGear(r, pack(p))), {
+    category: "weapon", key: "sim", rules: "2014", canonical: { spear: "Spear", dagger: "Dagger", quarterstaff: "Quarterstaff" }, ...options
   });
 
-  it("offers the plain item, not a variant that shares its base item and ranks better", () => {
-    const gear = [
-      normalizeGear(spear("Shadowsteel Spear", "2014"), pack("tob2")),
-      normalizeGear(spear("Spear", "2014"), pack("srd")),
-      normalizeGear(spear("Spear", "2024"), pack("ddb"))
-    ];
-    // The variant's pack comes first in the GM's order, which used to be enough to take the Spear's place.
-    const list = pickCandidates(gear, { category: "weapon", key: "sim", rules: "2014", packOrder: ["tob2", "srd", "ddb"] });
-    expect(list.map(g => g.name)).toEqual(["Spear"]);
-    expect(list[0].pack).toBe("srd");
+  it("offers the standard item, not a variant that shares its base item and ranks better", () => {
+    const result = list([
+      [weapon("Shadowsteel Spear", "spear"), "tob2"], [weapon("Spear", "spear"), "srd"], [weapon("Spear", "spear", "2024"), "ddb"]
+    ], { packOrder: ["tob2", "srd", "ddb"] });
+    expect(result.map(g => g.name)).toEqual(["Spear"]);
+    expect(result[0].pack).toBe("srd");
   });
 
-  it("still picks the best-ranked copy of the plain item", () => {
-    const gear = [normalizeGear(spear("Spear", "2014"), pack("a")), normalizeGear(spear("Spear", "2014"), pack("b"))];
-    expect(pickCandidates(gear, { category: "weapon", key: "sim", rules: "2014", packOrder: ["b", "a"] })[0].pack).toBe("b");
+  it("does not mistake a shorter-named variant for the item", () => {
+    const result = list([
+      [weapon("Wooden Staff", "quarterstaff"), "a"], [weapon("Quarterstaff", "quarterstaff"), "b"],
+      [weapon("Jade Dagger", "dagger"), "a"], [weapon("Dagger", "dagger"), "b"]
+    ], { packOrder: ["a", "b"] });
+    expect(result.map(g => g.name)).toEqual(["Dagger", "Quarterstaff"]);
+  });
+
+  it("still picks the best-ranked copy of the standard item", () => {
+    const result = list([[weapon("Spear", "spear"), "a"], [weapon("Spear", "spear"), "b"]], { packOrder: ["b", "a"] });
+    expect(result[0].pack).toBe("b");
+  });
+
+  it("falls back to every entry when the standard item isn't available", () => {
+    const result = list([[weapon("Wooden Staff", "quarterstaff"), "a"]], { canonical: { quarterstaff: "Quarterstaff" } });
+    expect(result.map(g => g.name)).toEqual(["Wooden Staff"]);
   });
 });

@@ -86,17 +86,20 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
    `https://github.com/TheDarkMantle/character-wizard/releases/latest/download/module.json`.
 - Commit author: Shawn <darkmantle@gmail.com>.
 
-## Status (2026-11-06)
-- v0.7.10 released. Creation is complete for 2014 and 2024: class, species, background, choices, ability scores, equipment
-  (auto-equipped armor and weapons), spells, personality and details.
-- **Verified by Shawn in Foundry:** 2014 and 2024 builds, proficiency greying, ability scores, the equipment step and packs,
-  the spells step, full HP on Create, Warlock invocations filtered by prerequisites, auto-equip, the Class choices step.
+## Status (2026-11-13)
+- v0.7.10 released; v0.7.11 pending (weapon pick lists no longer let variants replace Dagger, Quarterstaff or Spear; a class
+  with no equipment list shows its described equipment as a reminder).
+- **Verified by Shawn in Foundry:** every 2014 class builds correctly (the `docs/TEST-MATRIX.md` pass), including the
+  Apothecary; 2014 and 2024 builds, proficiency greying, ability scores, equipment and packs, spells (and a patron's expanded
+  list), full HP on Create, Warlock invocations filtered by prerequisites, auto-equip, the Class choices step.
+- Known data gap: the D&D Beyond Artificer (TCoE) has an empty `startingEquipment`; the wizard shows the described list as a
+  reminder only. Fixing the compendium item would only help Shawn's own world, so he left it.
 - The SRD 5.2 license lock (`hide-in-embed`) is hidden by CSS in the wizard; Shawn is fine with that since nothing is redistributed.
-- Not yet confirmed: the personality and details steps (0.7.0), tested as a player on blank sheets.
+- Not yet confirmed: the personality and details steps (0.7.0), tested as a player on blank sheets; the 2024 matrix.
 - dnd5e 6.0 renamed an advancement's `title` to `name`. Read `name` (see `advancement/naming.mjs`).
 
 ## Next
-1. Test the personality and details steps (tables from the background, rolling, Other, alignment).
+1. Run the same class matrix for 2024 rules, and test the personality and details steps as a player.
 2. Tasha's languages and proficiency swaps (see `docs/PLAN.md`).
 3. Players without Create Actor permission build onto a GM-provided blank actor.
 4. Later: level-up from the sheet (see "Level-up: things to watch" in `docs/PLAN.md`: patron spells in both editions), including multiclassing. Shawn also wants the wizard to **notice a level-up and open

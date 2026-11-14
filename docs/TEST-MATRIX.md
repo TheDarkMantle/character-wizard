@@ -1,5 +1,7 @@
 # Test matrix: 2014 rules
 
+Status: the 2014 pass is complete (2026-11-13); every class built correctly, including the Apothecary. A 2024 pass is next.
+
 One build per class, with species and backgrounds chosen so that, between them, the builds exercise every kind of choice
 the wizard handles. The pairings do not need to make sense. Tick a row when the whole build passes.
 

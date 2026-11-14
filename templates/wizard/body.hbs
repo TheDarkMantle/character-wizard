@@ -246,6 +246,12 @@
       <h3>{{title}}</h3>
       {{#if empty}}<p class="charwiz-empty">{{localize "CHARWIZ.Equipment.None"}}</p>{{/if}}
       {{#if noChoices}}<p class="hint charwiz-no-choices">{{localize "CHARWIZ.Equipment.NoChoices" kind=kind}}</p>{{/if}}
+      {{#if noList}}
+      <div class="charwiz-no-list">
+        <p class="hint">{{localize "CHARWIZ.Equipment.NoList"}}</p>
+        <ul>{{#each noList}}<li>{{this}}</li>{{/each}}</ul>
+      </div>
+      {{/if}}
 
       {{#each decisions}}
       <fieldset class="charwiz-eq-decision">
@@ -403,6 +409,11 @@
   {{/if}}
   <p class="hint">{{localize "CHARWIZ.Review.Scope"}}</p>
   {{#if blocker}}<p class="charwiz-blocker" role="status">{{localize blocker}}</p>{{/if}}
+  {{#if classGear.length}}
+  <hr class="charwiz-divider">
+  <div class="charwiz-manual-gear"><i class="fa-solid fa-circle-info" inert></i>
+    <div><p>{{localize "CHARWIZ.Review.ClassGear"}}</p><ul>{{#each classGear}}<li>{{this}}</li>{{/each}}</ul></div></div>
+  {{/if}}
   {{#if manualGear.length}}
   <hr class="charwiz-divider">
   <p class="charwiz-manual-gear"><i class="fa-solid fa-circle-info" inert></i>

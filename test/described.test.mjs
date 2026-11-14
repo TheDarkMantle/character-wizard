@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describedItems } from "../scripts/equipment/described.mjs";
+import { classEquipmentLines, describedItems } from "../scripts/equipment/described.mjs";
 
 const sage = "<dl><dt><strong>Equipment:</strong> A bottle of black ink, a quill, a small knife, a letter from a dead colleague posing a question you have not yet been able to answer, a set of common clothes, and a pouch containing 10 gp</dt></dl>";
 
@@ -47,5 +47,21 @@ describe("describedItems", () => {
     const hermit = "<p><strong>Equipment:</strong> A scroll case stuffed full of notes from your studies or prayers, a winter blanket, a set of common clothes, an herbalism kit, and 5 gp</p>";
     expect(describedItems(hermit, ["Blanket, Winter", "Common Clothes", "Herbalism Kit"]).map(i => i.name))
       .toEqual(["Scroll case stuffed full of notes from your studies or prayers"]);
+  });
+});
+
+describe("classEquipmentLines", () => {
+  const artificer = '<ul>\n<li>earlier list item</li>\n</ul>\n\n<h1>Starting Equipment</h1>\n<p>You start with the following equipment, in addition to the equipment granted by your background:</p>\n<ul>\n<li>any two simple weapons of your choice</li>\n<li>a light crossbow and 20 bolts</li>\n<li>your choice of studded leather armor or scale mail</li>\n<li>thieves\u2019 tools and a dungeoneer\u2019s pack</li>\n</ul>\n<p>If you forgo this starting equipment, you start with 5d4 \u00d7 10 gp.</p>\n<h2>Next</h2><ul><li>not equipment</li></ul>';
+
+  it("reads the list under the Starting Equipment heading", () => {
+    expect(classEquipmentLines(artificer)).toEqual([
+      "any two simple weapons of your choice", "a light crossbow and 20 bolts",
+      "your choice of studded leather armor or scale mail", "thieves\u2019 tools and a dungeoneer\u2019s pack"
+    ]);
+  });
+
+  it("finds nothing without the heading or a list", () => {
+    expect(classEquipmentLines("<p>No equipment here</p>")).toEqual([]);
+    expect(classEquipmentLines("<h1>Starting Equipment</h1><p>Just text.</p><h2>Next</h2><ul><li>x</li></ul>")).toEqual([]);
   });
 });

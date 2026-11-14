@@ -77,3 +77,27 @@ export function describedItems(html, have = []) {
   }
   return result;
 }
+
+/**
+ * The lines of a class' "Starting Equipment" list, for a class whose data has no structured equipment (imports of
+ * Tasha's Artificer, for one). The text is only shown to the player as a reminder; it is never turned into items.
+ * @param {string} html  The class' description.
+ * @returns {string[]}
+ */
+export function classEquipmentLines(html) {
+  const text = String(html ?? "");
+  // The heading itself, since the words also turn up in running text ("if you forgo this starting equipment").
+  const heading = text.search(/<h\d[^>]*>\s*starting equipment/i);
+  const at = (heading === -1) ? text.search(/starting equipment/i) : heading;
+  if ( at === -1 ) return [];
+  // From the heading to the next heading: the list in between is the equipment.
+  const next = text.slice(at + 20).search(/<h\d/i);
+  const body = (next === -1) ? text.slice(at) : text.slice(at, at + 20 + next);
+  const list = body.match(/<(ul|ol)[\s>][\s\S]*?<\/\1>/i)?.[0] ?? "";
+  const lines = Array.from(list.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi), m => plainText(m[1])).filter(Boolean);
+  return lines.slice(0, 12);
+}
+
+function plainText(fragment) {
+  return String(fragment).replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+}

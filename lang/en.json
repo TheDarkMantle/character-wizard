@@ -65,6 +65,7 @@
     },
     "Review": {
       "Feature": "Feature (from the description)",
+      "ClassGear": "Your class lists this starting equipment, which the wizard can't add. Add it on your sheet:",
       "ManualGear": "Your background also lists these, which the wizard can't add as items. Add them on your sheet if you want them:",
       "Deferred": "Not handled by the wizard yet:",
       "Scope": "This builds your class, species and background features, your choices, your ability scores, your starting equipment and, for a spellcaster, your cantrips and spells."
@@ -248,6 +249,7 @@
       "From": "From your {source}: {name}",
       "None": "This gives no starting equipment.",
       "NoChoices": "No choices from this {kind}. The equipment it provides is in the list below.",
+      "NoList": "This class has no equipment list in its data, so the wizard can't offer choices or add items. Its description gives the starting equipment below. Add it on the sheet after creation, or take the starting gold instead.",
       "ChooseOne": "Choose one",
       "Choose": "Choose {kind}:",
       "AnyOf": "any {kind}",

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Classes with no equipment list.** The Artificer imported from D&D Beyond has no starting equipment in its data (only the 5d4 × 10 gp alternative), so the equipment step offered nothing and the character got nothing. The step now says so and shows the equipment list from the class description as a reminder, the Review step lists it above the Create button, and taking the gold still works. Items are never created from that text.
 - **Fixed: variants could take the standard weapon's place in the pick lists.** "Jade Dagger", "Wooden Staff" and others share a base item with the Dagger and the Quarterstaff, and when their pack ranked better they replaced them: "any simple melee weapon" had no Dagger, Quarterstaff or Spear. Each base item's standard name now comes from the system (weapons, armor and tools), and the item with that name is offered; variants only appear when the standard one isn't available.
 ## 0.7.10
 

@@ -9,7 +9,7 @@ import { customArray, getSetting } from "../settings.mjs";
 import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../equipment/starting.mjs";
 import { pickCandidates } from "../equipment/gear.mjs";
 import { backgroundFeature } from "../content/background-feature.mjs";
-import { describedItems } from "../equipment/described.mjs";
+import { classEquipmentLines, describedItems } from "../equipment/described.mjs";
 import {
   BIO_KINDS, BIO_MAX, classifyTable, composeValue, entryForRoll, rollFormula as tableRollFormula, tableEntries, tableLinks, togglePick
 } from "../content/background-tables.mjs";
@@ -334,6 +334,13 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     return { lines, currency };
   }
 
+  /** What a class' description lists as starting equipment when its data has no list, unless the player takes gold. */
+  #classGear(eq) {
+    const plan = eq.plans.class;
+    if ( !plan || plan.source.entries.length || plan.plan.gold ) return [];
+    return classEquipmentLines(plan.source.description);
+  }
+
   /**
    * Things a 2014 background's text lists that the wizard can't add: a trinket, a letter, a token. They have no item to
    * link, and guessing items out of prose adds junk, so the player is reminded to add them by hand.
@@ -406,10 +413,13 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       const goldToggle = (!modern && plan.goldFormula)
         ? { checked: !!state.gold, label: game.i18n.format("CHARWIZ.Equipment.GoldInstead", { formula: source.wealth }) } : null;
       const empty = !source.entries.length && !source.wealth;
+      // A class whose data has no equipment list (some imports): show what its description says, as a reminder only.
+      const noList = (!source.entries.length && (step === "class")) ? classEquipmentLines(source.description) : [];
       sections.push({
         step,
         // Nothing to decide: the equipment is simply given, and the list below shows it.
-        noChoices: !empty && !decisions.length && !picks.length && !goldToggle,
+        noChoices: !empty && !decisions.length && !picks.length && !goldToggle && !noList.length,
+        noList: noList.length ? noList : null,
         kind: game.i18n.localize(`CHARWIZ.Steps.${step}`).toLowerCase(),
         title: game.i18n.format("CHARWIZ.Equipment.From", { source: game.i18n.localize(`CHARWIZ.Steps.${step}`), name: source.name }),
         empty,
@@ -699,6 +709,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       context.deferred = this.deferred;
       const inventory = await this.#inventory(eq);
       context.manualGear = this.#manualGear(eq, inventory);
+      context.classGear = this.#classGear(eq);
       context.equipmentLine = this.#inventoryLine(inventory);
       context.equipmentNotes = this.#inventoryNotes(inventory);
       context.abilityLine = this.#abilitiesReady()

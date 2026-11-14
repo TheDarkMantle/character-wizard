@@ -87,8 +87,8 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 - Commit author: Shawn <darkmantle@gmail.com>.
 
 ## Status (2026-11-13)
-- v0.7.10 released; v0.7.11 pending (weapon pick lists no longer let variants replace Dagger, Quarterstaff or Spear; a class
-  with no equipment list shows its described equipment as a reminder).
+- v0.7.11 released (weapon pick lists no longer let variants replace Dagger, Quarterstaff or Spear; a class with no
+  equipment list shows its described equipment as a reminder).
 - **Verified by Shawn in Foundry:** every 2014 class builds correctly (the `docs/TEST-MATRIX.md` pass), including the
   Apothecary; 2014 and 2024 builds, proficiency greying, ability scores, equipment and packs, spells (and a patron's expanded
   list), full HP on Create, Warlock invocations filtered by prerequisites, auto-equip, the Class choices step.

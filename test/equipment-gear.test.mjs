@@ -102,3 +102,26 @@ describe("monster attacks stored as weapons", () => {
     expect(rankedGear(gear, { rules: "2014" }).map(g => g.name)).toEqual(["Club"]);
   });
 });
+
+describe("variants of one base item", () => {
+  const spear = (name, rules, extra = {}) => ({
+    ...raw(name, "weapon", { type: { value: "simpleM", baseItem: "spear" }, source: { rules }, ...extra })
+  });
+
+  it("offers the plain item, not a variant that shares its base item and ranks better", () => {
+    const gear = [
+      normalizeGear(spear("Shadowsteel Spear", "2014"), pack("tob2")),
+      normalizeGear(spear("Spear", "2014"), pack("srd")),
+      normalizeGear(spear("Spear", "2024"), pack("ddb"))
+    ];
+    // The variant's pack comes first in the GM's order, which used to be enough to take the Spear's place.
+    const list = pickCandidates(gear, { category: "weapon", key: "sim", rules: "2014", packOrder: ["tob2", "srd", "ddb"] });
+    expect(list.map(g => g.name)).toEqual(["Spear"]);
+    expect(list[0].pack).toBe("srd");
+  });
+
+  it("still picks the best-ranked copy of the plain item", () => {
+    const gear = [normalizeGear(spear("Spear", "2014"), pack("a")), normalizeGear(spear("Spear", "2014"), pack("b"))];
+    expect(pickCandidates(gear, { category: "weapon", key: "sim", rules: "2014", packOrder: ["b", "a"] })[0].pack).toBe("b");
+  });
+});

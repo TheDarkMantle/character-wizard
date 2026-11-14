@@ -124,15 +124,24 @@ function rankOf(entry, { rules, packOrder }) {
  */
 export function pickCandidates(gear, { category, key = "", rules, untagged = "show", packOrder = [], anyRulesPacks = [] }) {
   const any = new Set(anyRulesPacks);
-  const best = new Map();
+  // Copies of one base item (the Spear in the SRD, the 2024 book and the imports), and its variants.
+  const groups = new Map();
   for ( const entry of gear ) {
     if ( !entry.mundane || !inCategory(entry, category, key) ) continue;
     if ( !any.has(entry.pack) && !matchesRules(entry, rules, untagged) ) continue;
     const id = `${entry.type}:${entry.baseItem || entry.identifier || slugify(entry.name)}`;
-    const current = best.get(id);
-    if ( !current || (rankOf(entry, { rules, packOrder }) < rankOf(current, { rules, packOrder })) ) best.set(id, entry);
+    if ( !groups.has(id) ) groups.set(id, []);
+    groups.get(id).push(entry);
   }
-  return [...best.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const best = [];
+  for ( const entries of groups.values() ) {
+    // Variants share the base item ("Silvered Spear", a monster's "Shadowsteel Spear"). The item itself has the shortest
+    // name, so only those compete, and a variant can't take the place of the real one.
+    const length = Math.min(...entries.map(e => slugify(e.name).replace(/-/g, "").length));
+    const plain = entries.filter(e => slugify(e.name).replace(/-/g, "").length === length);
+    best.push(plain.reduce((a, b) => (rankOf(b, { rules, packOrder }) < rankOf(a, { rules, packOrder }) ? b : a)));
+  }
+  return best.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**

@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: a variant could take a plain weapon's place in the pick lists.** Weapons that share a base item ("Spear" and a monster module's "Shadowsteel Spear") were treated as copies of one item, and the better-ranked one won, so the Spear could be missing from "any simple weapon". Only the item with the plain (shortest) name now competes for each base item, then the usual pack ranking decides.
 ## 0.7.10
 
 - **Fixed: the Great Old One's expanded spells were still missing.** A spell name usually exists in both a 2014 and a 2024 version. The wizard looked up each name, took the first copy it met, and then dropped it if it was the other edition's, so the 2014 Dissonant Whispers never made it in. It now chooses among the copies that fit the world's rules.

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.18
 
 - **Fixed: the D&D Beyond Fighter offered only the Paladin's and Ranger's Fighting Styles.** The imported Fighter's Fighting Style asks for class features that are Fighting Styles, and the only ones are Blessed Warrior and Druidic Warrior, which belong to other classes. When Fighting Style feats exist (Archery, Defense and the others), that choice now offers them instead.
 

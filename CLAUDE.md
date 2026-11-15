@@ -87,7 +87,7 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 - Commit author: Shawn <darkmantle@gmail.com>.
 
 ## Status (2026-11-13)
-- v0.7.12 released (a 2024 class or background with no gold amount in its data gets its "or (B) 75 GP" option read from
+- v0.7.13 released (a 2024 background whose feat grant is empty gets its described feat). v0.7.12: a 2024 class or background with no gold amount in its data gets its "or (B) 75 GP" option read from
   the description). v0.7.11: weapon pick lists no longer let variants replace Dagger, Quarterstaff or Spear; a class with
   no equipment list shows its described equipment as a reminder. Testing now happens in the local "Dev Testing" world;
   the 2024 matrix is `docs/TEST-MATRIX-2024.md` (build 1, Barbarian, found the gold gap).

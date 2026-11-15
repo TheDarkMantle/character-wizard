@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.13
 
 - **Fixed: a D&D Beyond 2024 background showed "Feat" with no feat, and never granted it.** The import's feat grant is empty, but its description names the feat ("Feat: Tough", "Feat: Musician"). The wizard now reads that line, finds the feat among the enabled compendiums (an origin feat first), and puts it in the grant, so it shows in the "You get" box, its own choices (Magic Initiate spells, Skilled skills) are asked, and Create adds it. The Barbarian built from the Farmer background had no Tough for this reason.
 

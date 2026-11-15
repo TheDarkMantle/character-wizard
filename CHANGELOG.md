@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.14
 
 - **Fixed: a feature that asks which ability casts its spell granted no spell.** The Tiefling's legacy (Fire Bolt) and any feature of that kind (Magic Initiate's spells, other lineages) asked for the casting ability, then added nothing, because the system only grants the items it is handed once an ability is given. The wizard now hands over the items with the ability.
 

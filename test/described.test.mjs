@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classEquipmentLines, describedItems } from "../scripts/equipment/described.mjs";
+import { classEquipmentLines, describedGold, describedItems } from "../scripts/equipment/described.mjs";
 
 const sage = "<dl><dt><strong>Equipment:</strong> A bottle of black ink, a quill, a small knife, a letter from a dead colleague posing a question you have not yet been able to answer, a set of common clothes, and a pouch containing 10 gp</dt></dl>";
 
@@ -63,5 +63,21 @@ describe("classEquipmentLines", () => {
   it("finds nothing without the heading or a list", () => {
     expect(classEquipmentLines("<p>No equipment here</p>")).toEqual([]);
     expect(classEquipmentLines("<h1>Starting Equipment</h1><p>Just text.</p><h2>Next</h2><ul><li>x</li></ul>")).toEqual([]);
+  });
+});
+
+describe("describedGold", () => {
+  it("reads the gold option of a 2024 class", () => {
+    const html = "<td><em>Choose A or B:</em> (A) Greataxe, 4 Handaxes, Explorer\u2019s Pack, and 15 GP; or (B) 75 GP</td>";
+    expect(describedGold(html)).toBe("75");
+  });
+
+  it("takes the last option and strips thousands separators", () => {
+    expect(describedGold("Choose A, B or C: (A) Chain Mail, 4 GP; (B) Studded Leather, 11 GP; or (C) 1,155 GP")).toBe("1155");
+  });
+
+  it("ignores a gold amount that is part of an equipment option", () => {
+    expect(describedGold("(A) Sickle and 30 GP; or (B) Sickle and 50 GP")).toBe("");
+    expect(describedGold("<p>Nothing here</p>")).toBe("");
   });
 });

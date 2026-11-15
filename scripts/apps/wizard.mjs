@@ -9,7 +9,7 @@ import { customArray, getSetting } from "../settings.mjs";
 import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../equipment/starting.mjs";
 import { pickCandidates } from "../equipment/gear.mjs";
 import { backgroundFeature } from "../content/background-feature.mjs";
-import { classEquipmentLines, describedItems } from "../equipment/described.mjs";
+import { classEquipmentLines, describedGold, describedItems } from "../equipment/described.mjs";
 import {
   BIO_KINDS, BIO_MAX, classifyTable, composeValue, entryForRoll, rollFormula as tableRollFormula, tableEntries, tableLinks, togglePick
 } from "../content/background-tables.mjs";
@@ -191,6 +191,10 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
         description: item.system.description?.value ?? ""
       } : null;
       if ( source && (step === "background") ) source = await this.#withPouchGold(source);
+      // A 2024 import that states the gold option only in its description ("or (B) 75 GP").
+      if ( source && !source.wealth && isModernStyle({ rules: source.rules, worldRules: this.rules }) ) {
+        source = { ...source, wealth: describedGold(source.description) };
+      }
       this.equipmentSources.set(pick.uuid, source);
     }
     return this.equipmentSources.get(pick.uuid);

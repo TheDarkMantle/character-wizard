@@ -98,6 +98,18 @@ export function classEquipmentLines(html) {
   return lines.slice(0, 12);
 }
 
+/**
+ * The gold a 2024 class or background offers in place of its equipment, when the data lacks it (`wealth` is empty) but
+ * the description states it: "Choose A or B: (A) Greataxe ...; or (B) 75 GP". Only an option that is nothing but gold counts.
+ * @param {string} html  The class' or background's description.
+ * @returns {string}  The amount ("75"), or "" when the description has none.
+ */
+export function describedGold(html) {
+  const text = plainText(String(html ?? ""));
+  const found = Array.from(text.matchAll(/\bor \(([A-D])\)\s*([\d,]+)\s*GP\b/gi), m => m[2].replace(/,/g, ""));
+  return found.at(-1) ?? "";
+}
+
 function plainText(fragment) {
   return String(fragment).replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
 }

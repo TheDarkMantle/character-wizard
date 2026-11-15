@@ -7,9 +7,9 @@ of choice the 2024 wizard handles. The pairings do not need to make sense. Tick 
 
 Test world: the local **Dev Testing** world (Foundry 14.370, dnd5e 6.1.0, checked through the Foundry MCP on 2026-11-14;
 this is newer than the verified 14.368 and 6.0.6, so a failure may be a version difference). Set the dnd5e *Rules Version*
-setting to the 2024 rules (`modern`) first. The 2024 classes, species, backgrounds and feats come from the system packs
-`dnd5e.classes24`, `dnd5e.origins24` and `dnd5e.feats24`. The D&D Beyond import packs hold 2024 copies of some of them too;
-where a name exists in both, the wizard offers the copy from the higher-priority pack (Configure content), so a second
+setting to the 2024 rules (`modern`) first. The system packs `dnd5e.classes24`, `dnd5e.origins24` and `dnd5e.feats24` hold
+only the SRD 5.2 subset (for example 4 backgrounds: Acolyte, Criminal, Sage, Soldier). The rest, such as Farmer, exists only in
+the D&D Beyond import packs, whose data differs (the Barbarian build used the DDB class). Where a name exists in both, the wizard offers the copy from the higher-priority pack (Configure content), so a second
 pass with the priorities swapped covers the other copy.
 
 2024 order of the wizard: class, background, species. The background carries the +2/+1 (or +1/+1/+1) ability bonus and an

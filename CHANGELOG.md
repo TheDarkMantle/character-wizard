@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.15
 
 - **Fixed: Magic Initiate never asked which ability casts its spells.** The feat lets you choose Intelligence, Wisdom or Charisma, but when it sat on a background (Acolyte, Sage, Guide) the wizard didn't ask and the system used the first, Intelligence, for its cantrips and spell. The feat's choices now include "Spellcasting Ability", one answer for all of its spells.
 

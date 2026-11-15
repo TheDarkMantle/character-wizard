@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.16
 
 - **Fixed: the SRD Acolyte (and any source granting the generic Magic Initiate) offered spells from every list.** The system's Magic Initiate is open to the Cleric, Druid and Wizard lists, and the SRD Acolyte grants it without fixing one, though its text says "Magic Initiate (Cleric)". The wizard now reads the list from that text and restricts the cantrips and the level 1 spell to it. When a source names no list (a Human's Versatile origin feat), the feat's choices include a "Spell list" pick, and the cantrips and spell then come from that one list, as the rules say.
 

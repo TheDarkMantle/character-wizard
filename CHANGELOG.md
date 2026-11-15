@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.12
 
 - **Fixed: no choice between equipment and gold for a 2024 class with no gold amount in its data.** The D&D Beyond Barbarian lists its equipment but not the 75 GP alternative, so the equipment step showed no choice. When a 2024 class or background has no gold amount, the wizard now reads the "or (B) 75 GP" option from its description. Only an option that is nothing but gold is read.
 

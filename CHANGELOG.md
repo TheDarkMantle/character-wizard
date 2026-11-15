@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: Magic Initiate never asked which ability casts its spells.** The feat lets you choose Intelligence, Wisdom or Charisma, but when it sat on a background (Acolyte, Sage, Guide) the wizard didn't ask and the system used the first, Intelligence, for its cantrips and spell. The feat's choices now include "Spellcasting Ability", one answer for all of its spells.
+
 ## 0.7.14
 
 - **Fixed: a feature that asks which ability casts its spell granted no spell.** The Tiefling's legacy (Fire Bolt) and any feature of that kind (Magic Initiate's spells, other lineages) asked for the casting ability, then added nothing, because the system only grants the items it is handed once an ability is given. The wizard now hands over the items with the ability.

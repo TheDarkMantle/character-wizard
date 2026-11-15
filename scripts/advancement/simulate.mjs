@@ -178,10 +178,21 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
           }
           options = uuids.map(u => optionFor(u, title));
         }
+        // Magic Initiate and the like: "Intelligence, Wisdom, or Charisma is your spellcasting ability". One answer covers
+        // every spell the feat grants, so the slot belongs to the feat, not to one of its advancements.
+        let ability;
+        const abilities = (config.type === "spell") ? Array.from(config.spell?.ability ?? []) : [];
+        if ( abilities.length > 1 ) {
+          const abilityKey = `${owner}:${itemId}:ability`;
+          addSlot({ ...base, title: `${item.name}: ${localize("CHARWIZ.Naming.CastingAbility")}`, key: abilityKey, kind: "ability",
+            count: 1, options: abilities.map(value => ({ value, label: CONFIG.DND5E.abilities[value]?.label ?? value })) });
+          ability = (selections[abilityKey] ?? []).find(v => abilities.includes(v));
+        }
         const key = keyFor("");
         addSlot({ ...base, key, kind: "item", count, options });
         const chosen = (selections[key] ?? []).filter(v => options.some(o => o.value === v));
-        return chosen.length >= count ? { selected: chosen.slice(0, count) } : false;
+        if ( (abilities.length > 1) && !ability ) return false;
+        return chosen.length >= count ? { selected: chosen.slice(0, count), ability } : false;
       }
 
       case "Trait": {

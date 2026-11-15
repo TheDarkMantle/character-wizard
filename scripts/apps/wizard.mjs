@@ -9,6 +9,7 @@ import { customArray, getSetting } from "../settings.mjs";
 import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../equipment/starting.mjs";
 import { pickCandidates } from "../equipment/gear.mjs";
 import { backgroundFeature } from "../content/background-feature.mjs";
+import { describedFeatName, featUuidNamed, fillEmptyFeatGrants } from "../content/background-feat.mjs";
 import { classEquipmentLines, describedGold, describedItems } from "../equipment/described.mjs";
 import {
   BIO_KINDS, BIO_MAX, classifyTable, composeValue, entryForRoll, rollFormula as tableRollFormula, tableEntries, tableLinks, togglePick
@@ -1135,7 +1136,12 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( !item ) return null;
     const TextEditor = foundry.applications.ux.TextEditor.implementation;
     const isClass = item.type === "class";
-    const board = buildBoard(item.toObject().system.advancement ?? [], {
+    const advancement = item.toObject().system.advancement ?? [];
+    if ( item.type === "background" ) {
+      const feat = featUuidNamed(this.catalogData?.byType.feat ?? [], describedFeatName(item.system.description?.value));
+      if ( feat ) fillEmptyFeatGrants(advancement, feat);
+    }
+    const board = buildBoard(advancement, {
       fromLevel: isClass ? 1 : 0,
       toLevel: 1,
       itemType: item.type

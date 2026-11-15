@@ -6,6 +6,7 @@ import {
 import { isDraconicAncestry, stripTitlePrefix, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { featPrerequisites, matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
 import { isCaster, spellSlots } from "../spells/builder.mjs";
+import { describedFeatName, featUuidNamed } from "../content/background-feat.mjs";
 import { mergePrerequisites, textPrerequisites } from "../content/feat-prerequisites.mjs";
 
 /** Prerequisites of a feat by UUID: the system's data merged with the line in its description. Read once per feat. */
@@ -347,7 +348,10 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
     const document = await fromUuid(pick.uuid);
     if ( !document ) continue;
     source = step;
-    await engine.addItem(document, { levels: 1 });
+    // An import's background can have an empty feat grant while its description names the feat.
+    const featUuid = (document.type === "background")
+      ? featUuidNamed(catalog.byType.feat ?? [], describedFeatName(document.system.description?.value)) : null;
+    await engine.addItem(document, { levels: 1, featUuid });
   }
   // The spells step: what the class picks, worked out from the finished clone (slots, ability scores, what's held).
   for ( const slot of spellSlots({ clone: engine.clone, selections, ruleset }) ) addSlot(slot);

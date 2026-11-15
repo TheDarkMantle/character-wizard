@@ -1,3 +1,5 @@
+import { fillEmptyFeatGrants } from "../content/background-feat.mjs";
+
 /**
  * Headless advancement engine (prototype).
  *
@@ -41,10 +43,12 @@ export class HeadlessAdvancer {
    * @param {Item5e} source        Compendium or world item.
    * @param {object} [options]
    * @param {number} [options.levels=1]  For classes: how many class levels to add.
+   * @param {string} [options.featUuid]  A background's origin feat, for an import whose feat grant is empty.
    * @returns {Promise<Item5e>}    The item on the clone.
    */
-  async addItem(source, { levels = 1 } = {}) {
+  async addItem(source, { levels = 1, featUuid } = {}) {
     const data = foundry.utils.deepClone(game.items.fromCompendium(source, { keepId: false }));
+    if ( featUuid ) fillEmptyFeatGrants(data.system.advancement, featUuid);
     data._id = foundry.utils.randomID();
     foundry.utils.setProperty(data, "flags.dnd5e.sourceId", source.uuid);
 

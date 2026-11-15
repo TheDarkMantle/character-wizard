@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: a feature that asks which ability casts its spell granted no spell.** The Tiefling's legacy (Fire Bolt) and any feature of that kind (Magic Initiate's spells, other lineages) asked for the casting ability, then added nothing, because the system only grants the items it is handed once an ability is given. The wizard now hands over the items with the ability.
+
 ## 0.7.13
 
 - **Fixed: a D&D Beyond 2024 background showed "Feat" with no feat, and never granted it.** The import's feat grant is empty, but its description names the feat ("Feat: Tough", "Feat: Musician"). The wizard now reads that line, finds the feat among the enabled compendiums (an origin feat first), and puts it in the grant, so it shows in the "You get" box, its own choices (Magic Initiate spells, Skilled skills) are asked, and Create adds it. The Barbarian built from the Farmer background had no Tough for this reason.

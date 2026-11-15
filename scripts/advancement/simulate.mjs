@@ -262,7 +262,8 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
           ability = (selections[abilityKey] ?? []).find(v => abilities.includes(v));
           if ( !ability ) return false;
         }
-        if ( !optionalItems.length ) return ability ? { ability } : null;
+        // With an ability chosen the system no longer grants the items by itself: `apply` takes only what it is given.
+        if ( !optionalItems.length ) return ability ? { ability, selected: items.map(i => i.uuid) } : null;
         const key = keyFor("");
         const options = optionalItems.map(i => optionFor(i.uuid));
         addSlot({ ...base, key, kind: "optional-item", count: 0, max: options.length, options });

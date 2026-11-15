@@ -151,6 +151,21 @@ export function featsMatching(feats, restriction = {}, character = null) {
 }
 
 /**
+ * The restriction to search feats with. The D&D Beyond Fighter's Fighting Style asks for class features that are Fighting
+ * Styles, not for Fighting Style feats, and the only class features of that kind are the Paladin's Blessed Warrior and the
+ * Ranger's Druidic Warrior. When general Fighting Style feats exist, they are what a choice with no list of its own means.
+ * @param {{ type?: string, subtype?: string }} restriction
+ * @param {object[]} feats  Catalog feat entries.
+ */
+export function fightingStyleRestriction(restriction = {}, feats = []) {
+  if ( (restriction.type === "class") && (restriction.subtype === "fightingStyle") ) {
+    const general = { ...restriction, type: "feat" };
+    if ( featsMatching(feats, general).length ) return general;
+  }
+  return restriction;
+}
+
+/**
  * The identifiers of what a character has, in the forms a feat's prerequisites use: "pact-of-the-blade" and
  * "feat:pact-of-the-blade". Takes any iterable of items, including Foundry's embedded collections, which are not arrays.
  * @param {Iterable<{ type: string, identifier?: string, system?: { identifier?: string } }>} items

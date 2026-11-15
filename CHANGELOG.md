@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: the D&D Beyond Fighter offered only the Paladin's and Ranger's Fighting Styles.** The imported Fighter's Fighting Style asks for class features that are Fighting Styles, and the only ones are Blessed Warrior and Druidic Warrior, which belong to other classes. When Fighting Style feats exist (Archery, Defense and the others), that choice now offers them instead.
+
 ## 0.7.17
 
 - **Changed: the shield is equipped when there is a one-handed or versatile melee weapon.** Before, any two-handed weapon in the gear (a Druid's Shortbow beside a Sickle and a Quarterstaff) kept the shield off. The shield is now equipped when the character has a one-handed or versatile melee weapon to hold, since that is the weapon they would use with it. With only a two-handed melee weapon, or only a bow, it stays off.

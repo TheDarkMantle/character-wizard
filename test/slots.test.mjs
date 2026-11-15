@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  adjustPoints, createBlocker, featsMatching, groupTraitSlots, heldIdentifiers, meetsPrerequisites, picksRemaining, pruneSelections, spellsMatching, standardPoints, tally, toggleSelection, traitGroups, uniqueByName
+  adjustPoints, createBlocker, featsMatching, fightingStyleRestriction, groupTraitSlots, heldIdentifiers, meetsPrerequisites, picksRemaining, pruneSelections, spellsMatching, standardPoints, tally, toggleSelection, traitGroups, uniqueByName
 } from "../scripts/advancement/slots.mjs";
 
 const slot = (key, count, values, extra = {}) => ({ key, count, options: values.map(value => ({ value, label: value })), ...extra });
@@ -245,5 +245,30 @@ describe("heldIdentifiers", () => {
     const held = heldIdentifiers(collection.values());
     expect([...held].sort()).toEqual(["class:warlock", "feat:pact-of-the-blade", "pact-of-the-blade", "warlock"]);
     expect(() => heldIdentifiers(collection.values())).not.toThrow();
+  });
+});
+
+describe("fightingStyleRestriction", () => {
+  const feats = [
+    { name: "Archery", featType: "feat", featSubtype: "fightingStyle" },
+    { name: "Blessed Warrior", featType: "class", featSubtype: "fightingStyle" },
+    { name: "Druidic Warrior", featType: "class", featSubtype: "fightingStyle" }
+  ];
+
+  it("reads an import's class-typed Fighting Style as the Fighting Style feats", () => {
+    const restriction = fightingStyleRestriction({ type: "class", subtype: "fightingStyle" }, feats);
+    expect(featsMatching(feats, restriction).map(f => f.name)).toEqual(["Archery"]);
+  });
+
+  it("keeps the restriction when there are no general Fighting Style feats", () => {
+    const only = feats.slice(1);
+    const restriction = fightingStyleRestriction({ type: "class", subtype: "fightingStyle" }, only);
+    expect(featsMatching(only, restriction).map(f => f.name)).toEqual(["Blessed Warrior", "Druidic Warrior"]);
+  });
+
+  it("leaves every other restriction alone", () => {
+    const restriction = { type: "feat", subtype: "fightingStyle" };
+    expect(fightingStyleRestriction(restriction, feats)).toBe(restriction);
+    expect(fightingStyleRestriction({ type: "feat", subtype: "origin" }, feats)).toEqual({ type: "feat", subtype: "origin" });
   });
 });

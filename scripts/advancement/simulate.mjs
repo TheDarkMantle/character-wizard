@@ -1,6 +1,6 @@
 import { HeadlessAdvancer } from "./apply.mjs";
 import {
-  featsMatching, groupTraitSlots, heldIdentifiers, meetsPrerequisites, spellsMatching, standardPoints, tally, traitGroups, uniqueByName,
+  featsMatching, fightingStyleRestriction, groupTraitSlots, heldIdentifiers, meetsPrerequisites, spellsMatching, standardPoints, tally, traitGroups, uniqueByName,
   withoutBlocked
 } from "./slots.mjs";
 import { isDraconicAncestry, stripTitlePrefix, traitOptionLabel, traitTitleKey } from "./naming.mjs";
@@ -186,8 +186,9 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
           try { character = characterNow(); } catch(err) { console.warn("character-wizard | Could not read the character for prerequisites", err); }
           if ( !uuids.length ) {
             // The index already knows level and item requirements, which also covers lists too long to read one by one.
-            const all = featsMatching(catalog.byType.feat, config.restriction);
-            const fit = character ? featsMatching(catalog.byType.feat, config.restriction, character) : all;
+            const restriction = fightingStyleRestriction(config.restriction, catalog.byType.feat);
+            const all = featsMatching(catalog.byType.feat, restriction);
+            const fit = character ? featsMatching(catalog.byType.feat, restriction, character) : all;
             uuids = (fit.length ? fit : all).map(f => f.uuid);
           }
           try {

@@ -26,12 +26,30 @@ describe("itemsToEquip", () => {
     expect([...itemsToEquip(items)]).toEqual(["c"]);
   });
 
-  it("leaves the shield off when a weapon is two-handed", () => {
+  it("leaves the shield off when the only melee weapon is two-handed", () => {
     const items = [
       gear("a", "equipment", "shield"), gear("b", "weapon", "martialM", { properties: ["hvy", "two"] }),
       gear("c", "equipment", "heavy")
     ];
     expect([...itemsToEquip(items)].sort()).toEqual(["b", "c"]);
+  });
+
+  it("leaves the shield off with only a bow", () => {
+    const items = [gear("a", "equipment", "shield"), gear("b", "weapon", "simpleR", { properties: ["amm", "two"] })];
+    expect([...itemsToEquip(items)]).toEqual(["b"]);
+  });
+
+  it("keeps the shield when a one-handed melee weapon is there beside a bow or a two-handed weapon", () => {
+    const sickle = gear("s", "weapon", "simpleM", { properties: ["lgt"] });
+    const bow = gear("b", "weapon", "simpleR", { properties: ["amm", "two"] });
+    const greatsword = gear("g", "weapon", "martialM", { properties: ["hvy", "two"] });
+    const shield = gear("h", "equipment", "shield");
+    expect([...itemsToEquip([shield, bow, sickle])].sort()).toEqual(["b", "h", "s"]);
+    expect([...itemsToEquip([shield, greatsword, sickle])].sort()).toEqual(["g", "h", "s"]);
+  });
+
+  it("equips a shield held with no weapons at all", () => {
+    expect([...itemsToEquip([gear("a", "equipment", "shield")])]).toEqual(["a"]);
   });
 
   it("keeps the shield with versatile and one-handed weapons", () => {

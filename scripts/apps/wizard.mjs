@@ -878,6 +878,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( this.descriptions.has(cacheKey) ) return this.descriptions.get(cacheKey);
     const info = (kind === "trait") ? await this.#describeTrait(value)
       : (kind === "size") ? { name: CONFIG.DND5E.actorSizes[value]?.label ?? value, description: "" }
+        : (kind === "list") ? { name: dnd5e.registry.spellLists.forType(value)?.name ?? value, description: "" }
         : ["asi", "ability"].includes(kind) ? {
           name: CONFIG.DND5E.abilities[value]?.label ?? value, kind: game.i18n.localize("CHARWIZ.Choices.AbilityScore"),
           description: ""

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  expandedSpellNames, greyHeld, heldNames, highestSpellLevel, offerUnlisted, planSpells, spellKey, spellsBetween, spellsNamed
+  expandedSpellNames, grantedSpellList, greyHeld, heldNames, highestSpellLevel, offerUnlisted, planSpells, spellKey, spellsBetween, spellsNamed
 } from "../scripts/spells/plan.mjs";
 
 describe("planSpells", () => {
@@ -112,5 +112,19 @@ describe("expandedSpellNames", () => {
   it("picks the copy that fits, not the first one with that name", () => {
     const spells = [{ name: "Dissonant Whispers", rules: "2024" }, { name: "Dissonant Whispers", rules: "2014" }];
     expect(spellsNamed(spells, ["dissonant whispers"], s => s.rules === "2014")).toEqual([spells[1]]);
+  });
+});
+
+describe("grantedSpellList", () => {
+  const lists = ["class:cleric", "class:druid", "class:wizard"];
+  it("reads the list a background names for a generic feat", () => {
+    const html = "<p><strong>Feat:</strong> @UUID[Compendium.dnd5e.feats24.Item.phbftMagicInitia]{Magic Initiate} (Cleric)</p>";
+    expect(grantedSpellList(html, "Magic Initiate", lists)).toBe("class:cleric");
+    expect(grantedSpellList("<p>Feat: Magic Initiate (Wizard)</p>", "Magic Initiate", lists)).toBe("class:wizard");
+  });
+  it("is null when no list is named or the list isn't allowed", () => {
+    expect(grantedSpellList("<p>Feat: Magic Initiate</p>", "Magic Initiate", lists)).toBeNull();
+    expect(grantedSpellList("<p>Feat: Magic Initiate (Bard)</p>", "Magic Initiate", lists)).toBeNull();
+    expect(grantedSpellList(undefined, "Magic Initiate", lists)).toBeNull();
   });
 });

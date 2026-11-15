@@ -6,6 +6,7 @@ import {
 import { isDraconicAncestry, stripTitlePrefix, traitOptionLabel, traitTitleKey } from "./naming.mjs";
 import { featPrerequisites, matchesRules, rulesFor, subclassesFor } from "../content/catalog-logic.mjs";
 import { isCaster, spellSlots } from "../spells/builder.mjs";
+import { grantedSpellList } from "../spells/plan.mjs";
 import { describedFeatName, featUuidNamed } from "../content/background-feat.mjs";
 import { mergePrerequisites, textPrerequisites } from "../content/feat-prerequisites.mjs";
 
@@ -145,6 +146,7 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
       case "ItemChoice": {
         const count = config.choices[level]?.count ?? 0;
         if ( !count ) return false;
+        let listPending = false;
         const pool = config.pool.map(p => p.uuid);
         const title = ownTitle || item.name;
         let options;
@@ -157,7 +159,24 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
             if ( !(klass && isCaster(klass)) ) deferred.add(`${item.name}: ${ownTitle || advancement.name}`);
             return false;
           }
-          options = pool.length ? pool.map(u => optionFor(u, title)) : spellOptions(config.restriction);
+          // A generic feat open to several spell lists (Magic Initiate) takes one list for all its spells: the one its
+          // source names ("Magic Initiate (Cleric)"), or else the player's choice.
+          let restriction = config.restriction;
+          const lists = Array.from(restriction?.list ?? []);
+          if ( !pool.length && (lists.length > 1) ) {
+            const ownerType = { background: "background", species: "race", class: "class" }[owner];
+            const sourceItem = ownerType && engine.clone.items.find(i => i.type === ownerType);
+            let list = grantedSpellList(sourceItem?.system.description?.value, item.name, lists);
+            if ( !list ) {
+              const listKey = `${owner}:${itemId}:list`;
+              addSlot({ ...base, title: `${item.name}: ${localize("CHARWIZ.Naming.SpellList")}`, key: listKey, kind: "list", count: 1,
+                options: lists.map(value => ({ value, label: dnd5e.registry.spellLists.forType(value)?.name ?? value })) });
+              list = (selections[listKey] ?? []).find(v => lists.includes(v));
+            }
+            if ( list ) restriction = { ...restriction, list: [list] };
+            else listPending = true;
+          }
+          options = pool.length ? pool.map(u => optionFor(u, title)) : spellOptions(restriction);
           if ( !options ) { deferred.add(`${item.name}: ${ownTitle || advancement.name}`); return false; }
         } else {
           // The pool is the class' own list (the Warlock's invocations are all in it) or, when empty, a search by
@@ -188,6 +207,8 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
             count: 1, options: abilities.map(value => ({ value, label: CONFIG.DND5E.abilities[value]?.label ?? value })) });
           ability = (selections[abilityKey] ?? []).find(v => abilities.includes(v));
         }
+        // The spells themselves wait for the list: choosing from every list at once would mix them.
+        if ( listPending ) return false;
         const key = keyFor("");
         addSlot({ ...base, key, kind: "item", count, options });
         const chosen = (selections[key] ?? []).filter(v => options.some(o => o.value === v));

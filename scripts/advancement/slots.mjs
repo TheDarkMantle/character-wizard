@@ -19,7 +19,7 @@
  * @property {"class"|"species"|"background"} source  Which picker step it belongs to.
  * @property {string} itemName   Item whose advancement asks (a class, species, or a feat it granted).
  * @property {string} title      Advancement title, for example "Primal Order".
- * @property {"item"|"trait"|"size"|"optional-item"|"subclass"|"ability"|"asi"} kind
+ * @property {"item"|"trait"|"size"|"optional-item"|"subclass"|"ability"|"list"|"asi"} kind
  * @property {number} count      Picks required.
  * @property {number} [max]      Upper bound when more than `count` picks are allowed (optional grants).
  * @property {string[]} [defaultSelection]  Selection a slot starts with (the standard racial increases, one entry per point).

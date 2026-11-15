@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: the SRD Acolyte (and any source granting the generic Magic Initiate) offered spells from every list.** The system's Magic Initiate is open to the Cleric, Druid and Wizard lists, and the SRD Acolyte grants it without fixing one, though its text says "Magic Initiate (Cleric)". The wizard now reads the list from that text and restricts the cantrips and the level 1 spell to it. When a source names no list (a Human's Versatile origin feat), the feat's choices include a "Spell list" pick, and the cantrips and spell then come from that one list, as the rules say.
+
 ## 0.7.15
 
 - **Fixed: Magic Initiate never asked which ability casts its spells.** The feat lets you choose Intelligence, Wisdom or Charisma, but when it sat on a background (Acolyte, Sage, Guide) the wizard didn't ask and the system used the first, Intelligence, for its cantrips and spell. The feat's choices now include "Spellcasting Ability", one answer for all of its spells.

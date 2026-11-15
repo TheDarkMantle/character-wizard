@@ -121,3 +121,19 @@ export function spellsNamed(spells, keys, accept = () => true) {
   }
   return [...found.values()];
 }
+
+/**
+ * The spell list a source fixes for a generic feat it grants. The SRD's Acolyte grants "Magic Initiate" with every list open
+ * but says "Magic Initiate (Cleric)" in its text.
+ * @param {string} html       The granting background's (or species') description.
+ * @param {string} featName   The feat's name ("Magic Initiate").
+ * @param {string[]} lists    The lists the feat allows ("class:cleric", ...).
+ * @returns {string|null}     One of `lists`, or null when the text names none.
+ */
+export function grantedSpellList(html, featName, lists = []) {
+  const text = String(html ?? "").replace(/@UUID\[[^\]]*\](?:\{([^}]*)\})?/g, "$1").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  const escaped = String(featName).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const named = text.match(new RegExp(`${escaped}\\s*\\(([A-Za-z]+)\\)`, "i"))?.[1];
+  const id = named && `class:${named.toLowerCase()}`;
+  return (id && lists.includes(id)) ? id : null;
+}

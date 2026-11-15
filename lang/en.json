@@ -206,6 +206,7 @@
         "mixed": "Proficiencies"
       },
       "CastingAbility": "Spellcasting ability",
+      "SpellList": "Spell list",
       "AbilityScoreIncrease": "Ability Score Increase",
       "AnotherOfKind": "{kind}: you already have these, choose another"
     },

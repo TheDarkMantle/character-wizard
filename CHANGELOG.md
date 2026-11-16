@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.21
 
 - **Added: a Review reminder for items an import leaves out.** A 2024 class or background imported from D&D Beyond sometimes lacks an item its own text lists: the Guide has no Quiver, the Wizard no Spellbook. The Review step now lists any item named in the "(A)" equipment text that the character didn't get, so you can add it by hand. Picks (a focus, a gaming set, an instrument) and money are never listed, and nothing is created from the text. It is not shown when you took the gold instead.
 

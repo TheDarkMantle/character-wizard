@@ -891,10 +891,38 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
   async #describeItem(uuid) {
     const item = await fromUuid(uuid);
     if ( !item ) return null;
+    const text = item.system.description?.value;
+    if ( item.type !== "spell" ) return { name: item.name, img: item.img, description: await this.#enrich(text, item) };
     return {
       name: item.name, img: item.img,
-      description: await this.#enrich(item.system.description?.value, item)
+      kind: [item.labels?.level, item.labels?.school].filter(Boolean).join(" · "),
+      description: await this.#enrich(this.#spellDetails(item) + (text ?? ""), item)
     };
+  }
+
+  /**
+   * The facts a player weighs when picking a spell: casting time, range, components, duration, whether it is a ritual
+   * or needs concentration, which classes have it, and a link to the spell itself.
+   * @param {Item5e} spell
+   * @returns {string}  HTML.
+   */
+  #spellDetails(spell) {
+    const labels = spell.labels ?? {};
+    const yes = key => game.i18n.localize(spell.system.properties?.has(key) ? "CHARWIZ.Spells.Info.Yes" : "CHARWIZ.Spells.Info.No");
+    const classes = Array.from(labels.classes ?? []);
+    const rows = [
+      ["CastingTime", labels.ritualActivation || labels.activation],
+      ["Range", labels.range],
+      ["Components", labels.components?.full],
+      ["Duration", labels.concentrationDuration || labels.duration],
+      ["Ritual", yes("ritual")],
+      ["Concentration", yes("concentration")],
+      ["Classes", classes.length ? game.i18n.getListFormatter({ type: "unit" }).format(classes) : ""]
+    ].filter(([, value]) => value);
+    const list = rows.map(([key, value]) => `<div><dt>${game.i18n.localize(`CHARWIZ.Spells.Info.${key}`)}</dt>`
+      + `<dd>${Handlebars.escapeExpression(value)}</dd></div>`).join("");
+    const link = `<p class="charwiz-spell-link">@UUID[${spell.uuid}]{${game.i18n.localize("CHARWIZ.Spells.Info.Open")}}</p>`;
+    return `<dl class="charwiz-spell-info">${list}</dl>${link}`;
   }
 
   /** Describe a trait key such as "skills:ath", "weapon:mar:longsword" or "tool:art:smith". */

@@ -134,6 +134,18 @@
       }
     },
     "Spells": {
+      "Info": {
+        "CastingTime": "Casting time",
+        "Range": "Range",
+        "Components": "Components",
+        "Duration": "Duration",
+        "Ritual": "Ritual",
+        "Concentration": "Concentration",
+        "Classes": "Classes",
+        "Yes": "Yes",
+        "No": "No",
+        "Open": "Open the spell"
+      },
       "Cantrip": "Cantrip",
       "Level": "Level {level}",
       "Cantrips": "Cantrips",

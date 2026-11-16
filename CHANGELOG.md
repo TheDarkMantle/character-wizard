@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Added: spell details in the spell picker.** Clicking a spell (the spells step, a feat's or species' spell picks) shows its level and school, then casting time, range, components (with the material), duration, whether it is a ritual, whether it needs concentration, and which classes have it, above its text, with a link that opens the spell.
+
 - **Added: a weapon's mastery is explained when you look at it.** Clicking a weapon in a Weapon Mastery pick (or any weapon proficiency) shows the weapon's text and, under it, "Weapon mastery: Nick" with the system's rules text for that mastery. If the rules page can't be read, the mastery's name links to it instead.
 
 ## 0.7.18

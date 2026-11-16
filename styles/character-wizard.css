@@ -213,4 +213,11 @@
   .charwiz .hide-in-embed { display: none !important; }
   /* Anything like an icon that slips through stays icon-sized. */
   .charwiz .charwiz-description svg, .charwiz .charwiz-description .fa-lock { max-width: 2rem; max-height: 2rem; font-size: 1.25rem; }
+
+  /* A spell's casting time, range, components and duration, above its text. */
+  .charwiz .charwiz-spell-info { display: grid; grid-template-columns: max-content 1fr; gap: 0.15rem 0.75rem; margin: 0 0 0.5rem; }
+  .charwiz .charwiz-spell-info > div { display: contents; }
+  .charwiz .charwiz-spell-info dt { font-weight: bold; opacity: 0.8; }
+  .charwiz .charwiz-spell-info dd { margin: 0; }
+  .charwiz .charwiz-spell-link { margin: 0 0 0.5rem; font-size: var(--font-size-12); }
 }

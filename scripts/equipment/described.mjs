@@ -78,6 +78,49 @@ export function describedItems(html, have = []) {
   return result;
 }
 
+/** Items the equipment step offers as a pick, or that name a kind of item and not one in particular. */
+const isCategory = phrase => /focus|holy symbol|gaming set|musical instrument|artisan|\bor\b|\bany\b|your choice|same as above/i.test(phrase);
+
+/** A word without its plural: "pouches" and "pouch", "daggers" and "dagger". */
+const stem = word => word.replace(/(ch|sh|ss)es$/, "$1").replace(/s$/, "");
+
+/** The words of an item name that identify it. */
+const keywords = text => new Set(String(text).toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+  .filter(w => w.length > 2 && !["the", "and", "set", "kit", "pair", "sheets", "sheet", "pints", "flasks", "days"].includes(w)).map(stem));
+
+/** The item an equipment phrase names, without its count or notes: "20 Arrows" and "Book (history)" -> "Arrows", "Book". */
+function itemOf(phrase) {
+  return phrase.replace(/@UUID\[[^\]]*\](?:\{([^}]*)\})?/g, "$1").replace(/&Reference\[[^\]]*\](?:\{[^}]*\})?/g, "")
+    .replace(/\([^)]*\)/g, "").replace(/^\s*\d+\s*/, "").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * The items a 2024 class or background names in its "(A) ..." equipment text that the character's inventory doesn't have.
+ * Imports sometimes leave one out of their data (a Guide without its Quiver, a Wizard without its Spellbook), and the text
+ * is the only place the omission shows. Picks the equipment step offers (a focus, a gaming set, an instrument) are not
+ * missing; money is not an item. Nothing is ever created from this: it is a reminder.
+ * @param {string} html            The class' or background's description.
+ * @param {Iterable<string>} have  Names of the items the character got, packs' contents included.
+ * @returns {string[]}  The missing items as the text names them.
+ */
+export function missingItems(html, have = []) {
+  const text = String(html ?? "").replace(/<\/(p|dt|dd|li|div|h\d|td|th|tr)>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&");
+  const option = text.match(/\(A\)\s*([^;\n]+)/)?.[1];
+  if ( !option ) return [];
+  const owned = Array.from(have, name => keywords(name));
+  const missing = [];
+  for ( const phrase of splitPhrases(option) ) {
+    if ( isMoney(phrase) || /\b\d+\s*gp\b/i.test(phrase) || isCategory(phrase) ) continue;
+    const name = itemOf(phrase);
+    const wanted = keywords(name);
+    if ( !wanted.size ) continue;
+    const found = owned.some(o => [...wanted].every(w => o.has(w)) || ([...o].length && [...o].every(w => wanted.has(w))));
+    if ( !found && !missing.includes(name) ) missing.push(name);
+  }
+  return missing;
+}
+
 /**
  * The lines of a class' "Starting Equipment" list, for a class whose data has no structured equipment (imports of
  * Tasha's Artificer, for one). The text is only shown to the player as a reminder; it is never turned into items.

@@ -66,6 +66,7 @@
     "Review": {
       "Feature": "Feature (from the description)",
       "ClassGear": "Your class lists this starting equipment, which the wizard can't add. Add it on your sheet:",
+      "MissingGear": "The text of your class or background lists these items, but their data doesn't include them, so they aren't on your sheet. Add them if you want them:",
       "ManualGear": "Your background also lists these, which the wizard can't add as items. Add them on your sheet if you want them:",
       "Deferred": "Not handled by the wizard yet:",
       "Scope": "This builds your class, species and background features, your choices, your ability scores, your starting equipment and, for a spellcaster, your cantrips and spells."

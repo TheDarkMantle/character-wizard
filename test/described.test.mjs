@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classEquipmentLines, describedGold, describedItems } from "../scripts/equipment/described.mjs";
+import { classEquipmentLines, describedGold, describedItems, missingItems } from "../scripts/equipment/described.mjs";
 
 const sage = "<dl><dt><strong>Equipment:</strong> A bottle of black ink, a quill, a small knife, a letter from a dead colleague posing a question you have not yet been able to answer, a set of common clothes, and a pouch containing 10 gp</dt></dl>";
 
@@ -79,5 +79,32 @@ describe("describedGold", () => {
   it("ignores a gold amount that is part of an equipment option", () => {
     expect(describedGold("(A) Sickle and 30 GP; or (B) Sickle and 50 GP")).toBe("");
     expect(describedGold("<p>Nothing here</p>")).toBe("");
+  });
+});
+
+describe("missingItems", () => {
+  const guide = "<p><strong>Equipment:</strong> <em>Choose A or B:</em> (A) Shortbow, 20 Arrows, Cartographer's Tools, Bedroll, Quiver, Tent, Traveler's Clothes, 3 GP; or (B) 50 GP</p>";
+  const wizard = "<tr><th>Starting Equipment</th><td><em>Choose A or B:</em> (A) 2 Daggers, Arcane Focus (Quarterstaff), Robe, Spellbook, Scholar\u2019s Pack, and 5 GP; or (B) 55 GP</td></tr>";
+
+  it("names an item the text lists and the data left out", () => {
+    const have = ["Shortbow", "Arrows", "Cartographer's Tools", "Bedroll", "Tent", "Traveler's Clothes"];
+    expect(missingItems(guide, have)).toEqual(["Quiver"]);
+  });
+
+  it("finds the Wizard's missing Spellbook and leaves the focus pick alone", () => {
+    const have = ["Dagger", "Staff", "Robe", "Scholar's Pack", "Book", "Lamp"];
+    expect(missingItems(wizard, have)).toEqual(["Spellbook"]);
+  });
+
+  it("is empty when every item is there, whatever the plural, order or count", () => {
+    const text = "<p>Equipment: Choose A or B: (A) 2 Pouches, Light Crossbow, 20 Bolts, Book (history), Healer's Kit, 12 GP; or (B) 50 GP</p>";
+    expect(missingItems(text, ["Pouch", "Pouch", "Crossbow, Light", "Bolts", "Book", "Healer's Kit"])).toEqual([]);
+  });
+
+  it("skips money and picks, and text that isn't in the (A) form", () => {
+    const text = "<p>Equipment: (A) Gaming Set (same as above), Holy Symbol, Musical Instrument or Artisan's Tools, 15 GP; or (B) 50 GP</p>";
+    expect(missingItems(text, [])).toEqual([]);
+    expect(missingItems("<p>Equipment: a dagger, a letter</p>", [])).toEqual([]);
+    expect(missingItems(undefined, [])).toEqual([]);
   });
 });

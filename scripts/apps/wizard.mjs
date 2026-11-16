@@ -10,7 +10,7 @@ import { describeNode, fixedGold, GOLD, isModernStyle, planEquipment } from "../
 import { pickCandidates } from "../equipment/gear.mjs";
 import { backgroundFeature } from "../content/background-feature.mjs";
 import { describedFeatName, featUuidNamed, fillEmptyFeatGrants } from "../content/background-feat.mjs";
-import { classEquipmentLines, describedGold, describedItems } from "../equipment/described.mjs";
+import { classEquipmentLines, describedGold, describedItems, missingItems } from "../equipment/described.mjs";
 import {
   BIO_KINDS, BIO_MAX, classifyTable, composeValue, entryForRoll, rollFormula as tableRollFormula, tableEntries, tableLinks, togglePick
 } from "../content/background-tables.mjs";
@@ -356,6 +356,19 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( !background || background.modern || background.plan.gold ) return [];
     const have = lines.flatMap(l => [l.name, ...(l.children ?? []).map(c => c.name)]);
     return describedItems(background.source.description, have).map(i => i.name);
+  }
+
+  /**
+   * Items a 2024 class or background names in its text that its data doesn't grant (an import without its Quiver or
+   * Spellbook). They are only listed, for the player to add by hand; nothing is created from the text.
+   * @returns {string[]}
+   */
+  #missingGear(eq, { lines }) {
+    const have = lines.flatMap(l => [l.name, ...(l.children ?? []).map(c => c.name)]);
+    const found = Object.values(eq.plans)
+      .filter(plan => plan.modern && !plan.plan.gold)
+      .flatMap(plan => missingItems(plan.source.description, have));
+    return [...new Set(found)];
   }
 
   /** "12 items and 15 gp", for the Review step. */
@@ -714,6 +727,7 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       context.deferred = this.deferred;
       const inventory = await this.#inventory(eq);
       context.manualGear = this.#manualGear(eq, inventory);
+      context.missingGear = this.#missingGear(eq, inventory);
       context.classGear = this.#classGear(eq);
       context.equipmentLine = this.#inventoryLine(inventory);
       context.equipmentNotes = this.#inventoryNotes(inventory);

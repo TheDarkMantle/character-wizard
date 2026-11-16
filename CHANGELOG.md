@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.19
 
 - **Added: spell details in the spell picker.** Clicking a spell (the spells step, a feat's or species' spell picks) shows its level and school, then casting time, range, components (with the material), duration, whether it is a ritual, whether it needs concentration, and which classes have it, above its text, with a link that opens the spell.
 

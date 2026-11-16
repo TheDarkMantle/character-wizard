@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Added: a weapon's mastery is explained when you look at it.** Clicking a weapon in a Weapon Mastery pick (or any weapon proficiency) shows the weapon's text and, under it, "Weapon mastery: Nick" with the system's rules text for that mastery. If the rules page can't be read, the mastery's name links to it instead.
+
 ## 0.7.18
 
 - **Fixed: the D&D Beyond Fighter offered only the Paladin's and Ranger's Fighting Styles.** The imported Fighter's Fighting Style asks for class features that are Fighting Styles, and the only ones are Blessed Warrior and Druidic Warrior, which belong to other classes. When Fighting Style feats exist (Archery, Defense and the others), that choice now offers them instead.

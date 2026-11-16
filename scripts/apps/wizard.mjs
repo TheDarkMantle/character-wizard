@@ -919,8 +919,30 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
     if ( item ) {
       info.img = item.img;
       info.description = await this.#enrich(item.system.description?.value, item);
+      if ( category === "weapon" ) info.description += await this.#masteryText(item.system.mastery);
     }
     return info;
+  }
+
+  /**
+   * What a weapon's mastery property does ("Nick"), from the system's rules page for it. If the page can't be read or
+   * has nothing to show, the mastery's name is a link to it.
+   * @param {string} [mastery]  The weapon's mastery key.
+   * @returns {Promise<string>}
+   */
+  async #masteryText(mastery) {
+    const rule = mastery && CONFIG.DND5E.weaponMasteries?.[mastery];
+    if ( !rule ) return "";
+    const name = game.i18n.localize(rule.label);
+    let body = "";
+    try {
+      const page = rule.reference ? await fromUuid(rule.reference) : null;
+      if ( page?.text?.content ) body = (await this.#enrich(page.text.content, page)).trim();
+    } catch(err) {
+      console.warn(`character-wizard | Could not read the rules page for ${mastery}`, err);
+    }
+    if ( !body ) body = rule.reference ? await this.#enrich(`<p>@UUID[${rule.reference}]{${name}}</p>`) : "";
+    return `<h4>${game.i18n.format("CHARWIZ.Choices.Mastery", { name })}</h4>${body}`;
   }
 
   async #enrich(html, relativeTo) {

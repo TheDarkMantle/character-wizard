@@ -155,6 +155,7 @@
       "SkillAbility": "Uses your {ability} modifier.",
       "Points": "spend {count} points, {spent} spent, up to {cap} on one ability",
       "AbilityScore": "Ability score",
+      "Mastery": "Weapon mastery: {name}",
       "Add": "Add a point to {ability}",
       "Remove": "Remove a point from {ability}",
       "Standard": "Standard: {default}. Spend the points below to change them.",

@@ -1,6 +1,6 @@
 # Test matrix: 2024 rules
 
-Status: not started. The 2014 pass is done (`docs/TEST-MATRIX.md`).
+Status: the 2024 pass is complete (2026-11-16); all twelve builds were made in the Dev Testing world and checked against the sheets, as the GM. Found and fixed along the way: equipment-or-gold for imports without a gold amount, empty background feat grants, casting ability for granted and chosen spells, the generic Magic Initiate's spell list, the shield rule, and the imported Fighter's Fighting Styles. Open: imports that lack a starting item (the Guide's Quiver, the Wizard's Spellbook), and testing as a player on blank sheets. The 2014 pass is done too (`docs/TEST-MATRIX.md`).
 
 One build per class (all twelve), with backgrounds and species chosen so that, between them, the builds exercise every kind
 of choice the 2024 wizard handles. The pairings do not need to make sense. Tick a row when the whole build passes.

@@ -97,11 +97,11 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
 - Known data gap: the D&D Beyond Artificer (TCoE) has an empty `startingEquipment`; the wizard shows the described list as a
   reminder only. Fixing the compendium item would only help Shawn's own world, so he left it.
 - The SRD 5.2 license lock (`hide-in-embed`) is hidden by CSS in the wizard; Shawn is fine with that since nothing is redistributed.
-- Not yet confirmed: the personality and details steps (0.7.0), tested as a player on blank sheets; the 2024 matrix.
+- Not yet confirmed: the personality and details steps (0.7.0), tested as a player on blank sheets; testing as a player on blank sheets. The 2024 class matrix passed (2026-11-16).
 - dnd5e 6.0 renamed an advancement's `title` to `name`. Read `name` (see `advancement/naming.mjs`).
 
 ## Next
-1. Run the same class matrix for 2024 rules, and test the personality and details steps as a player.
+1. Test the personality and details steps as a player, and the 2024 builds as a player on blank sheets. Maybe a Review reminder for imports that lack a starting item the description names (the Guide's Quiver, the Wizard's Spellbook).
 2. Tasha's languages and proficiency swaps (see `docs/PLAN.md`).
 3. Players without Create Actor permission build onto a GM-provided blank actor.
 4. Later: level-up from the sheet (see "Level-up: things to watch" in `docs/PLAN.md`: patron spells in both editions), including multiclassing. Shawn also wants the wizard to **notice a level-up and open

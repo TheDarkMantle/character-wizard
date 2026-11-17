@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.22
 
 - **Added: "Show it under 2014 rules only" for content without a rules version, now the default.** Homebrew and older content that isn't tagged 2014 or 2024 is almost always 2014, so the setting gains a third choice, offering it only in a 2014 world, and that is the default. "Show it under either ruleset" and "Hide it" are still there. A world that never changed the setting now follows the new default: untagged content stops appearing in a 2024 world until you pick "either ruleset".
 

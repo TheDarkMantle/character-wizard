@@ -59,6 +59,11 @@ describe("matchesRules", () => {
     expect(matchesRules({ rules: null }, "2024", "show")).toBe(true);
     expect(matchesRules({ rules: null }, "2024", "hide")).toBe(false);
   });
+  it("can show untagged content under 2014 only", () => {
+    expect(matchesRules({ rules: null }, "2014", "legacy")).toBe(true);
+    expect(matchesRules({ rules: null }, "2024", "legacy")).toBe(false);
+    expect(matchesRules({ rules: "2024" }, "2024", "legacy")).toBe(true);
+  });
 });
 
 describe("buildCatalog", () => {

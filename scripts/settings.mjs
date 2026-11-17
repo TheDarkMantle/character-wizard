@@ -82,8 +82,9 @@ export function registerSettings() {
     scope: "world",
     config: true,
     type: String,
-    default: UNTAGGED.SHOW,
+    default: UNTAGGED.LEGACY,
     choices: {
+      [UNTAGGED.LEGACY]: "CHARWIZ.Settings.Untagged.Legacy",
       [UNTAGGED.SHOW]: "CHARWIZ.Settings.Untagged.Show",
       [UNTAGGED.HIDE]: "CHARWIZ.Settings.Untagged.Hide"
     }

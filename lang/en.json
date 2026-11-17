@@ -108,7 +108,8 @@
       },
       "Untagged": {
         "Name": "Content without a rules version",
-        "Hint": "Some homebrew or older content isn't marked as 2014 or 2024. Choose whether the wizard offers it.",
+        "Hint": "Some homebrew or older content isn't marked as 2014 or 2024. Choose whether the wizard offers it. Older content is usually 2014, so that is the default.",
+        "Legacy": "Show it under 2014 rules only",
         "Show": "Show it under either ruleset",
         "Hide": "Hide it"
       },

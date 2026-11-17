@@ -95,10 +95,10 @@ export function normalizeEntry(raw, pack) {
  * Should this entry be offered under the given rules?
  * @param {CatalogEntry} entry
  * @param {"2014"|"2024"} rules
- * @param {string} untagged   UNTAGGED.SHOW or UNTAGGED.HIDE
+ * @param {string} untagged   What to do with content that has no rules tag: UNTAGGED.LEGACY (2014 only), SHOW (either) or HIDE.
  */
 export function matchesRules(entry, rules, untagged = UNTAGGED.SHOW) {
-  if ( entry.rules === null ) return untagged === UNTAGGED.SHOW;
+  if ( entry.rules === null ) return (untagged === UNTAGGED.SHOW) || ((untagged === UNTAGGED.LEGACY) && (rules === "2014"));
   return entry.rules === rules;
 }
 

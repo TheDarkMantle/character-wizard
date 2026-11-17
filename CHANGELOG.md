@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Added: "Show it under 2014 rules only" for content without a rules version, now the default.** Homebrew and older content that isn't tagged 2014 or 2024 is almost always 2014, so the setting gains a third choice, offering it only in a 2014 world, and that is the default. "Show it under either ruleset" and "Hide it" are still there. A world that never changed the setting now follows the new default: untagged content stops appearing in a 2024 world until you pick "either ruleset".
+
 ## 0.7.21
 
 - **Added: a Review reminder for items an import leaves out.** A 2024 class or background imported from D&D Beyond sometimes lacks an item its own text lists: the Guide has no Quiver, the Wizard no Spellbook. The Review step now lists any item named in the "(A)" equipment text that the character didn't get, so you can add it by hand. Picks (a focus, a gaming set, an instrument) and money are never listed, and nothing is created from the text. It is not shown when you took the gold instead.

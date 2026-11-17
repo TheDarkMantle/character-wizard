@@ -28,8 +28,9 @@ export const INDEX_FIELDS = Object.freeze([
   "system.rarities", "system.properties", "system.quantity"
 ]);
 
-/** What to do with content that has no 2014/2024 rules tag. */
+/** What to do with content that has no 2014/2024 rules tag. Older and homebrew content is usually 2014, so that is the default. */
 export const UNTAGGED = Object.freeze({
+  LEGACY: "legacy",
   SHOW: "show",
   HIDE: "hide"
 });

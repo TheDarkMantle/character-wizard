@@ -1,0 +1,19 @@
+<section class="tab {{tab.cssClass}}" data-tab="classes" data-group="main">
+  <p class="hint">{{localize "CHARWIZ.Settings.Content.ClassesHint"}}</p>
+  <ul class="charwiz-allow-list">
+    {{#each classes}}
+    <li>
+      <label>
+        <input type="checkbox" data-block-key="{{key}}" {{checked allowed}}>
+        <img src="{{img}}" alt="" width="24" height="24">
+        <span class="name">{{name}}</span>
+        <span class="meta">{{packLabel}}{{#if book}} · {{book}}{{/if}}</span>
+      </label>
+      <input type="text" class="charwiz-copy-label" data-label-key="{{key}}" data-auto="{{autoOrigin}}"
+             value="{{#if label}}{{label}}{{else}}{{autoOrigin}}{{/if}}" aria-label="{{localize 'CHARWIZ.Settings.Content.CopyLabel'}}">
+    </li>
+    {{else}}
+    <li class="charwiz-empty">{{localize "CHARWIZ.Settings.Content.NoClasses"}}</li>
+    {{/each}}
+  </ul>
+</section>

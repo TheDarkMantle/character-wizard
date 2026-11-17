@@ -1,6 +1,6 @@
 import { MODULE_ID, STEP_ORDER, TEMPLATE_PATH } from "../constants.mjs";
 import { worldRules } from "../content/catalog.mjs";
-import { groupSpecies, searchEntries } from "../content/catalog-logic.mjs";
+import { classDisplayNames, groupSpecies, searchEntries } from "../content/catalog-logic.mjs";
 import { buildBoard } from "../advancement/read.mjs";
 import { traitOptionLabel } from "../advancement/naming.mjs";
 import { blockedLanguageKeys } from "../content/languages.mjs";
@@ -813,11 +813,13 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
    */
   #pickerRows(step, picked) {
     // Content from a compendium the GM allowed under any rules can be the other edition: say so.
+    const list = this.catalogData.byType[PICKER_STEPS[step]];
+    // Classes offered from more than one compendium say which one ("Ranger (SRD)", "Ranger (DDB)").
+    const names = (step === "class") ? classDisplayNames(list) : new Map();
     const mark = e => ({
-      ...e, focused: e.uuid === this.focused, picked: e.uuid === picked,
+      ...e, name: names.get(e.uuid) ?? e.name, focused: e.uuid === this.focused, picked: e.uuid === picked,
       otherRules: (e.rules && (e.rules !== this.rules)) ? e.rules : ""
     });
-    const list = this.catalogData.byType[PICKER_STEPS[step]];
     if ( step !== "species" ) return searchEntries(list, this.query).map(e => ({ entry: mark(e) }));
 
     const query = this.query.trim().toLowerCase();
@@ -1219,7 +1221,8 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       uuid,
       name: item.name,
       img: item.img,
-      source: item.system.source?.label ?? "",
+      source: [item.system.source?.label, (item.type === "class") ? this.catalogData?.byType.class.find(e => e.uuid === uuid)?.origin : ""]
+        .filter(Boolean).join(" · "),
       description: await TextEditor.enrichHTML(item.system.description?.value ?? "", { relativeTo: item }),
       granted: [...board.granted.map(e => this.#labelEntry(e, hostId)), ...body],
       choices: board.choices.map(e => this.#labelEntry(e, hostId)),

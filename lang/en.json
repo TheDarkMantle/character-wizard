@@ -81,14 +81,18 @@
       "Content": {
         "Name": "Wizard Content",
         "Label": "Configure content",
-        "Hint": "Choose which compendiums the wizard uses, their priority, and which species and subclasses players can pick.",
+        "Hint": "Choose which compendiums the wizard uses, their priority, and which classes, species and subclasses players can pick.",
         "Tabs": {
           "Sources": "Sources",
+          "Classes": "Classes",
           "Species": "Species",
           "Subclasses": "Subclasses",
           "Languages": "Languages"
         },
         "SourcesHint": "Compendiums with D&D content. Unchecked compendiums are ignored. When the same option is in more than one compendium, the one higher in this list wins. This world uses {rules} rules. Content tagged for the other ruleset is hidden unless you tick Any rules version for its compendium.",
+        "ClassesHint": "Every copy of every class is listed, from every compendium. Uncheck a copy to hide it from players. When a class is available from more than one compendium, players see all the copies, named by the text in the box (SRD, DDB or the compendium's name). Change the text to rename a copy.",
+        "CopyLabel": "Name shown to players",
+        "NoClasses": "No classes found for this world's rules.",
         "SpeciesHint": "Uncheck a species to hide it from players.",
         "SubclassesHint": "Uncheck a subclass to hide it from players.",
         "Unavailable": "These compendiums couldn't be read:",

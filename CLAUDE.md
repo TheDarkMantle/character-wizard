@@ -35,7 +35,7 @@ dialogs, so later level-ups and undo keep working and homebrew with native advan
   `HeadlessAdvancer`, `spike()`).
 - `scripts/constants.mjs`: ids, rules map, step order per ruleset, index fields.
 - `scripts/settings.mjs`: settings (`contentSources`, `blockedContent`, `untaggedContent`, `allowPlayers`).
-- `scripts/content/catalog-logic.mjs`: **pure** catalog logic (normalize, rules filter, dedupe, blocking). Unit tested.
+- `scripts/content/catalog-logic.mjs`: **pure** catalog logic (normalize, rules filter, dedupe, blocking). Unit tested. Class keys include the pack (`class:ranger@pack`), so every compendium's copy is offered; `origin` names it SRD / DDB / pack label.
 - `scripts/content/catalog.mjs`: Foundry side: scans pack indexes, caches, applies settings.
 - `scripts/advancement/read.mjs`: **pure** advancement data → board entries (granted / choice / info / native). Unit tested.
 - `scripts/advancement/apply.mjs`: `HeadlessAdvancer` prototype + `spikeFighter()` console test.

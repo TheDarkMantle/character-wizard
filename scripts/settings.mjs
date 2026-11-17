@@ -68,6 +68,14 @@ export function registerSettings() {
     default: []
   });
 
+  // Names the GM gave to copies of the same class from different compendiums, by content key ("SRD", "DDB", ...).
+  game.settings.register(MODULE_ID, "copyLabels", {
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {}
+  });
+
   // Language paths (for example "exotic:deep" or "ddb:ergot") hidden from language choices in the wizard.
   game.settings.register(MODULE_ID, "blockedLanguages", {
     scope: "world",

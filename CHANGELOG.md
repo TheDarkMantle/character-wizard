@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Added: every copy of a class is offered, and the GM can block or rename each one.** The SRD Ranger and a D&D Beyond Ranger used to collapse into one, whichever compendium ranked higher. Now each compendium's copy is its own option, so a table can keep the original and the Tasha's-flavoured import side by side. Where a class has more than one copy the picker names them "Ranger (SRD)" and "Ranger (DDB)": SRD for the system's own compendiums, DDB for D&D Beyond imports, otherwise the compendium's name. Configure content has a new Classes tab listing every copy with a block checkbox and a box to rename it. Blocking a class also lets the GM keep, say, an Artificer out of play. Species and subclass blocks are unchanged. Not yet tried in Foundry.
+
 ## 0.7.22
 
 - **Added: "Show it under 2014 rules only" for content without a rules version, now the default.** Homebrew and older content that isn't tagged 2014 or 2024 is almost always 2014, so the setting gains a third choice, offering it only in a 2014 world, and that is the default. "Show it under either ruleset" and "Hide it" are still there. A world that never changed the setting now follows the new default: untagged content stops appearing in a 2024 world until you pick "either ruleset".

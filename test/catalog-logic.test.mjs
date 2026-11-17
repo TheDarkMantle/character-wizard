@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalog, contentKey, featPrerequisites, groupSpecies, matchesRules, normalizeEntry, searchEntries, slugify, subclassesFor }
+import { buildCatalog, classDisplayNames, contentKey, featPrerequisites, groupSpecies, matchesRules, normalizeEntry, originLabel, searchEntries, slugify, subclassesFor }
   from "../scripts/content/catalog-logic.mjs";
 
 const pack = (collection, label = collection) => ({ collection, label });
@@ -71,7 +71,7 @@ describe("buildCatalog", () => {
   const phb = pack("dnd-players-handbook.classes", "PHB");
   const entries = [
     normalizeEntry(raw("class", "Fighter", { _id: "a" }, { identifier: "fighter", source: { rules: "2024" } }), srd),
-    normalizeEntry(raw("class", "Fighter", { _id: "b" }, { identifier: "fighter", source: { rules: "2024" } }), phb),
+    normalizeEntry(raw("race", "Elf", { _id: "b" }, { identifier: "elf", source: { rules: "2024" } }), phb),
     normalizeEntry(raw("class", "Fighter", { _id: "c" }, { identifier: "fighter", source: { rules: "2014" } }), srd),
     normalizeEntry(raw("subclass", "Champion", {}, { identifier: "champion", classIdentifier: "fighter",
       source: { rules: "2024" } }), phb),
@@ -83,13 +83,13 @@ describe("buildCatalog", () => {
   it("filters by rules and de-duplicates, first scanned pack wins by default", () => {
     const { byType, duplicates } = buildCatalog(entries, { rules: "2024" });
     expect(byType.class).toHaveLength(1);
-    expect(byType.class[0].pack).toBe("dnd5e.classes");
+    expect(byType.race.find(e => e.name === "Elf").pack).toBe("dnd5e.classes");
     expect(duplicates).toBe(1);
   });
 
   it("respects pack priority", () => {
     const { byType } = buildCatalog(entries, { rules: "2024", packOrder: ["dnd-players-handbook.classes"] });
-    expect(byType.class[0].pack).toBe("dnd-players-handbook.classes");
+    expect(byType.race.find(e => e.name === "Elf").pack).toBe("dnd-players-handbook.classes");
   });
 
   it("hides blocked content and counts it", () => {
@@ -179,5 +179,58 @@ describe("featPrerequisites", () => {
 
   it("is empty for a feat with no requirements", () => {
     expect(featPrerequisites({})).toEqual({ level: 0, items: [] });
+  });
+});
+
+describe("class copies", () => {
+  const ranger = (collection, label, extra = {}) => normalizeEntry(raw("class", "Ranger", extra,
+    { identifier: "ranger", source: { rules: "2014" } }), pack(collection, label));
+  const srd = ranger("dnd5e.classes", "Classes (SRD)");
+  const ddb = ranger("world.ddb-classes", "DDB Classes", { flags: { ddbimporter: { id: 1 } } });
+
+  it("gives each compendium's copy its own key", () => {
+    expect(srd.key).not.toBe(ddb.key);
+    expect(srd.key).toBe("class:ranger@dnd5e.classes");
+  });
+
+  it("names the origin: SRD for system packs, DDB for the importer, the pack label otherwise", () => {
+    expect(srd.origin).toBe("SRD");
+    expect(ddb.origin).toBe("DDB");
+    expect(originLabel({ pack: "world.ddb-dev-testing-ddb-classes", packLabel: "x" })).toBe("DDB");
+    expect(originLabel({ pack: "my-module.classes", packLabel: "Gunslingers" })).toBe("Gunslingers");
+  });
+
+  it("keeps every copy of a class instead of dropping one", () => {
+    const { byType } = buildCatalog([srd, ddb], { rules: "2014" });
+    expect(byType.class).toHaveLength(2);
+  });
+
+  it("still drops a duplicate within the same compendium", () => {
+    const { byType } = buildCatalog([srd, { ...srd, uuid: "other" }], { rules: "2014" });
+    expect(byType.class).toHaveLength(1);
+  });
+
+  it("blocks one copy and leaves the other", () => {
+    const { byType, blockedCount } = buildCatalog([srd, ddb], { rules: "2014", blocked: [ddb.key] });
+    expect(byType.class.map(c => c.origin)).toEqual(["SRD"]);
+    expect(blockedCount).toBe(1);
+  });
+
+  it("uses a name the GM gave a copy in place of the automatic one", () => {
+    const { byType } = buildCatalog([srd, ddb], { rules: "2014", labels: { [ddb.key]: "Tasha's" } });
+    expect(byType.class.map(c => c.origin).sort()).toEqual(["SRD", "Tasha's"]);
+  });
+
+  it("adds the origin to the display name only when a class has several copies", () => {
+    const { byType } = buildCatalog([srd, ddb], { rules: "2014" });
+    const names = [...classDisplayNames(byType.class).values()].sort();
+    expect(names).toEqual(["Ranger (DDB)", "Ranger (SRD)"]);
+    const single = buildCatalog([srd], { rules: "2014" }).byType.class;
+    expect([...classDisplayNames(single).values()]).toEqual(["Ranger"]);
+  });
+
+  it("finds a copy by its origin when searching", () => {
+    const { byType } = buildCatalog([srd, ddb], { rules: "2014" });
+    expect(searchEntries(byType.class, "ddb")).toHaveLength(1);
   });
 });

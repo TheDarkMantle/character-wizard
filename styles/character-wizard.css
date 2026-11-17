@@ -200,6 +200,8 @@
   .charwiz-pack-move { display: flex; gap: 2px; }
   .charwiz-pack-move button { width: 1.75rem; height: 1.75rem; }
   .charwiz-allow-list img { border: none; }
+  .charwiz-allow-list li:has(.charwiz-copy-label) { display: flex; align-items: center; gap: 0.5rem; }
+  .charwiz-copy-label { flex: 0 0 8rem; }
   .charwiz-language-group { margin: 0 0 0.75rem; border: 1px solid var(--color-border); border-radius: 6px; }
   .charwiz-language-actions { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
   .charwiz-language-actions button { width: auto; }

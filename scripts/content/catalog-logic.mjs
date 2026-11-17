@@ -20,6 +20,7 @@ import { CONTENT_TYPES, UNTAGGED } from "../constants.mjs";
  * @property {string} book            Source book label, if any.
  * @property {string} pack            Pack collection id.
  * @property {string} packLabel
+ * @property {string} origin          Where the copy comes from, for telling copies apart: "SRD", "DDB" or the pack label.
  * @property {string} key             Identity key used for de-duplication and blocking.
  */
 
@@ -43,9 +44,27 @@ export function rulesFor(entry) {
  * Identity key: same key = "the same option" across packs.
  * Subclasses include their class so "Champion" for Fighter can't clash with a homebrew "Champion" elsewhere.
  */
-export function contentKey({ type, identifier, classIdentifier }) {
+export function contentKey({ type, identifier, classIdentifier, pack }) {
   if ( type === "subclass" ) return `subclass:${classIdentifier || "unknown"}:${identifier}`;
+  // Classes are told apart by compendium: the SRD Ranger and a D&D Beyond Ranger are separate options, each
+  // blockable and shown to players, because the copies can differ (Tasha's features built in, for instance).
+  if ( type === "class" ) return `class:${identifier}@${pack ?? ""}`;
   return `${type}:${identifier}`;
+}
+
+/**
+ * Where a copy of an item comes from, in a word players know. The system's own compendiums hold the SRD, D&D Beyond
+ * imports are recognised by the importer's flag (or "ddb" in the pack id), and anything else is named by its pack.
+ * @param {object} source
+ * @param {string} source.pack        Pack collection id.
+ * @param {string} source.packLabel
+ * @param {boolean} [source.ddb]      The item carries the D&D Beyond importer's flag.
+ * @returns {string}
+ */
+export function originLabel({ pack = "", packLabel = "", ddb = false }) {
+  if ( pack.startsWith("dnd5e.") ) return "SRD";
+  if ( ddb || /ddb/i.test(pack) ) return "DDB";
+  return packLabel || pack;
 }
 
 /**
@@ -85,7 +104,8 @@ export function normalizeEntry(raw, pack) {
     rules: rulesFor(raw),
     book: system.source?.book ?? "",
     pack: pack.collection,
-    packLabel: pack.label
+    packLabel: pack.label,
+    origin: originLabel({ pack: pack.collection, packLabel: pack.label, ddb: raw.flags?.ddbimporter?.id !== undefined })
   };
   entry.key = contentKey(entry);
   return entry;
@@ -116,10 +136,11 @@ export function matchesRules(entry, rules, untagged = UNTAGGED.SHOW) {
  * @param {Iterable<string>} [options.anyRulesPacks]  Packs whose content is offered whatever its rules tag says (homebrew
  *   or older material the GM wants to use under the other ruleset).
  * @param {boolean} [options.includeBlocked]   Keep blocked entries (flagged) — for the GM settings view.
+ * @param {Record<string, string>} [options.labels]   Names the GM gave copies (by key), replacing their automatic origin.
  * @returns {{ byType: Record<string, CatalogEntry[]>, duplicates: number, blockedCount: number }}
  */
 export function buildCatalog(entries, { rules, untagged = UNTAGGED.SHOW, packOrder = [], blocked = [],
-  includeBlocked = false, anyRulesPacks = [] } = {}) {
+  includeBlocked = false, anyRulesPacks = [], labels = {} } = {}) {
   const blockedSet = new Set(blocked);
   const anyRules = new Set(anyRulesPacks);
   const scanOrder = new Map();
@@ -142,7 +163,7 @@ export function buildCatalog(entries, { rules, untagged = UNTAGGED.SHOW, packOrd
       duplicates++;
       if ( rank(entry.pack) >= rank(current.pack) ) continue;
     }
-    winners.set(dedupeKey, { ...entry, blocked: isBlocked });
+    winners.set(dedupeKey, { ...entry, origin: labels[entry.key]?.trim() || entry.origin, blocked: isBlocked });
   }
 
   // If an untagged copy and a tagged copy of the same thing both survive, prefer the tagged one.
@@ -165,7 +186,19 @@ export function subclassesFor(catalog, classIdentifier) {
 export function searchEntries(list, query = "") {
   const q = query.trim().toLowerCase();
   if ( !q ) return list;
-  return list.filter(e => `${e.name} ${e.book} ${e.packLabel}`.toLowerCase().includes(q));
+  return list.filter(e => `${e.name} ${e.book} ${e.packLabel} ${e.origin ?? ""}`.toLowerCase().includes(q));
+}
+
+/**
+ * Names for the picker. A class that is offered from more than one compendium gets its origin added
+ * ("Ranger (SRD)", "Ranger (DDB)") so the copies can be told apart; a lone copy keeps its plain name.
+ * @param {CatalogEntry[]} classes
+ * @returns {Map<string, string>}  Display name by uuid.
+ */
+export function classDisplayNames(classes) {
+  const counts = new Map();
+  for ( const c of classes ) counts.set(c.identifier, (counts.get(c.identifier) ?? 0) + 1);
+  return new Map(classes.map(c => [c.uuid, (counts.get(c.identifier) > 1 && c.origin) ? `${c.name} (${c.origin})` : c.name]));
 }
 
 /**

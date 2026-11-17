@@ -8,7 +8,7 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /**
  * GM settings window: which compendiums feed the wizard (and in what priority),
- * which species and subclasses players are not allowed to pick, and which languages they can choose.
+ * which classes, species and subclasses players are not allowed to pick, and which languages they can choose.
  */
 export default class ContentSettings extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
@@ -28,6 +28,7 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
   static PARTS = {
     tabs: { template: "templates/generic/tab-navigation.hbs" },
     sources: { template: `${TEMPLATE_PATH}/settings/sources.hbs`, scrollable: [""] },
+    classes: { template: `${TEMPLATE_PATH}/settings/classes.hbs`, scrollable: [""] },
     species: { template: `${TEMPLATE_PATH}/settings/species.hbs`, scrollable: [""] },
     subclasses: { template: `${TEMPLATE_PATH}/settings/subclasses.hbs`, scrollable: [""] },
     languages: { template: `${TEMPLATE_PATH}/settings/languages.hbs`, scrollable: [""] },
@@ -38,6 +39,7 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
     main: {
       tabs: [
         { id: "sources", icon: "fa-solid fa-book", label: "CHARWIZ.Settings.Content.Tabs.Sources" },
+        { id: "classes", icon: "fa-solid fa-hat-wizard", label: "CHARWIZ.Settings.Content.Tabs.Classes" },
         { id: "species", icon: "fa-solid fa-person", label: "CHARWIZ.Settings.Content.Tabs.Species" },
         { id: "subclasses", icon: "fa-solid fa-shield-halved", label: "CHARWIZ.Settings.Content.Tabs.Subclasses" },
         { id: "languages", icon: "fa-solid fa-language", label: "CHARWIZ.Settings.Content.Tabs.Languages" }
@@ -81,9 +83,15 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
 
     const catalog = await this.catalog.build({ includeBlocked: true });
     const species = catalog.byType.race.map(e => ({ ...e, allowed: !e.blocked }));
-    const subclassGroups = catalog.byType.class.map(cls => ({
-      name: cls.name,
-      subclasses: subclassesFor(catalog, cls.identifier).map(e => ({ ...e, allowed: !e.blocked }))
+    // Every copy of a class is listed (SRD, D&D Beyond, ...); a name the GM typed replaces the automatic origin.
+    const labels = getSetting("copyLabels");
+    const classes = catalog.byType.class.map(e => ({ ...e, allowed: !e.blocked, label: labels[e.key] ?? "", autoOrigin: e.origin }));
+    // Subclasses belong to the class by identifier, so copies of one class share a single list.
+    const classNames = new Map();
+    for ( const cls of catalog.byType.class ) if ( !classNames.has(cls.identifier) ) classNames.set(cls.identifier, cls.name);
+    const subclassGroups = Array.from(classNames, ([identifier, name]) => ({
+      name,
+      subclasses: subclassesFor(catalog, identifier).map(e => ({ ...e, allowed: !e.blocked }))
     })).filter(g => g.subclasses.length);
 
     const blockedLanguages = new Set(getSetting("blockedLanguages"));
@@ -96,6 +104,7 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
       languageGroups: groups,
       rules: worldRules(),
       packs,
+      classes,
       species,
       subclassGroups,
       unavailable: this.catalog.unavailable,
@@ -152,6 +161,14 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
       else blocked.add(input.dataset.blockKey);
     }
 
+    // Names for copies of a class; an empty box goes back to the automatic origin.
+    const copyLabels = { ...getSetting("copyLabels") };
+    for ( const input of form.querySelectorAll("input[data-label-key]") ) {
+      const text = input.value.trim();
+      if ( text && (text !== input.dataset.auto) ) copyLabels[input.dataset.labelKey] = text;
+      else delete copyLabels[input.dataset.labelKey];
+    }
+
     // Unchecked languages are hidden from choices. Hidden languages that aren't listed here are kept.
     const blockedLanguages = new Set(getSetting("blockedLanguages"));
     for ( const input of form.querySelectorAll("input[data-language]") ) {
@@ -162,6 +179,7 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
     await setSetting("contentSources", sources);
     await setSetting("blockedLanguages", Array.from(blockedLanguages));
     await setSetting("blockedContent", Array.from(blocked));
+    await setSetting("copyLabels", copyLabels);
     this.catalog.invalidate();
     ui.notifications.info("CHARWIZ.Settings.Saved", { localize: true });
   }

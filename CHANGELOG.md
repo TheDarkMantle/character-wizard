@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.7.24
 
-- **Fixed: a language choice that asks for fewer languages than the feature's text promises.** The D&D Beyond import gives the Tasha's Ranger's Deft Explorer one language pick where the book says two, and the Eberron Changeling one where it says two beside Common. The wizard now raises such a choice to the number the text states ("two additional languages of your choice", "Common and two other languages of your choice", "Languages: Two of your choice"). The rule only ever raises a count, only on a feature, species or background with a single language choice, and only when the text states the number in one of those plain forms; the choices step says when it did. A scan of 3,187 imported items found exactly these two it would change, and none that it should leave alone. Not yet tried in Foundry.
+- **Fixed: a language choice that asks for fewer languages than the feature's text promises.** The D&D Beyond import gives the Tasha's Ranger's Deft Explorer one language pick where the book says two, and the Eberron Changeling one where it says two beside Common. The wizard now raises such a choice to the number the text states ("two additional languages of your choice", "Common and two other languages of your choice", "Languages: Two of your choice"). The rule only ever raises a count, only on a feature, species or background with a single language choice, and only when the text states the number in one of those plain forms; the choices step says when it did. A scan of 3,187 imported items found exactly these two it would change, and none that it should leave alone.
 
 ## 0.7.23
 

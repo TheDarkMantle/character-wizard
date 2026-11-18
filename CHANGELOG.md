@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: a language choice that asks for fewer languages than the feature's text promises.** The D&D Beyond import gives the Tasha's Ranger's Deft Explorer one language pick where the book says two, and the Eberron Changeling one where it says two beside Common. The wizard now raises such a choice to the number the text states ("two additional languages of your choice", "Common and two other languages of your choice", "Languages: Two of your choice"). The rule only ever raises a count, only on a feature, species or background with a single language choice, and only when the text states the number in one of those plain forms; the choices step says when it did. A scan of 3,187 imported items found exactly these two it would change, and none that it should leave alone. Not yet tried in Foundry.
+
 ## 0.7.23
 
 - **Added: every copy of a class is offered, and the GM can block or rename each one.** The SRD Ranger and a D&D Beyond Ranger used to collapse into one, whichever compendium ranked higher. Now each compendium's copy is its own option, so a table can keep the original and the Tasha's-flavoured import side by side. Where a class has more than one copy the picker names them "Ranger (SRD)" and "Ranger (DDB)": SRD for the system's own compendiums, DDB for D&D Beyond imports, otherwise the compendium's name. Configure content has a new Classes tab listing every copy with a block checkbox and a box to rename it. Blocking a class also lets the GM keep, say, an Artificer out of play. Species and subclass blocks are unchanged.

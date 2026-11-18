@@ -166,6 +166,7 @@
     },
     "Choices": {
       "Hint": "{name} asks you to decide the following. Click an option's name to read about it, and tick it to choose it.",
+      "LanguagesRaised": "{name}'s text gives {count} languages, but the imported data asks for fewer, so the wizard asks for {count}.",
       "Progress": "choose {count} ({selected} picked)",
       "Optional": "optional, up to {max} ({selected} picked)",
       "Left": "Choices left: {count}",

@@ -1,3 +1,4 @@
+import { languageShortfall } from "../content/language-count.mjs";
 import { HeadlessAdvancer } from "./apply.mjs";
 import {
   featsMatching, fightingStyleRestriction, groupTraitSlots, heldIdentifiers, meetsPrerequisites, spellsMatching, standardPoints, tally, traitGroups, uniqueByName,
@@ -246,9 +247,17 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
         // becomes "pick any other", and the rest is offered as the pool says.
         const held = (await advancement.actorSelected()).selected;
         const slotsIn = Array.from(config.grants ?? [], g => ({ type: "grant", full: [g] }));
+        // An import can give one language where the feature's text says two; raise the choice to what the text states.
+        const shortfall = languageShortfall({
+          type: item.type, description: item.system.description?.value,
+          traits: Array.from(item.advancement.byType.Trait ?? [], a => ({ id: a.id,
+            choices: Array.from(a.configuration.choices ?? [], c => ({ count: c.count, pool: Array.from(c.pool ?? []) })) }))
+        });
+        const raised = (shortfall?.advancementId === advancement.id) ? shortfall : null;
         for ( const [idx, choice] of config.choices.entries() ) {
           const full = Array.from((await Trait.mixedChoices(choice.pool)).asSet());
-          for ( let n = 0; n < (choice.count ?? 1); n++ ) slotsIn.push({ type: "choice", idx, full });
+          const total = (choice.count ?? 1) + ((raised?.index === idx) ? raised.extra : 0);
+          for ( let n = 0; n < total; n++ ) slotsIn.push({ type: "choice", idx, full });
         }
         const everyKey = {};
         for ( const type of new Set(slotsIn.map(sl => String(sl.full[0] ?? "").split(":")[0]).filter(Boolean)) ) {
@@ -272,7 +281,8 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
           const title = isDraconicAncestry(hostId, keys) ? localize("CHARWIZ.Naming.DraconicAncestry")
             : (group.id.startsWith("r:") ? game.i18n.format("CHARWIZ.Naming.AnotherOfKind", { kind: localize(traitTitleKey(keys, mode)) })
               : (ownTitle || localize(traitTitleKey(keys, mode))));
-          addSlot({ ...base, title, key, kind: "trait", count: group.count, options });
+          addSlot({ ...base, title, key, kind: "trait", count: group.count, options,
+            ...(raised ? { hint: game.i18n.format("CHARWIZ.Choices.LanguagesRaised", { name: item.name, count: raised.count }) } : {}) });
           const chosen = (selections[key] ?? [])
             .filter(v => group.options.some(o => (o.value === v) && !o.disabled)).slice(0, group.count);
           picked.push(...chosen);

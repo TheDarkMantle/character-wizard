@@ -235,7 +235,8 @@ export async function runPicks({ actor, picks, selections, catalog, blocked = ne
             const key = keyFor(`:${i}`);
             const options = group.options.map(value => ({ value, label: Trait.keyLabel(value) || value }));
             addSlot({ ...base, title: ownTitle || localize(traitTitleKey(group.options, mode)), key, kind: "trait",
-              count: group.count, options });
+              count: group.count, options,
+              ...((mode === "expertise") ? { hint: localize("CHARWIZ.Choices.ExpertiseHint") } : {}) });
             const chosen = (selections[key] ?? []).filter(v => group.options.includes(v)).slice(0, group.count);
             picked.push(...chosen);
             if ( chosen.length < group.count ) complete = false;

@@ -39,15 +39,16 @@ export function describedExpertise(html) {
  * @param {string} item.description
  * @param {{ mode?: string }[]} item.traits  Its Trait advancements.
  * @param {string} item.id  An id for the new advancement.
+ * @param {string} [item.name]  Its name, which becomes the choice's title. dnd5e fills an empty name with a generic label.
  * @returns {object|null}  Advancement source data, or null when nothing should be added.
  */
-export function expertiseAdvancement({ type, description, traits, id }) {
+export function expertiseAdvancement({ type, description, traits, id, name = "Expertise" }) {
   if ( type !== "feat" ) return null;
   if ( (traits ?? []).some(t => t.mode === "expertise") ) return null;
   const count = describedExpertise(description);
   if ( !count ) return null;
   return {
-    _id: id, type: "Trait", level: 1, name: "", hint: "",
+    _id: id, type: "Trait", level: 1, name, hint: "",
     configuration: { mode: "expertise", allowReplacements: false, grants: [], choices: [{ count, pool: ["skills:*"] }] },
     value: {}
   };

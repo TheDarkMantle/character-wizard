@@ -28,6 +28,10 @@ describe("expertiseAdvancement", () => {
     });
   });
 
+  it("titles the choice with the name it is given, since dnd5e would fill in a generic label", () => {
+    expect(expertiseAdvancement({ ...input, name: "Expertise" }).name).toBe("Expertise");
+  });
+
   it("adds nothing when the item already has its own Expertise choice", () => {
     expect(expertiseAdvancement({ ...input, traits: [{ mode: "default" }, { mode: "expertise" }] })).toBeNull();
   });

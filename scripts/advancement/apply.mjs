@@ -121,6 +121,7 @@ export class HeadlessAdvancer {
   #addDescribedExpertise(item) {
     const advancement = expertiseAdvancement({
       type: item.type, description: item.system.description?.value, id: foundry.utils.randomID(),
+      name: game.i18n.localize("CHARWIZ.Naming.Expertise"),
       traits: Array.from(item.advancement.byType.Trait ?? [], a => ({ mode: a.configuration.mode }))
     });
     if ( !advancement ) return;

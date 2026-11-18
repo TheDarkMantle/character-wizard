@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: the Expertise choice on the imported Deft Explorer is titled "Expertise" and says what to do.** It was headed "Skill Proficiencies". Every Expertise choice (Rogue, Bard, Deft Explorer) now carries a line: "Choose a skill you are already proficient in. Your proficiency bonus is doubled for checks with it." Not yet tried in Foundry.
+
 ## 0.7.25
 
 - **Fixed: the imported Tasha's Ranger's Deft Explorer gives a choice of Expertise.** The D&D Beyond import carries only the language pick; its Canny benefit ("Choose one of your skill proficiencies. Your proficiency bonus is doubled...") exists only as text, so no Expertise could be chosen. The wizard now adds an Expertise choice to a granted feature whose text states one in the books' plain wording, unless the feature already has its own. A scan of 3,187 imported items found only this feature (and its unused Canny sub-item).

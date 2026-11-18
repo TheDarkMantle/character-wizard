@@ -7,6 +7,12 @@
  * item already has an Expertise choice of its own.
  */
 
+/**
+ * The id of the added advancement. It must be the same every time the wizard rebuilds the choices: a slot's key includes the
+ * advancement id, and a key that changed on each rebuild would throw the player's selection away.
+ */
+export const EXPERTISE_ADVANCEMENT_ID = "cwExpertise00001";
+
 const NUMBERS = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4 };
 const NUMBER = "(a|an|one|two|three|four)";
 
@@ -38,11 +44,11 @@ export function describedExpertise(html) {
  * @param {string} item.type
  * @param {string} item.description
  * @param {{ mode?: string }[]} item.traits  Its Trait advancements.
- * @param {string} item.id  An id for the new advancement.
+ * @param {string} [item.id]  An id for the new advancement; the same fixed id by default.
  * @param {string} [item.name]  Its name, which becomes the choice's title. dnd5e fills an empty name with a generic label.
  * @returns {object|null}  Advancement source data, or null when nothing should be added.
  */
-export function expertiseAdvancement({ type, description, traits, id, name = "Expertise" }) {
+export function expertiseAdvancement({ type, description, traits, id = EXPERTISE_ADVANCEMENT_ID, name = "Expertise" }) {
   if ( type !== "feat" ) return null;
   if ( (traits ?? []).some(t => t.mode === "expertise") ) return null;
   const count = describedExpertise(description);

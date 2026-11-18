@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describedExpertise, expertiseAdvancement } from "../scripts/content/described-expertise.mjs";
+import { describedExpertise, EXPERTISE_ADVANCEMENT_ID, expertiseAdvancement } from "../scripts/content/described-expertise.mjs";
 
 const canny = "<p>Choose one of your skill proficiencies. Your proficiency bonus is doubled for any ability check you make that uses the chosen skill.</p><p>You can also speak, read, and write two additional languages of your choice.</p>";
 
@@ -26,6 +26,12 @@ describe("expertiseAdvancement", () => {
       _id: "abc", type: "Trait", level: 1,
       configuration: { mode: "expertise", choices: [{ count: 1, pool: ["skills:*"] }], grants: [] }
     });
+  });
+
+  it("uses the same id every time, so a slot's key survives a rebuild", () => {
+    const { traits, description, type } = input;
+    expect(expertiseAdvancement({ type, description, traits })._id).toBe(EXPERTISE_ADVANCEMENT_ID);
+    expect(EXPERTISE_ADVANCEMENT_ID).toHaveLength(16);
   });
 
   it("titles the choice with the name it is given, since dnd5e would fill in a generic label", () => {

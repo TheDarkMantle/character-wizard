@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: the Deft Explorer Expertise choice couldn't be selected.** The advancement the wizard adds got a new random id every time the choices were rebuilt, and a choice's key includes that id, so each click's selection was stored under a key that was gone by the next rebuild. It now has a fixed id. Not yet tried in Foundry.
+
 ## 0.7.26
 
 - **Fixed: the Expertise choice on the imported Deft Explorer is titled "Expertise" and says what to do.** It was headed "Skill Proficiencies". Every Expertise choice (Rogue, Bard, Deft Explorer) now carries a line: "Choose a skill you are already proficient in. Your proficiency bonus is doubled for checks with it."

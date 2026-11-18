@@ -1,4 +1,5 @@
 import { fillEmptyFeatGrants } from "../content/background-feat.mjs";
+import { expertiseAdvancement } from "../content/described-expertise.mjs";
 
 /**
  * Headless advancement engine (prototype).
@@ -105,10 +106,26 @@ export class HeadlessAdvancer {
     const added = [...this.clone.items.keys()].filter(id => !before.has(id));
     for ( const id of added ) {
       const granted = this.clone.items.get(id);
-      if ( !granted?.hasAdvancement || ["class", "subclass"].includes(granted.type) ) continue;
+      if ( !granted || ["class", "subclass"].includes(granted.type) ) continue;
+      this.#addDescribedExpertise(granted);
+      if ( !granted.hasAdvancement ) continue;
       const characterLevel = this.clone.system.details.level ?? 0;
       for ( let l = 0; l <= Math.max(level, characterLevel); l++ ) await this.#runLevel(granted, l);
     }
+  }
+
+  /**
+   * A granted feature whose text gives Expertise but whose data has no Expertise choice (the imported Tasha's Deft Explorer)
+   * gets one, so the player can pick the skill.
+   */
+  #addDescribedExpertise(item) {
+    const advancement = expertiseAdvancement({
+      type: item.type, description: item.system.description?.value, id: foundry.utils.randomID(),
+      traits: Array.from(item.advancement.byType.Trait ?? [], a => ({ mode: a.configuration.mode }))
+    });
+    if ( !advancement ) return;
+    item.updateSource({ [`system.advancement.${advancement._id}`]: advancement });
+    this.clone.reset();
   }
 
   /** Write the clone's state to the real actor in one update. */

@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.7.26
 
-- **Fixed: the Expertise choice on the imported Deft Explorer is titled "Expertise" and says what to do.** It was headed "Skill Proficiencies". Every Expertise choice (Rogue, Bard, Deft Explorer) now carries a line: "Choose a skill you are already proficient in. Your proficiency bonus is doubled for checks with it." Not yet tried in Foundry.
+- **Fixed: the Expertise choice on the imported Deft Explorer is titled "Expertise" and says what to do.** It was headed "Skill Proficiencies". Every Expertise choice (Rogue, Bard, Deft Explorer) now carries a line: "Choose a skill you are already proficient in. Your proficiency bonus is doubled for checks with it."
 
 ## 0.7.25
 

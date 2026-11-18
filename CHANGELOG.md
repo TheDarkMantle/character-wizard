@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.7.27
 
-- **Fixed: the Deft Explorer Expertise choice couldn't be selected.** The advancement the wizard adds got a new random id every time the choices were rebuilt, and a choice's key includes that id, so each click's selection was stored under a key that was gone by the next rebuild. It now has a fixed id. Not yet tried in Foundry.
+- **Fixed: the Deft Explorer Expertise choice couldn't be selected.** The advancement the wizard adds got a new random id every time the choices were rebuilt, and a choice's key includes that id, so each click's selection was stored under a key that was gone by the next rebuild. It now has a fixed id.
 
 ## 0.7.26
 

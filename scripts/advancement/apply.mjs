@@ -1,5 +1,7 @@
 import { fillEmptyFeatGrants } from "../content/background-feat.mjs";
 import { expertiseAdvancement } from "../content/described-expertise.mjs";
+import { languageGrantAdvancement } from "../content/described-languages.mjs";
+import { languageGroups } from "../content/languages.mjs";
 
 /**
  * Headless advancement engine (prototype).
@@ -107,7 +109,7 @@ export class HeadlessAdvancer {
     for ( const id of added ) {
       const granted = this.clone.items.get(id);
       if ( !granted || ["class", "subclass"].includes(granted.type) ) continue;
-      this.#addDescribedExpertise(granted);
+      this.#addDescribedAdvancements(granted);
       if ( !granted.hasAdvancement ) continue;
       const characterLevel = this.clone.system.details.level ?? 0;
       for ( let l = 0; l <= Math.max(level, characterLevel); l++ ) await this.#runLevel(granted, l);
@@ -115,17 +117,22 @@ export class HeadlessAdvancer {
   }
 
   /**
-   * A granted feature whose text gives Expertise but whose data has no Expertise choice (the imported Tasha's Deft Explorer)
-   * gets one, so the player can pick the skill.
+   * A granted feature whose text gives something its data doesn't gets the missing choice, so the character really has it:
+   * Expertise (the imported Tasha's Deft Explorer) and a named language (the Cult of the Dragon Initiate's Draconic).
    */
-  #addDescribedExpertise(item) {
-    const advancement = expertiseAdvancement({
-      type: item.type, description: item.system.description?.value,
-      name: game.i18n.localize("CHARWIZ.Naming.Expertise"),
-      traits: Array.from(item.advancement.byType.Trait ?? [], a => ({ mode: a.configuration.mode }))
-    });
-    if ( !advancement ) return;
-    item.updateSource({ [`system.advancement.${advancement._id}`]: advancement });
+  #addDescribedAdvancements(item) {
+    const description = item.system.description?.value;
+    const traits = Array.from(item.advancement.byType.Trait ?? [], a => ({
+      mode: a.configuration.mode, grants: Array.from(a.configuration.grants ?? []),
+      choices: Array.from(a.configuration.choices ?? [], c => ({ pool: Array.from(c.pool ?? []) }))
+    }));
+    const languages = languageGroups(CONFIG.DND5E.languages, key => game.i18n.localize(key), "").flatMap(g => g.languages);
+    const additions = [
+      expertiseAdvancement({ type: item.type, description, traits, name: game.i18n.localize("CHARWIZ.Naming.Expertise") }),
+      languageGrantAdvancement({ type: item.type, description, traits, languages })
+    ].filter(Boolean);
+    if ( !additions.length ) return;
+    item.updateSource(Object.fromEntries(additions.map(a => [`system.advancement.${a._id}`, a])));
     this.clone.reset();
   }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: the Cult of the Dragon Initiate feat now gives Draconic.** The D&D Beyond import has no data for the feat's "You know Draconic", so the Dragon Cultist background never taught it. The wizard now adds a language grant to a granted feature whose text says "You know <language>" for a language the system lists, unless its data already grants or offers it. A character who already knows the language is asked for another one instead, as the feat's text says. A scan of 3,187 imported items found only this feat. Not yet tried in Foundry.
+
 ## 0.7.28
 
 - **Changed: a long list of options on the features board is summarised.** A choice with more than eight options (a feat from every feat in the world) now says "Choose from 40 options" instead of naming them all. Eight or fewer are still listed, so a class's skill list stays readable. The options themselves are unchanged in the picker.

@@ -5,7 +5,7 @@ subclasses, species, backgrounds and feats from every Item compendium in the wor
 2014 / 2024 rules setting. Owner: Shawn (GitHub: TheDarkMantle). Full plan: `docs/PLAN.md`.
 
 ## Decisions (don't change without asking)
-- Targets: Foundry minimum 14, verified 14.368. dnd5e minimum 6.0.0, verified 6.0.6. No support for older versions.
+- Targets: Foundry minimum 14, verified 14.370. dnd5e minimum 6.0.0, verified 6.1.1. No support for older versions.
 - Players can use the wizard. The GM can block species and subclasses, enable/disable compendiums and set their
   priority (Game Settings → Character Wizard → Configure content).
 - First release = **character creation only**. Level-up comes later.

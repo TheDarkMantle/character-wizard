@@ -18,7 +18,7 @@
   "license": "LICENSE",
   "compatibility": {
     "minimum": "14",
-    "verified": "14.368"
+    "verified": "14.370"
   },
   "relationships": {
     "systems": [
@@ -27,7 +27,7 @@
         "type": "system",
         "compatibility": {
           "minimum": "6.0.0",
-          "verified": "6.0.6"
+          "verified": "6.1.1"
         }
       }
     ]

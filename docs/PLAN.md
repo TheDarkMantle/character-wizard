@@ -3,7 +3,7 @@
 A Foundry VTT v14 module for the dnd5e system: guided character creation (and later level-up), using whatever content is in the world's compendiums, respecting the world's 2014 / 2024 rules setting.
 
 ## Decisions
-- **System:** dnd5e 6.x only (module.json: minimum 6.0.0, verified 6.0.6). Foundry minimum 14, verified 14.368. dnd5e 6.0.6 itself requires core 14.367+.
+- **System:** dnd5e 6.x only (module.json: minimum 6.0.0, verified 6.1.1). Foundry minimum 14, verified 14.370. dnd5e 6.0.6 itself requires core 14.367+.
 - **Players can use it.** The GM can block specific species and subclasses, turn compendiums on or off and set their priority. There's also a GM toggle, "Players can use the wizard".
 - **First release = character creation.** Level-up comes later.
 - **Opening:** keep the Actors sidebar button. From a character sheet: a header menu entry plus a small wizard hat button beside the lock toggle (shown when a level 0 sheet is unlocked). Level 0 opens the creation wizard for that actor. Level > 0 shows a "level-up coming later" notice for now.

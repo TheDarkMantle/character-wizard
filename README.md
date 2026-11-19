@@ -10,8 +10,8 @@ A guided character builder for the **D&D 5e** system on **Foundry VTT v14**.
 
 ## Requirements
 
-- Foundry VTT v14
-- D&D 5e system 6.0 or newer
+- Foundry VTT v14 (verified on 14.370)
+- D&D 5e system 6.0 or newer (verified on 6.1.1)
 
 ## Install
 

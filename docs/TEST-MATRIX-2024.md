@@ -5,8 +5,8 @@ Status: the 2024 pass is complete (2026-11-16); all twelve builds were made in t
 One build per class (all twelve), with backgrounds and species chosen so that, between them, the builds exercise every kind
 of choice the 2024 wizard handles. The pairings do not need to make sense. Tick a row when the whole build passes.
 
-Test world: the local **Dev Testing** world (Foundry 14.370, dnd5e 6.1.0, checked through the Foundry MCP on 2026-11-14;
-this is newer than the verified 14.368 and 6.0.6, so a failure may be a version difference). Set the dnd5e *Rules Version*
+Test world: the local **Dev Testing** world (Foundry 14.370, dnd5e 6.1.1, the versions the module is now verified on; the
+minimums are Foundry 14 and dnd5e 6.0.0, which have not been re-tested). Set the dnd5e *Rules Version*
 setting to the 2024 rules (`modern`) first. The system packs `dnd5e.classes24`, `dnd5e.origins24` and `dnd5e.feats24` hold
 only the SRD 5.2 subset (for example 4 backgrounds: Acolyte, Criminal, Sage, Soldier). The rest, such as Farmer, exists only in
 the D&D Beyond import packs, whose data differs (the Barbarian build used the DDB class). Where a name exists in both, the wizard offers the copy from the higher-priority pack (Configure content), so a second

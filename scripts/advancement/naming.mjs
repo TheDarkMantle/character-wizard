@@ -95,3 +95,14 @@ export function traitOptionLabel(key, label, hostIdentifier) {
   const colours = (hostIdentifier === "dragonborn") ? DRAGON_COLOURS[key] : null;
   return colours ? `${label} (${colours.join(", ")})` : label;
 }
+
+/** A choice with more options than this isn't spelled out on the features board; it says how many there are instead. */
+export const MAX_LISTED_OPTIONS = 6;
+
+/**
+ * Should a pool this big be summarised as a count rather than listed?
+ * @param {number} count  Number of options in the pool.
+ */
+export function isLongList(count) {
+  return count > MAX_LISTED_OPTIONS;
+}

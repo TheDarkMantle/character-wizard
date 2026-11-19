@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  advancementName, stripTitlePrefix, fallbackTitleKey, isDraconicAncestry, traitOptionLabel, traitTitleKey
+  advancementName, stripTitlePrefix, fallbackTitleKey, isDraconicAncestry, isLongList, MAX_LISTED_OPTIONS, traitOptionLabel, traitTitleKey
 } from "../scripts/advancement/naming.mjs";
 
 describe("advancementName", () => {
@@ -52,5 +52,15 @@ describe("stripTitlePrefix", () => {
     expect(stripTitlePrefix("Archery", "Fighting Style")).toBe("Archery");
     expect(stripTitlePrefix("Magic Initiate: Cleric", "Fighting Style")).toBe("Magic Initiate: Cleric");
     expect(stripTitlePrefix("Draconic Ancestry: Gold", "Draconic Ancestry")).toBe("Gold");
+  });
+});
+
+describe("isLongList", () => {
+  it("lists up to six options and summarises more", () => {
+    expect(MAX_LISTED_OPTIONS).toBe(6);
+    expect(isLongList(0)).toBe(false);
+    expect(isLongList(6)).toBe(false);
+    expect(isLongList(7)).toBe(true);
+    expect(isLongList(40)).toBe(true);
   });
 });

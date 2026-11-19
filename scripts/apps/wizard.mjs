@@ -2,7 +2,7 @@ import { MODULE_ID, STEP_ORDER, TEMPLATE_PATH } from "../constants.mjs";
 import { worldRules } from "../content/catalog.mjs";
 import { classDisplayNames, groupSpecies, searchEntries } from "../content/catalog-logic.mjs";
 import { buildBoard } from "../advancement/read.mjs";
-import { traitOptionLabel } from "../advancement/naming.mjs";
+import { isLongList, traitOptionLabel } from "../advancement/naming.mjs";
 import { blockedLanguageKeys } from "../content/languages.mjs";
 import { bodyLines } from "../content/species-info.mjs";
 import { customArray, getSetting } from "../settings.mjs";
@@ -1280,11 +1280,14 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       if ( key.startsWith("size:") ) return CONFIG.DND5E.actorSizes[key.slice(5)]?.label ?? key;
       return traitOptionLabel(key, dnd5e.documents.Trait.keyLabel(key) || key, hostId);
     };
+    // A long list of options is summarised, since naming forty feats helps nobody.
+    const listed = (names, count = names.length) => isLongList(count)
+      ? game.i18n.format("CHARWIZ.Board.ManyOptions", { count }) : names.join(", ");
     let detail = "";
     if ( entry.items?.length ) detail = entry.items.map(itemName).join(", ");
     else if ( entry.traits?.length ) detail = entry.traits.map(traitLabel).join(", ");
-    else if ( entry.choiceType === "trait" ) detail = entry.pool.map(traitLabel).join(", ");
-    else if ( entry.choiceType === "item" && entry.pool?.length ) detail = entry.pool.map(itemName).join(", ");
+    else if ( entry.choiceType === "trait" ) detail = listed(entry.pool.map(traitLabel));
+    else if ( entry.choiceType === "item" && entry.pool?.length ) detail = listed(entry.pool.map(itemName));
     else if ( entry.choiceType === "item" && entry.restriction?.list?.length ) {
       const names = entry.restriction.list.map(l => dnd5e.registry.spellLists.forType(l)?.name).filter(_ => _);
       detail = game.i18n.format("CHARWIZ.Board.FromSpellList", {

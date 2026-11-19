@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Changed: a long list of options on the features board is summarised.** A choice with more than six options (a feat from every feat in the world, or eight skills) now says "Choose from 40 options" instead of naming them all. Six or fewer are still listed. The options themselves are unchanged in the picker. Not yet tried in Foundry.
+
 ## 0.7.27
 
 - **Fixed: the Deft Explorer Expertise choice couldn't be selected.** The advancement the wizard adds got a new random id every time the choices were rebuilt, and a choice's key includes that id, so each click's selection was stored under a key that was gone by the next rebuild. It now has a fixed id.

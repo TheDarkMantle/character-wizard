@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.7.29
 
-- **Fixed: the Cult of the Dragon Initiate feat now gives Draconic.** The D&D Beyond import has no data for the feat's "You know Draconic", so the Dragon Cultist background never taught it. The wizard now adds a language grant to a granted feature whose text says "You know <language>" for a language the system lists, unless its data already grants or offers it. A character who already knows the language is asked for another one instead, as the feat's text says. A scan of 3,187 imported items found only this feat. Not yet tried in Foundry.
+- **Fixed: the Cult of the Dragon Initiate feat now gives Draconic.** The D&D Beyond import has no data for the feat's "You know Draconic", so the Dragon Cultist background never taught it. The wizard now adds a language grant to a granted feature whose text says "You know <language>" for a language the system lists, unless its data already grants or offers it. A character who already knows the language is asked for another one instead, as the feat's text says. A scan of 3,187 imported items found only this feat.
 
 ## 0.7.28
 

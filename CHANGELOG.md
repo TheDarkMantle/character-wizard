@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.30
+
+- **Verified on Foundry 14.370 and dnd5e 6.1.1.** The manifest and README now list these as the tested versions. The minimums are unchanged (Foundry 14, dnd5e 6.0.0) and have not been re-tested. Builds were also checked in a world with only the SRD content, as a player on a blank sheet.
+
 ## 0.7.29
 
 - **Fixed: the Cult of the Dragon Initiate feat now gives Draconic.** The D&D Beyond import has no data for the feat's "You know Draconic", so the Dragon Cultist background never taught it. The wizard now adds a language grant to a granted feature whose text says "You know <language>" for a language the system lists, unless its data already grants or offers it. A character who already knows the language is asked for another one instead, as the feat's text says. A scan of 3,187 imported items found only this feat.

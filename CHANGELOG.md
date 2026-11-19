@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Changed: a long list of options on the features board is summarised.** A choice with more than six options (a feat from every feat in the world, or eight skills) now says "Choose from 40 options" instead of naming them all. Six or fewer are still listed. The options themselves are unchanged in the picker. Not yet tried in Foundry.
+- **Changed: a long list of options on the features board is summarised.** A choice with more than eight options (a feat from every feat in the world) now says "Choose from 40 options" instead of naming them all. Eight or fewer are still listed, so a class's skill list stays readable. The options themselves are unchanged in the picker. Not yet tried in Foundry.
 
 ## 0.7.27
 

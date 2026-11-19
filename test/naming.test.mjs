@@ -56,11 +56,11 @@ describe("stripTitlePrefix", () => {
 });
 
 describe("isLongList", () => {
-  it("lists up to six options and summarises more", () => {
-    expect(MAX_LISTED_OPTIONS).toBe(6);
+  it("lists up to eight options and summarises more", () => {
+    expect(MAX_LISTED_OPTIONS).toBe(8);
     expect(isLongList(0)).toBe(false);
-    expect(isLongList(6)).toBe(false);
-    expect(isLongList(7)).toBe(true);
+    expect(isLongList(8)).toBe(false);
+    expect(isLongList(9)).toBe(true);
     expect(isLongList(40)).toBe(true);
   });
 });

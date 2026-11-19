@@ -97,7 +97,7 @@ export function traitOptionLabel(key, label, hostIdentifier) {
 }
 
 /** A choice with more options than this isn't spelled out on the features board; it says how many there are instead. */
-export const MAX_LISTED_OPTIONS = 6;
+export const MAX_LISTED_OPTIONS = 8;
 
 /**
  * Should a pool this big be summarised as a count rather than listed?

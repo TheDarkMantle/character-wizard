@@ -29,9 +29,10 @@ Hooks.once("init", () => {
   });
 });
 
-// Rescan when compendium contents change.
+// Rescan when compendium or world item contents change.
 for ( const hook of ["createItem", "updateItem", "deleteItem"] ) {
   Hooks.on(hook, item => {
-    if ( item.pack ) game.modules.get(MODULE_ID)?.api?.catalog.invalidate();
+    // A compendium item, or one of the world's own Items (not one on an actor).
+    if ( item.pack || !item.parent ) game.modules.get(MODULE_ID)?.api?.catalog.invalidate();
   });
 }

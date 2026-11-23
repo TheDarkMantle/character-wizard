@@ -234,3 +234,29 @@ describe("class copies", () => {
     expect(searchEntries(byType.class, "ddb")).toHaveLength(1);
   });
 });
+
+describe("world items", () => {
+  const world = { collection: "world-items", label: "World Items" };
+  const homebrew = { _id: "abc", uuid: "Item.abc", name: "Apothecary", img: "x.webp", type: "class",
+    system: { identifier: "apothecary", source: { rules: "2024", book: "Homebrew" } }, flags: {} };
+
+  it("keeps the item's own uuid instead of building a compendium one", () => {
+    const e = normalizeEntry(homebrew, world);
+    expect(e.uuid).toBe("Item.abc");
+    expect(e.pack).toBe("world-items");
+    expect(e.origin).toBe("World Items");
+    expect(e.key).toBe("class:apothecary@world-items");
+  });
+
+  it("is offered under its rules like any other content", () => {
+    const e = normalizeEntry(homebrew, world);
+    expect(buildCatalog([e], { rules: "2024" }).byType.class).toHaveLength(1);
+    expect(buildCatalog([e], { rules: "2014" }).byType.class).toHaveLength(0);
+  });
+
+  it("can be blocked and named like a compendium's copy", () => {
+    const e = normalizeEntry(homebrew, world);
+    expect(buildCatalog([e], { rules: "2024", blocked: [e.key] }).byType.class).toHaveLength(0);
+    expect(buildCatalog([e], { rules: "2024", labels: { [e.key]: "Mine" } }).byType.class[0].origin).toBe("Mine");
+  });
+});

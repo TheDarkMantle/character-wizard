@@ -1,4 +1,4 @@
-import { MODULE_ID, TEMPLATE_PATH } from "../constants.mjs";
+import { MODULE_ID, TEMPLATE_PATH, WORLD_ITEMS_PACK } from "../constants.mjs";
 import { getSetting, setSetting } from "../settings.mjs";
 import { candidatePacks, worldRules } from "../content/catalog.mjs";
 import { subclassesFor } from "../content/catalog-logic.mjs";
@@ -63,17 +63,16 @@ export default class ContentSettings extends HandlebarsApplicationMixin(Applicat
     const counts = allEntries.reduce((acc, e) => { acc[e.pack] = (acc[e.pack] ?? 0) + 1; return acc; }, {});
 
     if ( !this.#packOrder ) {
-      this.#packOrder = candidatePacks()
-        .filter(p => counts[p.collection])
-        .map(p => p.collection)
+      this.#packOrder = [...candidatePacks().map(p => p.collection), WORLD_ITEMS_PACK]
+        .filter(id => counts[id])
         .sort((a, b) => (sources[a]?.priority ?? Infinity) - (sources[b]?.priority ?? Infinity));
     }
     const packs = this.#packOrder.map((id, index) => ({
       id,
       index,
       rank: index + 1,
-      label: game.packs.get(id)?.metadata.label ?? id,
-      source: game.packs.get(id)?.metadata.packageName ?? "",
+      label: (id === WORLD_ITEMS_PACK) ? game.i18n.localize("CHARWIZ.Settings.Content.WorldItems") : (game.packs.get(id)?.metadata.label ?? id),
+      source: (id === WORLD_ITEMS_PACK) ? game.i18n.localize("CHARWIZ.Settings.Content.WorldItemsSource") : (game.packs.get(id)?.metadata.packageName ?? ""),
       count: counts[id] ?? 0,
       enabled: sources[id]?.enabled !== false,
       anyRules: sources[id]?.anyRules === true,

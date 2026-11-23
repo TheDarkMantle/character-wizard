@@ -11,6 +11,12 @@ export const RULES = Object.freeze({
 });
 
 /**
+ * Pseudo-pack id for the world's own Items (the Items sidebar), so homebrew there is offered like any compendium's content.
+ * It isn't a pack id Foundry could hand out (those are "package.name"), so it can't clash with one.
+ */
+export const WORLD_ITEMS_PACK = "world-items";
+
+/**
  * Item types the wizard cares about, grouped by what they're for.
  * "race" is the dnd5e item type for species.
  */

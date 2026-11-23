@@ -1,4 +1,4 @@
-import { INDEX_FIELDS, MODULE_ID, RULES } from "../constants.mjs";
+import { INDEX_FIELDS, MODULE_ID, RULES, WORLD_ITEMS_PACK } from "../constants.mjs";
 import { getSetting } from "../settings.mjs";
 import { buildCatalog, normalizeEntry } from "./catalog-logic.mjs";
 import { normalizeGear } from "../equipment/gear.mjs";
@@ -72,6 +72,18 @@ export class ContentCatalog {
         this.unavailable.push(pack.collection);
         console.warn(`${MODULE_ID} | Could not index ${pack.collection}`, err);
       }
+    }
+    // The world's own Items: homebrew made or imported straight into the Items sidebar. A player sees the ones they can
+    // observe, which is all Foundry lets them read.
+    const world = { collection: WORLD_ITEMS_PACK, label: game.i18n.localize("CHARWIZ.Settings.Content.WorldItems") };
+    for ( const item of game.items ) {
+      if ( !item.testUserPermission(game.user, "OBSERVER") ) continue;
+      const raw = { _id: item.id, uuid: item.uuid, name: item.name, img: item.img, type: item.type, system: item.system,
+        flags: item.flags };
+      const entry = normalizeEntry(raw, world);
+      if ( entry ) entries.push(entry);
+      const piece = normalizeGear(raw, world);
+      if ( piece ) gear.push(piece);
     }
     this.#entries = entries;
     this.#gear = gear;

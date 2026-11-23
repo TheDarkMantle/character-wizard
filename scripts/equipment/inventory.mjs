@@ -1,3 +1,4 @@
+import { WORLD_ITEMS_PACK } from "../constants.mjs";
 import { builtInPack, fillQuivers, matchItemName, parsePackDescription } from "./packs.mjs";
 import { quantityFor } from "./starting.mjs";
 import { rankedGear } from "./gear.mjs";
@@ -22,7 +23,9 @@ import { itemsToEquip } from "./equip.mjs";
 /** Compendium id and document id of a compendium UUID. */
 function locate(uuid) {
   const parsed = foundry.utils.parseUuid(uuid);
-  return { pack: parsed?.collection?.collection ?? null, id: parsed?.documentId ?? null };
+  // A world Item ("Item.<id>") belongs to the world-items pseudo-pack, as in the catalog.
+  const pack = parsed?.collection?.collection ?? (String(uuid).startsWith("Item.") ? WORLD_ITEMS_PACK : null);
+  return { pack, id: parsed?.documentId ?? null };
 }
 
 /**

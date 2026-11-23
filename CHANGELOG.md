@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Added: the new character's prototype token gets the sight its senses give.** A Dwarf's darkvision (and blindsight, tremorsense and the like) is now copied onto the prototype token when the character is created, using dnd5e's own sense-to-sight rule. dnd5e works this out for a token placed on a scene but leaves the prototype token alone, so a new Dwarf's prototype showed no darkvision. Needs dnd5e 6.1 or newer; on 6.0 nothing is changed. Not yet tried in Foundry.
+
 ## 0.7.30
 
 - **Verified on Foundry 14.370 and dnd5e 6.1.1.** The manifest and README now list these as the tested versions. The minimums are unchanged (Foundry 14, dnd5e 6.0.0) and have not been re-tested. Builds were also checked in a world with only the SRD content, as a player on a blank sheet.

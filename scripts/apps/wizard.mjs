@@ -1,5 +1,6 @@
 import { MODULE_ID, STEP_ORDER, TEMPLATE_PATH } from "../constants.mjs";
 import { worldRules } from "../content/catalog.mjs";
+import { senseVision } from "../token/vision.mjs";
 import { classDisplayNames, groupSpecies, searchEntries } from "../content/catalog-logic.mjs";
 import { buildBoard } from "../advancement/read.mjs";
 import { isLongList, traitOptionLabel } from "../advancement/naming.mjs";
@@ -1420,6 +1421,9 @@ export default class CharacterWizard extends HandlebarsApplicationMixin(Applicat
       engine.clone.reset();
       const maxHP = engine.clone.system.attributes?.hp?.max;
       if ( maxHP > 0 ) engine.clone.updateSource({ "system.attributes.hp.value": maxHP });
+      // The prototype token gets the sight the senses give (a Dwarf's darkvision).
+      const vision = senseVision(engine.clone);
+      if ( vision ) engine.clone.updateSource({ prototypeToken: vision });
       await engine.commit();
       ui.notifications.info(game.i18n.format("CHARWIZ.Create.Done", { name }));
       await this.close();

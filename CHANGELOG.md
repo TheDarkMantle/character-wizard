@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.7.32
 
-- **Fixed: a new Dwarf's prototype token now gets its darkvision.** 0.7.31 copied the character's senses to the prototype token, but while the wizard builds the character dnd5e hasn't yet recorded the species as the actor's own, so the species' darkvision wasn't among the senses it read. The wizard now adds the species' own sense ranges first. Not yet tried in Foundry.
+- **Fixed: a new Dwarf's prototype token now gets its darkvision.** 0.7.31 copied the character's senses to the prototype token, but while the wizard builds the character dnd5e hasn't yet recorded the species as the actor's own, so the species' darkvision wasn't among the senses it read. The wizard now adds the species' own sense ranges first.
 
 ## 0.7.31
 

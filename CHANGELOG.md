@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed: a new Dwarf's prototype token now gets its darkvision.** 0.7.31 copied the character's senses to the prototype token, but while the wizard builds the character dnd5e hasn't yet recorded the species as the actor's own, so the species' darkvision wasn't among the senses it read. The wizard now adds the species' own sense ranges first. Not yet tried in Foundry.
+
 ## 0.7.31
 
 - **Added: the world's own Items are scanned for homebrew.** Classes, subclasses, species, backgrounds and feats in the Items sidebar are now offered in the wizard like a compendium's content, so homebrew no longer has to be moved into a compendium first. They appear in Configure content → Sources as "World Items" (enable, rank and "any rules version" work as for a compendium), and the Classes, Species and Subclasses tabs list them for blocking. The wizard refreshes when an item is created, edited or deleted. A player sees only the world items they have at least Observer permission on.
